@@ -1,0 +1,8 @@
+server:
+  port: 8080
+spring:
+  data:
+    mongodb:
+      database: qwangu_db
+      host: localhost
+      port: 27017
