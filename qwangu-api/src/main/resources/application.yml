@@ -6,3 +6,5 @@ spring:
       database: qwangu_db
       host: localhost
       port: 27017
+      username: kevin
+      password: pass123
