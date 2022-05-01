@@ -1,7 +1,7 @@
 package co.ke.proaktivio.qwanguapi.models;
 
 import lombok.*;
-import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
 
 @EqualsAndHashCode
 @ToString
@@ -9,5 +9,6 @@ import org.bson.types.ObjectId;
 @AllArgsConstructor
 @NoArgsConstructor
 public abstract class BasicEntity {
-    private ObjectId id;
+    @Id
+    private String id;
 }
