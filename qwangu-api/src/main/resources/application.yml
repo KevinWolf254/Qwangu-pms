@@ -8,3 +8,4 @@ spring:
       port: 27017
       username: kevin
       password: pass123
+      auto-index-creation: true
