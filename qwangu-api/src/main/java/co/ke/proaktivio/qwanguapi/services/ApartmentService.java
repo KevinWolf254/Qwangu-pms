@@ -11,6 +11,6 @@ import java.util.Optional;
 public interface ApartmentService {
     Mono<Apartment> create(ApartmentDto dto);
     Mono<Apartment> update(String id, ApartmentDto dto);
-    Flux<Apartment> find(Optional<String> id, Optional<String> name, int page, int pageSize, OrderType order);
-    Mono<Void> deleteById(String id);
+    Flux<Apartment> findPaginated(Optional<String> id, Optional<String> name, int page, int pageSize, OrderType order);
+    Mono<String> deleteById(String id);
 }

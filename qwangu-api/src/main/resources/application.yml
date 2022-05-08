@@ -9,3 +9,4 @@ spring:
       username: kevin
       password: pass123
       auto-index-creation: true
+      authentication-database: admin

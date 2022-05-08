@@ -7,6 +7,7 @@ import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,8 +19,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
+@Log4j2
 @Service
 @AllArgsConstructor
 public class ApartmentServiceImpl implements ApartmentService {
@@ -27,51 +30,61 @@ public class ApartmentServiceImpl implements ApartmentService {
 
     @Override
     public Mono<Apartment> create(ApartmentDto dto) {
+        String name = dto.getName();
         Query query = new Query()
-                .addCriteria(Criteria.where("name").is(dto.getName()));
+                .addCriteria(Criteria.where("name").is(name));
         return template
                 .exists(query, Apartment.class)
                 .flatMap(exists -> {
-                            if (exists)
-                                return Mono.error(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(dto.getName())));
-                            LocalDateTime now = LocalDateTime.now();
-                            return template.save(new Apartment(dto.getName(), now, now));
-                        }
-                );
-    }
-
-    @Override
-    public Mono<Apartment> update(String id, ApartmentDto dto) {
-        return template
-                .findById(id, Apartment.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id $s does not exist!!".formatted(id))))
-                .flatMap(apartment -> {
-                    apartment.setName(dto.getName());
-                    return template.save(apartment);
+                    if (exists)
+                        throw new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name));
+                    LocalDateTime now = LocalDateTime.now();
+                    return template.save(new Apartment(name, now, now));
                 });
     }
 
     @Override
-    public Flux<Apartment> find(Optional<String> id, Optional<String> name, int page, int pageSize, OrderType order) {
+    public Mono<Apartment> update(String id, ApartmentDto dto) {
+        String name = dto.getName();
+        Query query = new Query()
+                .addCriteria(Criteria.where("name").is(name));
+        Mono<Apartment> findByIdResult = template.findById(id, Apartment.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exists!".formatted(id))));
+        Mono<List<Apartment>> findByNameResult = template.find(query, Apartment.class).collectList();
+
+        return findByIdResult.zipWith(findByNameResult, ((apartment, apartments) -> {
+                    if (apartments != null && apartments.size() > 0) {
+                        for (Apartment apart : apartments) {
+                            if (apart.getId() != id && apart.getName().equals(name))
+                                throw new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name));
+                        }
+                    }
+                    apartment.setName(dto.getName());
+                    return apartment;
+                }))
+                .flatMap(template::save);
+    }
+
+    @Override
+    public Flux<Apartment> findPaginated(Optional<String> optionalId, Optional<String> optionalApartmentName, int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        Sort sort = order.equals(OrderType.ASC) ? Sort.by(Sort.Order.asc("id")) :
+        Sort sort = order.equals(OrderType.ASC) ?
+                Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        if(id.isPresent())
-            query.addCriteria(Criteria.where("id").is(id));
-        if (name.isPresent())
-            query.addCriteria(Criteria.where("name").is(name));
+        optionalId.ifPresent(s -> query.addCriteria(Criteria.where("id").is(s)));
+        optionalApartmentName.ifPresent(s -> query.addCriteria(Criteria.where("name").is(s)));
         query.with(pageable)
                 .with(sort);
         return template.find(query, Apartment.class);
     }
 
     @Override
-    public Mono<Void> deleteById(String id) {
+    public Mono<String> deleteById(String id) {
         return template
                 .findById(id, Apartment.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!!".formatted(id))))
-                .flatMap(apartment -> template.remove(apartment))
-                .flatMap(result -> Mono.empty());
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(id))))
+                .flatMap(template::remove)
+                .flatMap(result -> Mono.just("Deleted Successfully"));
     }
 }
