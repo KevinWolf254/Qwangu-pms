@@ -3,8 +3,8 @@ package co.ke.proaktivio.qwanguapi.models;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 
-@EqualsAndHashCode
-@ToString
+//@EqualsAndHashCode
+//@ToString
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

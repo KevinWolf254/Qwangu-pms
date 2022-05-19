@@ -1,0 +1,12 @@
+#server:
+#  port: 8080
+#spring:
+#  data:
+#    mongodb:
+#      database: qwangu_test_db
+#      host: localhost
+#      port: 27017
+#      username: kevin
+#      password: pass123
+#      auto-index-creation: true
+#      authentication-database: admin

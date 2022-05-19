@@ -7,16 +7,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 
-@Configuration
-@RequiredArgsConstructor
+//@Configuration
+//@RequiredArgsConstructor
 public class ReactiveMongoTemplateConfiguration {
 
-    private final MongoClient mongoClient;
-    @Value( "${spring.data.mongodb.database}" )
-    private String databaseName;
-
-    @Bean
-    public ReactiveMongoTemplate reactiveMongoTemplate() {
-        return new ReactiveMongoTemplate(mongoClient, databaseName);
-    }
+//    private final MongoClient mongoClient;
+//    @Value( "${spring.data.mongodb.database}" )
+//    private String databaseName;
+//
+//    @Bean
+//    public ReactiveMongoTemplate reactiveMongoTemplate() {
+//        return new ReactiveMongoTemplate(mongoClient, databaseName);
+//    }
 }

@@ -7,8 +7,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Document(value = "APARTMENT")
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
