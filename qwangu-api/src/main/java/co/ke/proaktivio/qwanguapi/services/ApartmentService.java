@@ -12,5 +12,5 @@ public interface ApartmentService {
     Mono<Apartment> create(ApartmentDto dto);
     Mono<Apartment> update(String id, ApartmentDto dto);
     Flux<Apartment> findPaginated(Optional<String> id, Optional<String> name, int page, int pageSize, OrderType order);
-    Mono<String> deleteById(String id);
+    Mono<Boolean> deleteById(String id);
 }

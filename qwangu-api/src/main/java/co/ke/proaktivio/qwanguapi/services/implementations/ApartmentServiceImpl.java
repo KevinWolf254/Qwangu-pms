@@ -36,7 +36,7 @@ public class ApartmentServiceImpl implements ApartmentService {
     }
 
     @Override
-    public Mono<String> deleteById(String id) {
+    public Mono<Boolean> deleteById(String id) {
         return repository.delete(id);
     }
 }

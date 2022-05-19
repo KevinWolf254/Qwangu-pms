@@ -23,10 +23,6 @@ import java.util.Optional;
 public class CustomApartmentRepositoryImpl implements CustomApartmentRepository {
     private final ReactiveMongoTemplate template;
 
-    public Flux<Apartment> find(Query query) {
-        return template.find(query, Apartment.class);
-    }
-
     @Override
     public Mono<Apartment> create(ApartmentDto dto) {
         String name = dto.getName();
@@ -81,11 +77,11 @@ public class CustomApartmentRepositoryImpl implements CustomApartmentRepository 
     }
 
     @Override
-    public Mono<String> delete(String id) {
+    public Mono<Boolean> delete(String id) {
         return template
                 .findById(id, Apartment.class)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(id))))
                 .flatMap(template::remove)
-                .flatMap(result -> Mono.just("Deleted Successfully"));
+                .map(result -> result.wasAcknowledged());
     }
 }

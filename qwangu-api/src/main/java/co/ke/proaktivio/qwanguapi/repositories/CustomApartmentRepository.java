@@ -16,5 +16,5 @@ public interface CustomApartmentRepository {
 
     Flux<Apartment> findPaginated(Optional<String> optionalId, Optional<String> optionalApartmentName, int page, int pageSize, OrderType order);
 
-    Mono<String> delete(String id);
+    Mono<Boolean> delete(String id);
 }

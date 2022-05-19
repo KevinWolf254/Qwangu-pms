@@ -1,14 +1,11 @@
 package co.ke.proaktivio.qwanguapi.controllers;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -53,7 +50,7 @@ public class ApartmentController {
     }
 
     @DeleteMapping("/{id}")
-    public Mono<String> deleteById(@PathVariable String id) {
+    public Mono<Boolean> deleteById(@PathVariable String id) {
         return apartmentService.deleteById(id);
     }
 }
