@@ -6,6 +6,8 @@ import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -18,18 +20,19 @@ import java.util.Optional;
 public class ApartmentController {
     private final ApartmentService apartmentService;
 
-    @PostMapping
+    @PostMapping(consumes = "application/json", produces = "application/json")
+    @ResponseStatus(HttpStatus.CREATED)
     public Mono<Apartment> create(@RequestBody ApartmentDto dto) {
         return apartmentService.create(dto);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = "application/json", produces = "application/json")
     public Mono<Apartment> update(@PathVariable String id,
                                   @RequestBody ApartmentDto dto) {
         return apartmentService.update(id, dto);
     }
 
-    @GetMapping
+    @GetMapping(produces = "application/json")
     public Flux<Apartment> find(@RequestParam(required = false) String id,
                                 @RequestParam(required = false) String name,
                                 @RequestParam String page,
@@ -49,7 +52,7 @@ public class ApartmentController {
         );
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(value = "/{id}", produces = "application/json")
     public Mono<Boolean> deleteById(@PathVariable String id) {
         return apartmentService.deleteById(id);
     }

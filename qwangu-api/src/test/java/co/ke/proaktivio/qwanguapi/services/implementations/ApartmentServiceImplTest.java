@@ -3,16 +3,19 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
+import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -50,7 +53,7 @@ class ApartmentServiceImplTest {
 
     @Test
     @DisplayName("Create returns a Mono of Apartment when name does not exist")
-    void create_ReturnCustomAlreadyExistsException() {
+    void create_returnCustomAlreadyExistsException_whenNameDoesNotExist() {
 
         // given
         String name = "Luxury Apartment";
@@ -74,7 +77,7 @@ class ApartmentServiceImplTest {
 
     @Test
     @DisplayName("Update returns a Mono of Apartment when apartment with id exists")
-    void update_ReturnMonoOfApartment_WhenSuccessful() {
+    void update_returnMonoOfApartment_whenSuccessful() {
         // given
         String name = "Luxury Apartment";
         ApartmentDto dto = new ApartmentDto(name);
@@ -95,12 +98,37 @@ class ApartmentServiceImplTest {
                 .expectNext(apartment)
                 .verifyComplete();
     }
-//
-//    @Test
-//    void findPaginated() {
-//    }
-//
-//    @Test
-//    void deleteById() {
-//    }
+
+    @Test
+    void findPaginated_returnFluxOfApartments_whenSuccessful() {
+        // given
+        var a1 = new Apartment();
+        a1.setId("1");
+        a1.setName("Luxury Apartments");
+        a1.setCreated(LocalDateTime.now());
+        a1.setModified(LocalDateTime.now());
+
+        // when
+        when(repository.findPaginated(Optional.of("1"), Optional.of("Luxury Apartments"),0,10, OrderType.ASC))
+                .thenReturn(Flux.just(a1));
+        // then
+        StepVerifier.create(apartmentService.findPaginated(Optional.of("1"), Optional.of("Luxury Apartments"),0,10, OrderType.ASC))
+                .expectNextMatches(a -> a.getId().equalsIgnoreCase("1") &&
+                        a.getName().equalsIgnoreCase("Luxury Apartments"))
+                .verifyComplete();
+    }
+
+    @Test
+    void deleteById() {
+        // given
+        String id = "1";
+
+        // when
+        when(repository.delete(id)).thenReturn(Mono.just(true));
+
+        // then
+        StepVerifier.create(apartmentService.deleteById(id))
+                .expectNextMatches(r -> r)
+                .verifyComplete();
+    }
 }
