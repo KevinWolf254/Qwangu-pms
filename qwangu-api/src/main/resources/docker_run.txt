@@ -1,0 +1,1 @@
+docker run -d  --name qwangu_db -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=kevin -e MONGO_INITDB_ROOT_PASSWORD=pass123 mongo:latest
