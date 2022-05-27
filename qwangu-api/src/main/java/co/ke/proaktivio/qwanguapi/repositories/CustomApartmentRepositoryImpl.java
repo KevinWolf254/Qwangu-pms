@@ -5,6 +5,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -73,7 +74,7 @@ public class CustomApartmentRepositoryImpl implements CustomApartmentRepository 
         query.with(pageable)
                 .with(sort);
         return template.find(query, Apartment.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartments do not exist!")));
+                .switchIfEmpty(Flux.error(new CustomNotFoundException("Apartments do not exist!")));
     }
 
     @Override
@@ -82,6 +83,6 @@ public class CustomApartmentRepositoryImpl implements CustomApartmentRepository 
                 .findById(id, Apartment.class)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(id))))
                 .flatMap(template::remove)
-                .map(result -> result.wasAcknowledged());
+                .map(DeleteResult::wasAcknowledged);
     }
 }
