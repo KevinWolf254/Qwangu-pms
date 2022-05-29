@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 
 import org.springframework.web.reactive.function.server.RouterFunction;
 
-import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
@@ -15,10 +14,12 @@ public class ApartmentConfigs {
 
     @Bean
     RouterFunction<ServerResponse> apartmentRoute(ApartmentHandler handler) {
-        return route(
-                POST("v1/apartments"), handler::create).andRoute(
-                PUT("v1/apartments/{id}"), handler::update).andRoute(
-                GET("v1/apartments"), handler::find).andRoute(
-                DELETE("v1/apartments/{id}"), handler::delete);
+        return route()
+                .path("v1/apartments", builder -> builder
+                        .GET(handler::find)
+                        .POST(handler::create)
+                        .PUT("/{id}", handler::update)
+                        .DELETE("/{id}", handler::delete)
+                ).build();
     }
 }
