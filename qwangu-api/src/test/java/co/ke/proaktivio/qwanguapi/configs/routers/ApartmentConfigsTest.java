@@ -5,7 +5,9 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.ApartmentHandler;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
+import co.ke.proaktivio.qwanguapi.pojos.ErrorCode;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import co.ke.proaktivio.qwanguapi.pojos.SuccessResponse;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
@@ -49,8 +51,8 @@ class ApartmentConfigsTest {
         // given
         String name = "Luxury Apartments";
         var dto = new ApartmentDto(name);
-        var apartment = new Apartment(name, LocalDateTime.now(), LocalDateTime.now());
-        apartment.setId("1");
+        LocalDateTime now = LocalDateTime.now();
+        var apartment = new Apartment("1", name, now, null);
 
         //when
         Mockito.when(apartmentService.create(dto)).thenReturn(Mono.just(apartment));
@@ -63,7 +65,15 @@ class ApartmentConfigsTest {
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentType("application/json")
-                .expectBody(Apartment.class).isEqualTo(apartment)
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("Apartment created successfully.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.id").isEqualTo("1")
+                .jsonPath("$.data.name").isEqualTo(name)
+                .jsonPath("$.data.created").isEqualTo(now.toString())
+                .jsonPath("$.data.modified").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -84,7 +94,13 @@ class ApartmentConfigsTest {
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
-                .expectBody(String.class).isEqualTo("Apartment %s already exists!".formatted(name))
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request")
+                .jsonPath("$.data").isArray()
+                .jsonPath("$.data[0]").isEqualTo("Apartment %s already exists!".formatted(name))
                 .consumeWith(System.out::println);
     }
 
@@ -105,7 +121,13 @@ class ApartmentConfigsTest {
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()
                 .expectStatus().isEqualTo(500)
-                .expectBody(String.class).isEqualTo("Something happened!")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Something happened!")
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
+                .jsonPath("$.data").isArray()
+                .jsonPath("$.data[0]").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 
@@ -118,8 +140,8 @@ class ApartmentConfigsTest {
 
         String id = "1";
         String name2 = "Luxury Apartments B";
-        var apartment = new Apartment(name2,LocalDateTime.now(), LocalDateTime.now());
-        apartment.setId(id);
+        LocalDateTime now = LocalDateTime.now();
+        var apartment = new Apartment("1", name2, now, now);
 
         //when
         Mockito.when(apartmentService.update(id, dto)).thenReturn(Mono.just(apartment));
@@ -134,9 +156,13 @@ class ApartmentConfigsTest {
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")
                 .expectBody()
-                .jsonPath("$.id").isEqualTo(id)
-                .jsonPath("$.name").isEqualTo(name2)
-                .jsonPath("$.modified").isNotEmpty()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("Apartment updated successfully.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.id").isEqualTo("1")
+                .jsonPath("$.data.name").isEqualTo(name2)
+                .jsonPath("$.data.modified").isEqualTo(now.toString())
                 .consumeWith(System.out::println);
     }
 
@@ -158,7 +184,13 @@ class ApartmentConfigsTest {
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
-                .expectBody(String.class).isEqualTo("Apartment %s already exists!".formatted(name))
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request")
+                .jsonPath("$.data").isArray()
+                .jsonPath("$.data[0]").isEqualTo("Apartment %s already exists!".formatted(name))
                 .consumeWith(System.out::println);
     }
 
@@ -180,7 +212,13 @@ class ApartmentConfigsTest {
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()
                 .expectStatus().isEqualTo(500)
-                .expectBody(String.class).isEqualTo("Something happened!")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Something happened!")
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
+                .jsonPath("$.data").isArray()
+                .jsonPath("$.data[0]").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
 
     }
@@ -192,8 +230,8 @@ class ApartmentConfigsTest {
         String page = "1";
         String id = "1";
         String name = "Luxury Apartments";
-        var apartment = new Apartment(name,LocalDateTime.now(), LocalDateTime.now());
-        apartment.setId(id);
+        LocalDateTime now = LocalDateTime.now();
+        var apartment = new Apartment("1",name, now, null);
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
@@ -224,10 +262,13 @@ class ApartmentConfigsTest {
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")
                 .expectBody()
-                .jsonPath("$").isArray()
-                .jsonPath("$.[0].id").isEqualTo(id)
-                .jsonPath("$.[0].name").isEqualTo(name)
-                .jsonPath("$.[0].created").isNotEmpty()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("Apartments found successfully.")
+                .jsonPath("$.data").isArray()
+                .jsonPath("$.data.[0].id").isEqualTo("1")
+                .jsonPath("$.data.[0].name").isEqualTo(name)
+                .jsonPath("$.data.[0].created").isNotEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -250,7 +291,7 @@ class ApartmentConfigsTest {
                 finalPage - 1,
                 finalPageSize,
                 OrderType.valueOf(order)))
-                .thenReturn(Flux.error(new CustomNotFoundException("Apartments do not exist!")));
+                .thenReturn(Flux.error(new CustomNotFoundException("Apartments were not found!")));
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
@@ -267,7 +308,13 @@ class ApartmentConfigsTest {
                 .uri(uriFunc)
                 .exchange()
                 .expectStatus().isNotFound()
-                .expectBody(String.class).isEqualTo("Apartments do not exist!")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Not found!")
+                .jsonPath("$.data").isArray()
+                .jsonPath("$.data[0]").isEqualTo("Apartments were not found!")
                 .consumeWith(System.out::println);
 
     }
@@ -308,7 +355,13 @@ class ApartmentConfigsTest {
                 .uri(uriFunc)
                 .exchange()
                 .expectStatus().isEqualTo(500)
-                .expectBody(String.class).isEqualTo("Something happened!")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Something happened!")
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
+                .jsonPath("$.data").isArray()
+                .jsonPath("$.data[0]").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 
@@ -329,7 +382,10 @@ class ApartmentConfigsTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")
-                .expectBody(Boolean.class).isEqualTo(true)
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("Apartment with id %s deleted successfully.".formatted(id))
                 .consumeWith(System.out::println);
     }
 
@@ -349,7 +405,13 @@ class ApartmentConfigsTest {
                 .uri("/v1/apartments/{id}", id)
                 .exchange()
                 .expectStatus().isNotFound()
-                .expectBody(String.class).isEqualTo("Apartment with id %s does not exist!".formatted(id))
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Not found!")
+                .jsonPath("$.data").isArray()
+                .jsonPath("$.data[0]").isEqualTo("Apartment with id %s does not exist!".formatted(id))
                 .consumeWith(System.out::println);
     }
 
@@ -369,7 +431,14 @@ class ApartmentConfigsTest {
                 .uri("/v1/apartments/{id}", id)
                 .exchange()
                 .expectStatus().isEqualTo(500)
-                .expectBody(String.class).isEqualTo("Something happened!")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Something happened!")
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
+                .jsonPath("$.data").isArray()
+                .jsonPath("$.data[0]").isEqualTo("Something happened!")
+//                .expectBody(String.class).isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 }

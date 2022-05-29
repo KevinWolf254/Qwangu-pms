@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -35,7 +36,7 @@ public class CustomApartmentRepositoryImpl implements CustomApartmentRepository 
                     if (exists)
                         throw new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name));
                     LocalDateTime now = LocalDateTime.now();
-                    Mono<Apartment> saved = template.save(new Apartment(name, now, now));
+                    Mono<Apartment> saved = template.save(new Apartment(null, name, now, null));
                     return saved;
                 });
     }
@@ -52,11 +53,13 @@ public class CustomApartmentRepositoryImpl implements CustomApartmentRepository 
         return findByIdResult.zipWith(findByNameResult, ((apartment, apartments) -> {
                     if (apartments != null && apartments.size() > 0) {
                         for (Apartment apart : apartments) {
-                            if (apart.getId() != id && apart.getName().equals(name))
+                            if (StringUtils.hasText(apart.getId()) &&  apart.getId() != id &&
+                                    StringUtils.hasText(apart.getName()) && apart.getName().equalsIgnoreCase(name))
                                 throw new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name));
                         }
                     }
                     apartment.setName(dto.getName());
+                    apartment.setModified(LocalDateTime.now());
                     return apartment;
                 }))
                 .flatMap(template::save);
@@ -74,7 +77,7 @@ public class CustomApartmentRepositoryImpl implements CustomApartmentRepository 
         query.with(pageable)
                 .with(sort);
         return template.find(query, Apartment.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("Apartments do not exist!")));
+                .switchIfEmpty(Flux.error(new CustomNotFoundException("Apartments were not found!")));
     }
 
     @Override

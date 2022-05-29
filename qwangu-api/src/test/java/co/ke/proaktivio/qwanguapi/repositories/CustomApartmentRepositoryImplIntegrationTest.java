@@ -60,9 +60,8 @@ class CustomApartmentRepositoryImplIntegrationTest {
         StepVerifier.create(saved)
                 .expectNextMatches(apartment ->
                         StringUtils.hasText(apartment.getId()) &&
-                                apartment.getName().equalsIgnoreCase(name) &&
-                                apartment.getCreated() != null &&
-                                apartment.getModified() != null)
+                        StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(name) &&
+                        apartment.getCreated() != null && StringUtils.hasText(apartment.getCreated().toString()))
                 .verifyComplete();
     }
 
@@ -96,13 +95,17 @@ class CustomApartmentRepositoryImplIntegrationTest {
         Mono<Apartment> updated =
                 template.dropCollection(Apartment.class)
                         .thenReturn(new ApartmentDto("Luxury Apartments"))
-                        .flatMap(d -> customApartmentRepository.create(d))
-                        .flatMap(d -> customApartmentRepository.update(d.getId(), new ApartmentDto(updatedName)));
+                        .flatMap(a -> customApartmentRepository.create(a))
+                        .flatMap(a -> customApartmentRepository.update(a.getId(), new ApartmentDto(updatedName)));
 
         // then
         StepVerifier.create(updated)
-                .expectNextMatches(result -> StringUtils.hasText(result.getId()) &&
-                        result.getName().equalsIgnoreCase(updatedName))
+                .expectNextMatches(apartment ->
+                        StringUtils.hasText(apartment.getId()) &&
+                        StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(updatedName) &&
+                        apartment.getModified() != null && StringUtils.hasText(apartment.getModified().toString()))
+//                        result.getId() != null && !result.getId().isBlank() && !result.getId().isEmpty() &&
+//                        result.getName().isPresent() && result.getName().get().equalsIgnoreCase(updatedName))
                 .verifyComplete();
     }
 
@@ -135,7 +138,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
         // when
         Mono<Apartment> saved = customApartmentRepository.create(dto)
                 .thenReturn(new ApartmentDto("Luxury Apartments B"))
-                .flatMap(a -> customApartmentRepository.create(a))
+                .flatMap(dto2 -> customApartmentRepository.create(dto2))
                 .flatMap(a -> customApartmentRepository.update(a.getId(), dto));
 
         // then
