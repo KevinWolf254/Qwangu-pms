@@ -36,11 +36,7 @@ class ApartmentServiceImplTest {
         ApartmentDto dto = new ApartmentDto(name);
 
         LocalDateTime now = LocalDateTime.now();
-        Apartment apartment = new Apartment();
-        apartment.setId("1");
-        apartment.setName(name);
-        apartment.setCreated(now);
-        apartment.setModified(now);
+        var apartment = new Apartment("1",name, now, null);
 
         // when
         when(repository.create(dto)).thenReturn(Mono.just(apartment));
@@ -60,11 +56,7 @@ class ApartmentServiceImplTest {
         ApartmentDto dto = new ApartmentDto(name);
 
         LocalDateTime now = LocalDateTime.now();
-        Apartment apartment = new Apartment();
-        apartment.setId("1");
-        apartment.setName(name);
-        apartment.setCreated(now);
-        apartment.setModified(now);
+        var apartment = new Apartment("1",name, now, null);
 
         // when
         when(repository.create(dto)).thenReturn(Mono.error(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name))));
@@ -79,16 +71,12 @@ class ApartmentServiceImplTest {
     @DisplayName("Update returns a Mono of Apartment when apartment with id exists")
     void update_returnMonoOfApartment_whenSuccessful() {
         // given
+        String id = "1";
         String name = "Luxury Apartment";
         ApartmentDto dto = new ApartmentDto(name);
 
         LocalDateTime now = LocalDateTime.now();
-        Apartment apartment = new Apartment();
-        String id = "1";
-        apartment.setId(id);
-        apartment.setName(name);
-        apartment.setCreated(now);
-        apartment.setModified(now);
+        var apartment = new Apartment(id, name, now, null);
 
         // when
         when(repository.update(id, dto)).thenReturn(Mono.just(apartment));
@@ -102,12 +90,8 @@ class ApartmentServiceImplTest {
     @Test
     void findPaginated_returnFluxOfApartments_whenSuccessful() {
         // given
-        var a1 = new Apartment();
-        a1.setId("1");
-        a1.setName("Luxury Apartments");
-        a1.setCreated(LocalDateTime.now());
-        a1.setModified(LocalDateTime.now());
-
+        LocalDateTime now = LocalDateTime.now();
+        var a1 = new Apartment("1","Luxury Apartments", now, null);
         // when
         when(repository.findPaginated(Optional.of("1"), Optional.of("Luxury Apartments"),0,10, OrderType.ASC))
                 .thenReturn(Flux.just(a1));
