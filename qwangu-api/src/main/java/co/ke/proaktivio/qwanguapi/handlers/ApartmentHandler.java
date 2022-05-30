@@ -1,11 +1,13 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import co.ke.proaktivio.qwanguapi.utils.validators.ApartmentDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,10 @@ import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 
 import java.lang.reflect.Array;
 import java.net.URI;
@@ -27,7 +33,19 @@ public class ApartmentHandler {
     private final ApartmentService apartmentService;
 
     public Mono<ServerResponse> create(ServerRequest request) {
+        Validator validator = new ApartmentDtoValidator();
         return request.bodyToMono(ApartmentDto.class)
+                .map(apartmentDto -> {
+                    Errors errors = new BeanPropertyBindingResult(apartmentDto, ApartmentDto.class.getName());
+                    validator.validate(body, errors);
+                    if(!errors.getAllErrors().isEmpty()){
+                        errors.getAllErrors().stream
+                                .map(e -> e.getObjectName + " ,")
+                                .collect();
+                        return Mono.error(new CustomBadRequestException(""));
+                    }
+                    return apartmentDto;
+                })
                 .flatMap(apartmentService::create)
                 .flatMap(created ->
                         ServerResponse.created(URI.create("v1/apartments/%s".formatted(created.getId())))
