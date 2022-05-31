@@ -9,12 +9,8 @@ import reactor.core.publisher.Mono;
 import java.util.Optional;
 
 public interface CustomApartmentRepository {
-
     Mono<Apartment> create(ApartmentDto dto);
-
     Mono<Apartment> update(String id, ApartmentDto dto);
-
     Flux<Apartment> findPaginated(Optional<String> optionalId, Optional<String> optionalApartmentName, int page, int pageSize, OrderType order);
-
     Mono<Boolean> delete(String id);
 }

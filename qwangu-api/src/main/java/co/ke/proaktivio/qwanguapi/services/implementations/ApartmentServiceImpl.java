@@ -13,7 +13,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
-@Log4j2
 @Service
 @RequiredArgsConstructor
 public class ApartmentServiceImpl implements ApartmentService {
