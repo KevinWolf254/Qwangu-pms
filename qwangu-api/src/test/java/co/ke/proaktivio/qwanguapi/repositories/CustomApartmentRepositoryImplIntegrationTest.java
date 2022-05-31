@@ -46,7 +46,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
     private CustomApartmentRepositoryImpl customApartmentRepository;
 
     @Test
-    @DisplayName("Create returns a Mono of Apartment when name does not exist")
+    @DisplayName("create returns a Mono of Apartment when name does not exist")
     void create_ReturnMonoOfApartment_WhenSuccessful() {
 
         // given
@@ -66,7 +66,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("Create returns a CustomAlreadyExistsException when name already exists")
+    @DisplayName("create returns a CustomAlreadyExistsException when name already exists")
     void create_ReturnsCustomAlreadyExistsException_WhenApartmentNameExists() {
 
         // given
@@ -86,7 +86,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("Update returns an updated apartment when successful")
+    @DisplayName("update returns an updated apartment when successful")
     void update_ReturnsMonoOfAnUpdatedApartment_WhenSuccessful() {
         // given
         String updatedName = "Thika road Apartments";
@@ -110,7 +110,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("Update returns a CustomNotFoundException when id does not exist")
+    @DisplayName("update returns a CustomNotFoundException when id does not exist")
     void update_ReturnsCustomNotFoundException_WhenIdDoesNotExist() {
 
         // given
@@ -128,7 +128,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("Update returns a CustomAlreadyExistsException when name already exists")
+    @DisplayName("update returns a CustomAlreadyExistsException when name already exists")
     void update_ReturnsCustomAlreadyExistsException_WhenNameAlreadyExists() {
 
         // given
@@ -149,7 +149,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("FindPaginated returns a flux of apartments when successful")
+    @DisplayName("findPaginated returns a flux of apartments when successful")
     void findPaginated_ReturnsFluxOfApartments_WhenSuccessful() {
         // given
 
@@ -167,25 +167,28 @@ class CustomApartmentRepositoryImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("FindPaginated returns a CustomNotFoundException when none exist!")
+    @DisplayName("findPaginated returns a CustomNotFoundException when none exist!")
     void findPaginated_ReturnsCustomNotFoundException_WhenNoApartmentsExists() {
         // given
 
         //when
         Flux<Apartment> saved = template.dropCollection(Apartment.class)
+                .doOnSuccess(e -> System.out.println("----Dropped table successfully!"))
                 .thenMany(customApartmentRepository.findPaginated(Optional.empty(),
                         Optional.empty(), 0, 10,
-                        OrderType.ASC));
+                        OrderType.ASC))
+                .doOnSubscribe(a -> System.out.println("----Found nothing!"));
 
         // then
-        StepVerifier.create(saved)
+        StepVerifier
+                .create(saved)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Apartments do not exist!"))
+                        e.getMessage().equalsIgnoreCase("Apartments were not found!"))
                 .verify();
     }
 
     @Test
-    @DisplayName("Delete returns a true when successful")
+    @DisplayName("delete returns a true when successful")
     void delete_ReturnsTrue_WhenSuccessful() {
         //given
         var dto = new ApartmentDto("Luxury Apartments");
@@ -200,7 +203,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("Delete returns CustomNotFoundException when id does not exist")
+    @DisplayName("delete returns CustomNotFoundException when id does not exist")
     void delete_ReturnsCustomNotFoundException_WhenIdDoesNotExist() {
 
         // when

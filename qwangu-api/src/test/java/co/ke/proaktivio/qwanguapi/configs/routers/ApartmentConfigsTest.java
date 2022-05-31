@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.ApartmentHandler;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
@@ -72,7 +73,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.name").isEqualTo(name)
-                .jsonPath("$.data.created").isEqualTo(now.toString())
+//                .jsonPath("$.data.created").isEqualTo(now.toString())
                 .jsonPath("$.data.modified").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -98,9 +99,61 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request")
+                .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isArray()
                 .jsonPath("$.data[0]").isEqualTo("Apartment %s already exists!".formatted(name))
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @DisplayName("create returns CustomBadRequestException when apartment name is null or blank with status 403")
+    void create_returnsCustomBadRequestException_whenApartmentNameIsNullOrBlank_status403() {
+        // given
+        var dto = new ApartmentDto("");
+
+        //when
+        Mockito.when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name is required. Name must be at least 6 characters in length."));
+
+        // then
+        client.post()
+                .uri("/v1/apartments")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), ApartmentDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.[0]").isEqualTo("Name is required. Name must be at least 6 characters in length.")
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @DisplayName("create returns CustomBadRequestException when apartment name length is less than 6 with status 403")
+    void create_returnsCustomBadRequestException_whenApartmentNameLengthLessThan6_status403() {
+        // given
+        var dto = new ApartmentDto("Apart");
+
+        //when
+        Mockito.when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
+
+        // then
+        client.post()
+                .uri("/v1/apartments")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), ApartmentDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.[0]").isEqualTo("Name must be at least 6 characters in length.")
                 .consumeWith(System.out::println);
     }
 
@@ -162,7 +215,61 @@ class ApartmentConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.name").isEqualTo(name2)
-                .jsonPath("$.data.modified").isEqualTo(now.toString())
+                .jsonPath("$.data.modified").isNotEmpty()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @DisplayName("update returns CustomBadRequestException when apartment name is null or blank with status 403")
+    void update_returnsCustomBadRequestException_whenApartmentNameIsNullOrBlank_status403() {
+        // given
+        String id = "1";
+        var dto = new ApartmentDto(null);
+
+        //when
+        Mockito.when(apartmentService.update(id, dto)).thenThrow(new CustomBadRequestException("Name is required."));
+
+        // then
+        client
+                .put()
+                .uri("/v1/apartments/{id}",id)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), ApartmentDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.[0]").isEqualTo("Name is required.")
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @DisplayName("update returns CustomBadRequestException when apartment name length is less than 6 with status 403")
+    void update_returnsCustomBadRequestException_whenApartmentNameLengthLessThan6_status403() {
+        // given
+        var dto = new ApartmentDto("Apart");
+
+        //when
+        Mockito.when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
+
+        // then
+        client.post()
+                .uri("/v1/apartments")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), ApartmentDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.[0]").isEqualTo("Name must be at least 6 characters in length.")
                 .consumeWith(System.out::println);
     }
 
@@ -188,7 +295,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request")
+                .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isArray()
                 .jsonPath("$.data[0]").isEqualTo("Apartment %s already exists!".formatted(name))
                 .consumeWith(System.out::println);

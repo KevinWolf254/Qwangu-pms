@@ -15,10 +15,10 @@ public class ApartmentDtoValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "name", "field.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "name", "field.required", "Name is required.");
         ApartmentDto request = (ApartmentDto) target;
         if (request.getName() != null && request.getName().trim().length() < MINIMUM_LENGTH) {
-            errors.rejectValue("code", "field.min.length", new Object[] { Integer.valueOf(MINIMUM_LENGTH) }, "The code must be at least %s characters in length.".formatted(MINIMUM_LENGTH));
+            errors.rejectValue("name", "field.min.length", new Object[] { Integer.valueOf(MINIMUM_LENGTH) }, "Name must be at least %s characters in length.".formatted(MINIMUM_LENGTH));
         }
     }
 }

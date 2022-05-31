@@ -9,8 +9,10 @@ import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.utils.validators.ApartmentDtoValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -26,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -33,29 +37,18 @@ public class ApartmentHandler {
     private final ApartmentService apartmentService;
 
     public Mono<ServerResponse> create(ServerRequest request) {
-        Validator validator = new ApartmentDtoValidator();
         return request.bodyToMono(ApartmentDto.class)
-                .map(apartmentDto -> {
-                    Errors errors = new BeanPropertyBindingResult(apartmentDto, ApartmentDto.class.getName());
-                    validator.validate(body, errors);
-                    if(!errors.getAllErrors().isEmpty()){
-                        errors.getAllErrors().stream
-                                .map(e -> e.getObjectName + " ,")
-                                .collect();
-                        return Mono.error(new CustomBadRequestException(""));
-                    }
-                    return apartmentDto;
-                })
+                .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
                 .flatMap(apartmentService::create)
                 .flatMap(created ->
                         ServerResponse.created(URI.create("v1/apartments/%s".formatted(created.getId())))
                                 .body(Mono.just(new SuccessResponse<>(true,"Apartment created successfully.",created)), SuccessResponse.class)
                                 .log())
                 .onErrorResume(e -> {
-                    if (e instanceof CustomAlreadyExistsException) {
+                    if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
                         return ServerResponse.badRequest()
                                 .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request", List.of(e.getMessage()))), ErrorResponse.class)
+                                        new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", List.of(e.getMessage()))), ErrorResponse.class)
                                 .log();
                     }
                     return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -68,6 +61,7 @@ public class ApartmentHandler {
     public Mono<ServerResponse> update(ServerRequest request) {
         String id = request.pathVariable("id");
         return request.bodyToMono(ApartmentDto.class)
+                .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
                 .flatMap(dto -> apartmentService.update(id, dto))
                 .flatMap(updated ->
                         ServerResponse
@@ -75,10 +69,10 @@ public class ApartmentHandler {
                                 .body(Mono.just(new SuccessResponse<>(true,"Apartment updated successfully.",updated)), SuccessResponse.class)
                                 .log())
                 .onErrorResume(e -> {
-                    if (e instanceof CustomAlreadyExistsException) {
+                    if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
                         return ServerResponse.badRequest()
                                 .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request", List.of(e.getMessage()))), ErrorResponse.class)
+                                        new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", List.of(e.getMessage()))), ErrorResponse.class)
                                 .log();
                     }
                     return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -140,5 +134,19 @@ public class ApartmentHandler {
                                     new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!",List.of("Something happened!"))), ErrorResponse.class)
                             .log();
                 });
+    }
+
+    private Function<ApartmentDto, ApartmentDto> validateApartmentDtoFunc(Validator validator) {
+        return apartmentDto -> {
+            Errors errors = new BeanPropertyBindingResult(apartmentDto, ApartmentDto.class.getName());
+            validator.validate(apartmentDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return apartmentDto;
+        };
     }
 }
