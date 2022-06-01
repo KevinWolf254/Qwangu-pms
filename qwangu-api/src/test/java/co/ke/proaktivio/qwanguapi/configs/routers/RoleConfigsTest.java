@@ -50,8 +50,7 @@ class RoleConfigsTest {
         String id = "1";
         String name = "ADMIN";
         LocalDateTime now = LocalDateTime.now();
-        var role = new Role("1", name,
-                Set.of(new Authority("1", "APARTMENTS", true, true, false, false, true, now, null)), now, null);
+        var role = new Role("1", name, Set.of("1"), now, null);
 
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
@@ -89,7 +88,8 @@ class RoleConfigsTest {
                 .jsonPath("$.data").isArray()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
                 .jsonPath("$.data.[0].name").isEqualTo(name)
-                .jsonPath("$.data.[0].authorities").isNotEmpty()
+                .jsonPath("$.data.[0].authorityIds").isNotEmpty()
+                .jsonPath("$.data.[0].authorityIds.[0]").isEqualTo("1")
                 .jsonPath("$.data.[0].created").isNotEmpty()
                 .consumeWith(System.out::println);
     }

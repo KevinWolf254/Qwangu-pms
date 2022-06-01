@@ -32,8 +32,7 @@ class RoleServiceImplTest {
         // given
         String name = "ADMIN";
         LocalDateTime now = LocalDateTime.now();
-        var a1 = new Role("1", name,
-                Set.of(new Authority("1", "APARTMENTS", true, true, false, false, true, now, null)), now, null);
+        var a1 = new Role("1", name, Set.of("1"), now, null);
         // when
         when(repository.findPaginated(Optional.of("1"), Optional.of(name),0,10, OrderType.ASC))
                 .thenReturn(Flux.just(a1));

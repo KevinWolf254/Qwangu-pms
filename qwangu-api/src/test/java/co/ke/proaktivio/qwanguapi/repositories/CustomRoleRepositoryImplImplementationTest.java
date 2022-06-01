@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.util.StringUtils;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -50,11 +51,8 @@ class CustomRoleRepositoryImplImplementationTest {
         // given
 
         //when
-        Flux<Role> saved = Flux.just(new Role(null, "ADMIN",
-                                Set.of(new Authority("1", "APARTMENTS", true, true, true, true, true, LocalDateTime.now(), null)), LocalDateTime.now(), null),
-                        new Role(null, "SUPERVISOR",
-                                Set.of(new Authority("1", "APARTMENTS", true, true, false, false, true, LocalDateTime.now(), null)), LocalDateTime.now(), null)
-                        )
+        Flux<Role> saved = Flux.just(new Role(null, "ADMIN", Set.of("1"), LocalDateTime.now(), null),
+                        new Role(null, "SUPERVISOR", Set.of("1"), LocalDateTime.now(), null))
                 .flatMap(a -> template.save(a, "ROLE"))
                 .thenMany(customRoleRepository.findPaginated(Optional.empty(),
                         Optional.empty(), 0, 10,

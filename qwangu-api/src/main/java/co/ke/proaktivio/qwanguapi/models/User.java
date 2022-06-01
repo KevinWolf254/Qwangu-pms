@@ -8,7 +8,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Document(value = "USER")
 @AllArgsConstructor
@@ -21,7 +20,7 @@ public class User {
     private String firstName;
     private String otherNames;
     private String surnameName;
-    private Set<Role> roles;
+    private String roleId;
     private LocalDateTime created;
     private LocalDateTime modified;
 }

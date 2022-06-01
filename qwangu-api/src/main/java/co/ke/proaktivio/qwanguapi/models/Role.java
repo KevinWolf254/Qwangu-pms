@@ -21,7 +21,7 @@ public class Role {
     private String id;
     @Indexed(unique = true)
     private String name;
-    private Set<Authority> authorities;
+    private Set<String> authorityIds;
     private LocalDateTime created;
     private LocalDateTime modified;
 }
