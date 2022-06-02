@@ -42,7 +42,8 @@ class ApartmentServiceImplTest {
         when(repository.create(dto)).thenReturn(Mono.just(apartment));
 
         // then
-        StepVerifier.create(apartmentService.create(dto))
+        StepVerifier
+                .create(apartmentService.create(dto))
                 .expectNext(apartment)
                 .verifyComplete();
     }

@@ -8,10 +8,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Document(value = "APARTMENT")
-@ToString
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
+@Data
 public class Apartment {
     @Id
     private String id;

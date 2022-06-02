@@ -47,7 +47,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
 
     @Test
     @DisplayName("create returns a Mono of Apartment when name does not exist")
-    void create_ReturnMonoOfApartment_WhenSuccessful() {
+    void create_returnMonoOfApartment_whenSuccessful() {
 
         // given
         String name = "Luxury Apartment";
@@ -67,7 +67,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
 
     @Test
     @DisplayName("create returns a CustomAlreadyExistsException when name already exists")
-    void create_ReturnsCustomAlreadyExistsException_WhenApartmentNameExists() {
+    void create_returnsCustomAlreadyExistsException_whenApartmentNameExists() {
 
         // given
         String name = "Luxury Apartments";
@@ -87,7 +87,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
 
     @Test
     @DisplayName("update returns an updated apartment when successful")
-    void update_ReturnsMonoOfAnUpdatedApartment_WhenSuccessful() {
+    void update_returnsMonoOfAnUpdatedApartment_whenSuccessful() {
         // given
         String updatedName = "Thika road Apartments";
 
@@ -111,7 +111,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
 
     @Test
     @DisplayName("update returns a CustomNotFoundException when id does not exist")
-    void update_ReturnsCustomNotFoundException_WhenIdDoesNotExist() {
+    void update_returnsCustomNotFoundException_whenIdDoesNotExist() {
 
         // given
         String id = "1";
@@ -129,7 +129,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
 
     @Test
     @DisplayName("update returns a CustomAlreadyExistsException when name already exists")
-    void update_ReturnsCustomAlreadyExistsException_WhenNameAlreadyExists() {
+    void update_returnsCustomAlreadyExistsException_whenNameAlreadyExists() {
 
         // given
         String name = "Luxury Apartments";
@@ -150,7 +150,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
 
     @Test
     @DisplayName("findPaginated returns a flux of apartments when successful")
-    void findPaginated_ReturnsFluxOfApartments_WhenSuccessful() {
+    void findPaginated_returnsFluxOfApartments_whenSuccessful() {
         // given
 
         //when
@@ -168,7 +168,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
 
     @Test
     @DisplayName("findPaginated returns a CustomNotFoundException when none exist!")
-    void findPaginated_ReturnsCustomNotFoundException_WhenNoApartmentsExists() {
+    void findPaginated_returnsCustomNotFoundException_whenNoApartmentsExists() {
         // given
 
         //when
@@ -177,7 +177,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
                 .thenMany(customApartmentRepository.findPaginated(Optional.empty(),
                         Optional.empty(), 0, 10,
                         OrderType.ASC))
-                .doOnSubscribe(a -> System.out.println("----Found nothing!"));
+                .doOnError(a -> System.out.println("---- Found no apartments!"));
 
         // then
         StepVerifier
@@ -189,7 +189,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
 
     @Test
     @DisplayName("delete returns a true when successful")
-    void delete_ReturnsTrue_WhenSuccessful() {
+    void delete_returnsTrue_whenSuccessful() {
         //given
         var dto = new ApartmentDto("Luxury Apartments");
 
@@ -199,20 +199,23 @@ class CustomApartmentRepositoryImplIntegrationTest {
 
         // then
         StepVerifier.create(deleted)
-                .expectNextMatches(r -> r.booleanValue() == true);
+                .expectNextMatches(r -> r)
+                .verifyComplete();
     }
 
     @Test
     @DisplayName("delete returns CustomNotFoundException when id does not exist")
-    void delete_ReturnsCustomNotFoundException_WhenIdDoesNotExist() {
+    void delete_returnsCustomNotFoundException_whenIdDoesNotExist() {
+        // given
+        String id = "1";
 
         // when
-        String id = "1";
         Mono<Boolean> deleted = customApartmentRepository.delete(id);
 
         // then
         StepVerifier.create(deleted)
-                .expectErrorMatches(r -> r instanceof CustomNotFoundException &&
-                        r.getMessage().equalsIgnoreCase("Apartment with id %s does not exist!".formatted(id)));
+                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                        e.getMessage().equalsIgnoreCase("Apartment with id %s does not exist!".formatted(id)))
+                .verify();
     }
 }
