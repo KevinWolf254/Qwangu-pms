@@ -9,5 +9,5 @@ import lombok.*;
 public class Person {
     private String firstName;
     private String otherNames;
-    private String surnameName;
+    private String surname;
 }

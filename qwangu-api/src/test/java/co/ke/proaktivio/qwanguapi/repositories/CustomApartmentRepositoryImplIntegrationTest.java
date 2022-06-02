@@ -60,8 +60,8 @@ class CustomApartmentRepositoryImplIntegrationTest {
         StepVerifier.create(saved)
                 .expectNextMatches(apartment ->
                         StringUtils.hasText(apartment.getId()) &&
-                        StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(name) &&
-                        apartment.getCreated() != null && StringUtils.hasText(apartment.getCreated().toString()))
+                                StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(name) &&
+                                apartment.getCreated() != null && StringUtils.hasText(apartment.getCreated().toString()))
                 .verifyComplete();
     }
 
@@ -102,8 +102,8 @@ class CustomApartmentRepositoryImplIntegrationTest {
         StepVerifier.create(updated)
                 .expectNextMatches(apartment ->
                         StringUtils.hasText(apartment.getId()) &&
-                        StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(updatedName) &&
-                        apartment.getModified() != null && StringUtils.hasText(apartment.getModified().toString()))
+                                StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(updatedName) &&
+                                apartment.getModified() != null && StringUtils.hasText(apartment.getModified().toString()))
 //                        result.getId() != null && !result.getId().isBlank() && !result.getId().isEmpty() &&
 //                        result.getName().isPresent() && result.getName().get().equalsIgnoreCase(updatedName))
                 .verifyComplete();
@@ -149,20 +149,26 @@ class CustomApartmentRepositoryImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("findPaginated returns a flux of apartments when successful")
+    @DisplayName("find paginated returns a flux of apartments when successful")
     void findPaginated_returnsFluxOfApartments_whenSuccessful() {
         // given
 
         //when
-        Flux<Apartment> saved = Flux.just(new ApartmentDto("Luxury Apartments"), new ApartmentDto("Luxury Apartments B"))
+        Flux<Apartment> saved = template.dropCollection(Apartment.class)
+                .thenMany(Flux
+                    .just(new ApartmentDto("Luxury Apartments"), new ApartmentDto("Luxury Apartments B")))
                 .flatMap(a -> customApartmentRepository.create(a))
-                .thenMany(customApartmentRepository.findPaginated(Optional.empty(),
-                        Optional.empty(), 0, 10,
-                        OrderType.ASC));
+                .thenMany(customApartmentRepository
+                        .findPaginated(Optional.empty(),
+                                Optional.empty(), 0, 10,
+                                OrderType.ASC));
 
         // then
-        StepVerifier.create(saved)
+        StepVerifier
+                .create(saved)
                 .expectNextCount(2)
+//                .expectNextMatches(aprt1 -> aprt1.getName().equalsIgnoreCase("Luxury Apartments"))
+//                .expectNextMatches(aprt2 -> aprt2.getName().equalsIgnoreCase("Luxury Apartments B"))
                 .verifyComplete();
     }
 
@@ -194,7 +200,8 @@ class CustomApartmentRepositoryImplIntegrationTest {
         var dto = new ApartmentDto("Luxury Apartments");
 
         // when
-        Mono<Boolean> deleted = customApartmentRepository.create(dto)
+        Mono<Boolean> deleted = customApartmentRepository
+                .create(dto)
                 .flatMap(a -> customApartmentRepository.delete(a.getId()));
 
         // then

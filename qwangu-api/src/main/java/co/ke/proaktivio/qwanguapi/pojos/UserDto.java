@@ -5,8 +5,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Getter
-@Setter
+@Data
 public class UserDto {
     private Person person;
     private String emailAddress;
