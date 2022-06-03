@@ -62,7 +62,7 @@ public class UserHandler {
         return userService.findPaginated(
                         id,
                         emailAddress,
-                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(0),
+                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
                         pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
                         order.map(OrderType::valueOf).orElse(OrderType.DESC)
                 ).collectList()
