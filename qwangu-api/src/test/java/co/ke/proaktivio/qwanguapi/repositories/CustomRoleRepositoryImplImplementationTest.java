@@ -55,7 +55,7 @@ class CustomRoleRepositoryImplImplementationTest {
                         new Role(null, "SUPERVISOR", Set.of("1"), LocalDateTime.now(), null))
                 .flatMap(a -> template.save(a, "ROLE"))
                 .thenMany(customRoleRepository.findPaginated(Optional.empty(),
-                        Optional.empty(), 0, 10,
+                        Optional.empty(), 1, 10,
                         OrderType.ASC));
 
         // then
@@ -73,7 +73,7 @@ class CustomRoleRepositoryImplImplementationTest {
         Flux<Role> saved = template.dropCollection(Role.class)
                 .doOnSuccess(e -> System.out.println("----Dropped role table successfully!"))
                 .thenMany(customRoleRepository.findPaginated(Optional.empty(),
-                        Optional.empty(), 0, 10,
+                        Optional.empty(), 1, 10,
                         OrderType.ASC))
                 .doOnSubscribe(a -> System.out.println("----Found no roles!"));
 

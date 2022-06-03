@@ -9,6 +9,7 @@ import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.utils.validators.ApartmentDtoValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ApartmentHandler {
@@ -44,18 +46,7 @@ public class ApartmentHandler {
                         ServerResponse.created(URI.create("v1/apartments/%s".formatted(created.getId())))
                                 .body(Mono.just(new SuccessResponse<>(true,"Apartment created successfully.",created)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(e -> {
-                    if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
-                        return ServerResponse.badRequest()
-                                .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", List.of(e.getMessage()))), ErrorResponse.class)
-                                .log();
-                    }
-                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Mono.just(
-                                    new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!",List.of("Something happened!"))), ErrorResponse.class)
-                            .log();
-                });
+                .onErrorResume(handleErrors());
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
@@ -68,18 +59,7 @@ public class ApartmentHandler {
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true,"Apartment updated successfully.",updated)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(e -> {
-                    if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
-                        return ServerResponse.badRequest()
-                                .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", List.of(e.getMessage()))), ErrorResponse.class)
-                                .log();
-                    }
-                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Mono.just(
-                                    new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!",List.of("Something happened!"))), ErrorResponse.class)
-                            .log();
-                });
+                .onErrorResume(handleErrors());
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -91,7 +71,7 @@ public class ApartmentHandler {
         return apartmentService.findPaginated(
                         id,
                         name,
-                        page.map(p -> CustomUtils.convertToInteger(p, "Page") - 1).orElse(0),
+                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(0),
                         pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
                         order.map(OrderType::valueOf).orElse(OrderType.DESC)
                 ).collectList()
@@ -100,18 +80,7 @@ public class ApartmentHandler {
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true,"Apartments found successfully.",results)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(e -> {
-                    if (e instanceof CustomNotFoundException) {
-                        return ServerResponse.status(HttpStatus.NOT_FOUND)
-                                .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", List.of(e.getMessage()))), ErrorResponse.class)
-                                .log();
-                    }
-                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Mono.just(
-                                    new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!",List.of("Something happened!"))), ErrorResponse.class)
-                            .log();
-                });
+                .onErrorResume(handleErrors());
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -122,18 +91,7 @@ public class ApartmentHandler {
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true, "Apartment with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(e -> {
-                    if (e instanceof CustomNotFoundException) {
-                        return ServerResponse.status(HttpStatus.NOT_FOUND)
-                                .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", List.of(e.getMessage()))), ErrorResponse.class)
-                                .log();
-                    }
-                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Mono.just(
-                                    new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!",List.of("Something happened!"))), ErrorResponse.class)
-                            .log();
-                });
+                .onErrorResume(handleErrors());
     }
 
     private Function<ApartmentDto, ApartmentDto> validateApartmentDtoFunc(Validator validator) {
@@ -147,6 +105,27 @@ public class ApartmentHandler {
                 throw new CustomBadRequestException(errorMessage);
             }
             return apartmentDto;
+        };
+    }
+
+    private Function<Throwable, Mono<? extends ServerResponse>> handleErrors() {
+        return e -> {
+            if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
+                return ServerResponse.badRequest()
+                        .body(Mono.just(
+                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", List.of(e.getMessage()))), ErrorResponse.class)
+                        .doOnError(et -> log.error(et.toString()));
+            }
+            if (e instanceof CustomNotFoundException) {
+                return ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .body(Mono.just(
+                                new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", List.of(e.getMessage()))), ErrorResponse.class)
+                        .doOnError(et -> log.error(et.toString()));
+            }
+            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Mono.just(
+                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", List.of("Something happened!"))), ErrorResponse.class)
+                    .doOnError(et -> log.error(et.toString()));
         };
     }
 }

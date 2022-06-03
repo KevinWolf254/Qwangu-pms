@@ -160,7 +160,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
                 .flatMap(a -> customApartmentRepository.create(a))
                 .thenMany(customApartmentRepository
                         .findPaginated(Optional.empty(),
-                                Optional.empty(), 0, 10,
+                                Optional.empty(), 1, 10,
                                 OrderType.ASC));
 
         // then
@@ -181,7 +181,7 @@ class CustomApartmentRepositoryImplIntegrationTest {
         Flux<Apartment> saved = template.dropCollection(Apartment.class)
                 .doOnSuccess(e -> System.out.println("----Dropped table successfully!"))
                 .thenMany(customApartmentRepository.findPaginated(Optional.empty(),
-                        Optional.empty(), 0, 10,
+                        Optional.empty(), 1, 10,
                         OrderType.ASC))
                 .doOnError(a -> System.out.println("---- Found no apartments!"));
 

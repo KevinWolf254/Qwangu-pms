@@ -61,7 +61,7 @@ class RoleConfigsTest {
         Mockito.when(roleService.findPaginated(
                 Optional.of(id),
                 Optional.of(name),
-                finalPage - 1,
+                finalPage,
                 finalPageSize,
                 order)).thenReturn(Flux.just(role));
 
@@ -110,7 +110,7 @@ class RoleConfigsTest {
         Mockito.when(roleService.findPaginated(
                         Optional.of(id),
                         Optional.of(name),
-                        finalPage - 1,
+                        finalPage,
                         finalPageSize,
                         OrderType.valueOf(order)))
                 .thenReturn(Flux.error(new CustomNotFoundException("Roles were not found!")));
@@ -157,7 +157,7 @@ class RoleConfigsTest {
         Mockito.when(roleService.findPaginated(
                         Optional.of(id),
                         Optional.of(name),
-                        finalPage - 1,
+                        finalPage,
                         finalPageSize,
                         order))
                 .thenReturn(Flux.error(new RuntimeException("Something happened!")));

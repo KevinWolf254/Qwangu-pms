@@ -331,7 +331,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @DisplayName("Find returns a Flux of Apartments")
+    @DisplayName("find returns a Flux of Apartments")
     void find_returnsFluxOfApartments_status200() {
         // given
         String page = "1";
@@ -348,7 +348,7 @@ class ApartmentConfigsTest {
         Mockito.when(apartmentService.findPaginated(
                 Optional.of(id),
                 Optional.of(name),
-                finalPage - 1,
+                finalPage,
                 finalPageSize,
                 order)).thenReturn(Flux.just(apartment));
 
@@ -395,7 +395,7 @@ class ApartmentConfigsTest {
         Mockito.when(apartmentService.findPaginated(
                 Optional.of(id),
                 Optional.of(name),
-                finalPage - 1,
+                finalPage,
                 finalPageSize,
                 OrderType.valueOf(order)))
                 .thenReturn(Flux.error(new CustomNotFoundException("Apartments were not found!")));
@@ -423,7 +423,6 @@ class ApartmentConfigsTest {
                 .jsonPath("$.data").isArray()
                 .jsonPath("$.data[0]").isEqualTo("Apartments were not found!")
                 .consumeWith(System.out::println);
-
     }
 
     @Test
@@ -442,7 +441,7 @@ class ApartmentConfigsTest {
         Mockito.when(apartmentService.findPaginated(
                 Optional.of(id),
                 Optional.of(name),
-                finalPage - 1,
+                finalPage,
                 finalPageSize,
                 order))
                 .thenReturn(Flux.error(new RuntimeException("Something happened!")));

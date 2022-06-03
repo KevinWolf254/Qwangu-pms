@@ -34,10 +34,10 @@ class RoleServiceImplTest {
         LocalDateTime now = LocalDateTime.now();
         var a1 = new Role("1", name, Set.of("1"), now, null);
         // when
-        when(repository.findPaginated(Optional.of("1"), Optional.of(name),0,10, OrderType.ASC))
+        when(repository.findPaginated(Optional.of("1"), Optional.of(name),1,10, OrderType.ASC))
                 .thenReturn(Flux.just(a1));
         // then
-        Flux<Role> request = roleService.findPaginated(Optional.of("1"), Optional.of(name), 0, 10, OrderType.ASC);
+        Flux<Role> request = roleService.findPaginated(Optional.of("1"), Optional.of(name), 1, 10, OrderType.ASC);
         StepVerifier
                 .create(request)
                 .expectNextMatches(a -> a.getId().equalsIgnoreCase("1") && a.getName().equalsIgnoreCase(name))

@@ -94,10 +94,10 @@ class ApartmentServiceImplTest {
         LocalDateTime now = LocalDateTime.now();
         var a1 = new Apartment("1","Luxury Apartments", now, null);
         // when
-        when(repository.findPaginated(Optional.of("1"), Optional.of("Luxury Apartments"),0,10, OrderType.ASC))
+        when(repository.findPaginated(Optional.of("1"), Optional.of("Luxury Apartments"),1,10, OrderType.ASC))
                 .thenReturn(Flux.just(a1));
         // then
-        StepVerifier.create(apartmentService.findPaginated(Optional.of("1"), Optional.of("Luxury Apartments"),0,10, OrderType.ASC))
+        StepVerifier.create(apartmentService.findPaginated(Optional.of("1"), Optional.of("Luxury Apartments"),1,10, OrderType.ASC))
                 .expectNextMatches(a -> a.getId().equalsIgnoreCase("1") &&
                         a.getName().equalsIgnoreCase("Luxury Apartments"))
                 .verifyComplete();

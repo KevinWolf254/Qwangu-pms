@@ -41,7 +41,7 @@ class AuthorityConfigsTest {
     }
 
     @Test
-    @DisplayName("Find returns a Flux of Authorities")
+    @DisplayName("find returns a flux of Authorities")
     void find_returnsFluxOfAuthorities_status200() {
         // given
         String page = "1";
@@ -59,7 +59,7 @@ class AuthorityConfigsTest {
         Mockito.when(authorityService.findPaginated(
                 Optional.of(id),
                 Optional.of(name),
-                finalPage - 1,
+                finalPage,
                 finalPageSize,
                 order)).thenReturn(Flux.just(authority));
 
@@ -111,7 +111,7 @@ class AuthorityConfigsTest {
         Mockito.when(authorityService.findPaginated(
                         Optional.of(id),
                         Optional.of(name),
-                        finalPage - 1,
+                        finalPage,
                         finalPageSize,
                         OrderType.valueOf(order)))
                 .thenReturn(Flux.error(new CustomNotFoundException("Authorities were not found!")));
@@ -158,7 +158,7 @@ class AuthorityConfigsTest {
         Mockito.when(authorityService.findPaginated(
                         Optional.of(id),
                         Optional.of(name),
-                        finalPage - 1,
+                        finalPage,
                         finalPageSize,
                         order))
                 .thenReturn(Flux.error(new RuntimeException("Something happened!")));

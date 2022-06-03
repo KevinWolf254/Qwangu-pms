@@ -30,10 +30,10 @@ class AuthorityServiceImplTest {
         LocalDateTime now = LocalDateTime.now();
         var a1 = new Authority("1", "ADMIN", true, true, true, true, true, now, null);
         // when
-        when(repository.findPaginated(Optional.of("1"), Optional.of("ADMIN"),0,10, OrderType.ASC))
+        when(repository.findPaginated(Optional.of("1"), Optional.of("ADMIN"),1,10, OrderType.ASC))
                 .thenReturn(Flux.just(a1));
         // then
-        Flux<Authority> request = authorityService.findPaginated(Optional.of("1"), Optional.of("ADMIN"), 0, 10, OrderType.ASC);
+        Flux<Authority> request = authorityService.findPaginated(Optional.of("1"), Optional.of("ADMIN"), 1, 10, OrderType.ASC);
         StepVerifier
                 .create(request)
                 .expectNextMatches(a -> a.getId().equalsIgnoreCase("1") && a.getName().equalsIgnoreCase("ADMIN"))
