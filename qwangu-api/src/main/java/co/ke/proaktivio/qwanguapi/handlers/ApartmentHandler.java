@@ -8,7 +8,6 @@ import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.utils.validators.ApartmentDtoValidator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,6 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
