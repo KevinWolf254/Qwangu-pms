@@ -3,7 +3,6 @@ package co.ke.proaktivio.qwanguapi.handlers;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -13,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.ObjectError;
-import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -23,10 +20,7 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
-import java.lang.reflect.Array;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -46,7 +40,7 @@ public class ApartmentHandler {
                         ServerResponse.created(URI.create("v1/apartments/%s".formatted(created.getId())))
                                 .body(Mono.just(new SuccessResponse<>(true,"Apartment created successfully.",created)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(handleErrors());
+                .onErrorResume(handleExceptions());
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
@@ -59,7 +53,7 @@ public class ApartmentHandler {
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true,"Apartment updated successfully.",updated)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(handleErrors());
+                .onErrorResume(handleExceptions());
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -80,7 +74,7 @@ public class ApartmentHandler {
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true,"Apartments found successfully.",results)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(handleErrors());
+                .onErrorResume(handleExceptions());
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -91,7 +85,7 @@ public class ApartmentHandler {
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true, "Apartment with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(handleErrors());
+                .onErrorResume(handleExceptions());
     }
 
     private Function<ApartmentDto, ApartmentDto> validateApartmentDtoFunc(Validator validator) {
@@ -108,7 +102,7 @@ public class ApartmentHandler {
         };
     }
 
-    private Function<Throwable, Mono<? extends ServerResponse>> handleErrors() {
+    private Function<Throwable, Mono<? extends ServerResponse>> handleExceptions() {
         return e -> {
             if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
                 return ServerResponse.badRequest()

@@ -37,18 +37,7 @@ public class UserHandler {
                         .created(URI.create("v1/users/%s".formatted(created.getId())))
                         .body(Mono.just(new SuccessResponse<>(true, "User created successfully.", created)), SuccessResponse.class)
                         .log())
-                .onErrorResume(e -> {
-                    if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
-                        return ServerResponse.badRequest()
-                                .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", List.of(e.getMessage()))), ErrorResponse.class)
-                                .log();
-                    }
-                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Mono.just(
-                                    new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", List.of("Something happened!"))), ErrorResponse.class)
-                            .log();
-                });
+                .onErrorResume(handleExceptions());
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
@@ -61,18 +50,7 @@ public class UserHandler {
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true, "User updated successfully.", updated)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(e -> {
-                    if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
-                        return ServerResponse.badRequest()
-                                .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", List.of(e.getMessage()))), ErrorResponse.class)
-                                .log();
-                    }
-                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Mono.just(
-                                    new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", List.of("Something happened!"))), ErrorResponse.class)
-                            .log();
-                });
+                .onErrorResume(handleExceptions());
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -93,18 +71,7 @@ public class UserHandler {
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true, "Users found successfully.", results)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(e -> {
-                    if (e instanceof CustomNotFoundException) {
-                        return ServerResponse.status(HttpStatus.NOT_FOUND)
-                                .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", List.of(e.getMessage()))), ErrorResponse.class)
-                                .log();
-                    }
-                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Mono.just(
-                                    new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", List.of("Something happened!"))), ErrorResponse.class)
-                            .log();
-                });
+                .onErrorResume(handleExceptions());
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -115,18 +82,7 @@ public class UserHandler {
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true, "User with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
                                 .log())
-                .onErrorResume(e -> {
-                    if (e instanceof CustomNotFoundException) {
-                        return ServerResponse.status(HttpStatus.NOT_FOUND)
-                                .body(Mono.just(
-                                        new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", List.of(e.getMessage()))), ErrorResponse.class)
-                                .log();
-                    }
-                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Mono.just(
-                                    new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", List.of("Something happened!"))), ErrorResponse.class)
-                            .log();
-                });
+                .onErrorResume(handleExceptions());
     }
 
     private Function<UserDto, UserDto> validateUserDtoFunc(Validator validator) {
@@ -140,6 +96,27 @@ public class UserHandler {
                 throw new CustomBadRequestException(errorMessage);
             }
             return userDto;
+        };
+    }
+
+    private Function<Throwable, Mono<? extends ServerResponse>> handleExceptions() {
+        return e -> {
+            if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
+                return ServerResponse.badRequest()
+                        .body(Mono.just(
+                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", List.of(e.getMessage()))), ErrorResponse.class)
+                        .log();
+            }
+            if (e instanceof CustomNotFoundException) {
+                return ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .body(Mono.just(
+                                new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", List.of(e.getMessage()))), ErrorResponse.class)
+                        .log();
+            }
+            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Mono.just(
+                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", List.of("Something happened!"))), ErrorResponse.class)
+                    .log();
         };
     }
 }
