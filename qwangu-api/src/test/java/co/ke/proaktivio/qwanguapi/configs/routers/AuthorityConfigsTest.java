@@ -136,8 +136,7 @@ class AuthorityConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Authorities were not found!")
+                .jsonPath("$.data").isEqualTo("Authorities were not found!")
                 .consumeWith(System.out::println);
 
     }
@@ -183,8 +182,7 @@ class AuthorityConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Something happened!")
+                .jsonPath("$.data").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 }

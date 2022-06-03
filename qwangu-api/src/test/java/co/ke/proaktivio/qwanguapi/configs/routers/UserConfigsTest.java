@@ -109,8 +109,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("User with email address %s already exists!".formatted(emailAddress))
+                .jsonPath("$.data").isEqualTo("User with email address %s already exists!".formatted(emailAddress))
                 .consumeWith(System.out::println);
     }
 
@@ -138,8 +137,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required.")
+                .jsonPath("$.data").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required.")
                 .consumeWith(System.out::println);
     }
 
@@ -167,8 +165,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length.")
+                .jsonPath("$.data").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length.")
                 .consumeWith(System.out::println);
     }
 
@@ -196,8 +193,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length.")
+                .jsonPath("$.data").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length.")
                 .consumeWith(System.out::println);
     }
 
@@ -225,8 +221,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Email address is not valid.")
+                .jsonPath("$.data").isEqualTo("Email address is not valid.")
                 .consumeWith(System.out::println);
     }
 
@@ -254,8 +249,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Something happened!")
+                .jsonPath("$.data").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 
@@ -324,8 +318,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required.")
+                .jsonPath("$.data").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required.")
                 .consumeWith(System.out::println);
     }
 
@@ -354,8 +347,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length.")
+                .jsonPath("$.data").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length.")
                 .consumeWith(System.out::println);
     }
 
@@ -384,8 +376,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length.")
+                .jsonPath("$.data").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length.")
                 .consumeWith(System.out::println);
     }
 
@@ -414,8 +405,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Email address is not valid.")
+                .jsonPath("$.data").isEqualTo("Email address is not valid.")
                 .consumeWith(System.out::println);
     }
 
@@ -442,8 +432,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Something happened!")
+                .jsonPath("$.data").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
 
     }
@@ -550,8 +539,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Users were not found!")
+                .jsonPath("$.data").isEqualTo("Users were not found!")
                 .consumeWith(System.out::println);
 
     }
@@ -597,8 +585,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Something happened!")
+                .jsonPath("$.data").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 
@@ -647,8 +634,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("User with id %s does not exist!".formatted(id))
+                .jsonPath("$.data").isEqualTo("User with id %s does not exist!".formatted(id))
                 .consumeWith(System.out::println);
     }
 
@@ -673,8 +659,7 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Something happened!")
+                .jsonPath("$.data").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 }

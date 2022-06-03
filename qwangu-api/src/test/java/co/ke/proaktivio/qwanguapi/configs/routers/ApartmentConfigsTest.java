@@ -100,8 +100,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Apartment %s already exists!".formatted(name))
+                .jsonPath("$.data").isEqualTo("Apartment %s already exists!".formatted(name))
                 .consumeWith(System.out::println);
     }
 
@@ -126,8 +125,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data.[0]").isEqualTo("Name is required. Name must be at least 6 characters in length.")
+                .jsonPath("$.data").isEqualTo("Name is required. Name must be at least 6 characters in length.")
                 .consumeWith(System.out::println);
     }
 
@@ -152,8 +150,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data.[0]").isEqualTo("Name must be at least 6 characters in length.")
+                .jsonPath("$.data").isEqualTo("Name must be at least 6 characters in length.")
                 .consumeWith(System.out::println);
     }
 
@@ -179,8 +176,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Something happened!")
+                .jsonPath("$.data").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 
@@ -242,8 +238,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data.[0]").isEqualTo("Name is required.")
+                .jsonPath("$.data").isEqualTo("Name is required.")
                 .consumeWith(System.out::println);
     }
 
@@ -268,8 +263,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data.[0]").isEqualTo("Name must be at least 6 characters in length.")
+                .jsonPath("$.data").isEqualTo("Name must be at least 6 characters in length.")
                 .consumeWith(System.out::println);
     }
 
@@ -296,8 +290,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Apartment %s already exists!".formatted(name))
+                .jsonPath("$.data").isEqualTo("Apartment %s already exists!".formatted(name))
                 .consumeWith(System.out::println);
     }
 
@@ -324,8 +317,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Something happened!")
+                .jsonPath("$.data").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
 
     }
@@ -420,8 +412,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Apartments were not found!")
+                .jsonPath("$.data").isEqualTo("Apartments were not found!")
                 .consumeWith(System.out::println);
     }
 
@@ -466,8 +457,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Something happened!")
+                .jsonPath("$.data").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 
@@ -516,8 +506,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Apartment with id %s does not exist!".formatted(id))
+                .jsonPath("$.data").isEqualTo("Apartment with id %s does not exist!".formatted(id))
                 .consumeWith(System.out::println);
     }
 
@@ -542,9 +531,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isArray()
-                .jsonPath("$.data[0]").isEqualTo("Something happened!")
-//                .expectBody(String.class).isEqualTo("Something happened!")
+                .jsonPath("$.data").isEqualTo("Something happened!")
                 .consumeWith(System.out::println);
     }
 }

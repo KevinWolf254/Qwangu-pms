@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ApartmentHandler {
@@ -107,19 +106,19 @@ public class ApartmentHandler {
             if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
                 return ServerResponse.badRequest()
                         .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", List.of(e.getMessage()))), ErrorResponse.class)
-                        .doOnError(et -> log.error(et.toString()));
+                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", e.getMessage())), ErrorResponse.class)
+                        .log();
             }
             if (e instanceof CustomNotFoundException) {
                 return ServerResponse.status(HttpStatus.NOT_FOUND)
                         .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", List.of(e.getMessage()))), ErrorResponse.class)
-                        .doOnError(et -> log.error(et.toString()));
+                                new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", e.getMessage())), ErrorResponse.class)
+                        .log();
             }
             return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Mono.just(
-                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", List.of("Something happened!"))), ErrorResponse.class)
-                    .doOnError(et -> log.error(et.toString()));
+                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", "Something happened!")), ErrorResponse.class)
+                    .log();
         };
     }
 }
