@@ -163,7 +163,7 @@ class CustomUserRepositoryImplIntegrationTest {
         Person person = new Person("John", "Doe", "Doe");
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, "1");
-        User userEntity = new User(id, person, emailAddress, "1", LocalDateTime.now(), null);
+        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
 
         Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true, LocalDateTime.now(), null);
         Role role = new Role("1", "ADMIN", null, LocalDateTime.now(), null);
@@ -207,7 +207,7 @@ class CustomUserRepositoryImplIntegrationTest {
         Person person = new Person("John", "Doe", "Doe");
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, roleId);
-        User userEntity = new User(id, person, emailAddress, "1", LocalDateTime.now(), null);
+        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
         Role role = new Role("1", "ADMIN", null, LocalDateTime.now(), null);
 
         Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true, LocalDateTime.now(), null);
@@ -253,7 +253,7 @@ class CustomUserRepositoryImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         String emailAddress1 = "goblin@gmail.com";
         UserDto dto = new UserDto(person, emailAddress1, roleId);
-        User userEntity = new User(id, person, emailAddress, "1", LocalDateTime.now(), null);
+        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
 
         Role role = new Role(roleId, "ADMIN", null, LocalDateTime.now(), null);
         Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true, LocalDateTime.now(), null);
@@ -295,11 +295,11 @@ class CustomUserRepositoryImplIntegrationTest {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
-        User userEntity = new User(id, person, "person@gmail.com", "1", LocalDateTime.now(), null);
+        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
 
         String id2 = "2";
         Person person2 = new Person("Jane", "Doe", "Doe");
-        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", LocalDateTime.now(), null);
+        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
 
         //when
         Flux<User> saved = template
@@ -345,11 +345,11 @@ class CustomUserRepositoryImplIntegrationTest {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
-        User userEntity = new User(id, person, "person@gmail.com", "1", LocalDateTime.now(), null);
+        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
 
         String id2 = "2";
         Person person2 = new Person("Jane", "Doe", "Doe");
-        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", LocalDateTime.now(), null);
+        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
 
         // when
         Flux<Boolean> deleted = template

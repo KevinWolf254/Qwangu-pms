@@ -24,4 +24,8 @@ public class Role {
     private Set<String> authorityIds;
     private LocalDateTime created;
     private LocalDateTime modified;
+
+    public Role(String id) {
+        this.id = id;
+    }
 }

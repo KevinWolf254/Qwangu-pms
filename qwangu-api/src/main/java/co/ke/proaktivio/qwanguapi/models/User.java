@@ -23,6 +23,15 @@ public class User {
     @Indexed(unique = true)
     private String emailAddress;
     private String roleId;
+    private String password;
+    private Boolean accountExpired;
+    private Boolean credentialsExpired;
+    private Boolean accountLocked;
+    private Boolean enabled;
     private LocalDateTime created;
     private LocalDateTime modified;
+
+    public User(String emailAddress) {
+        this.emailAddress = emailAddress;
+    }
 }

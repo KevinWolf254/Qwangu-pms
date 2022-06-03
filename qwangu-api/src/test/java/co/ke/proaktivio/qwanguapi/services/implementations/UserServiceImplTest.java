@@ -38,7 +38,7 @@ class UserServiceImplTest {
         String emailAddress = "person@gmail.com";
         String roleId = "1";
         UserDto dto = new UserDto(person, emailAddress, roleId);
-        User user = new User("1", person, emailAddress, roleId, LocalDateTime.now(), null);
+        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
         // when
         Mockito.when(userRepository.create(dto)).thenReturn(Mono.just(user));
         // then
@@ -102,7 +102,7 @@ class UserServiceImplTest {
         UserDto dto = new UserDto(person, emailAddress, roleId);
         String id ="1";
         LocalDateTime now = LocalDateTime.now();
-        User user = new User(id, person, emailAddress, roleId, now, now);
+        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, now);
         // when
         Mockito.when(userRepository.update(id, dto)).thenReturn(Mono.just(user));
         // then
@@ -167,11 +167,11 @@ class UserServiceImplTest {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
-        User userEntity = new User(id, person, "person@gmail.com", "1", LocalDateTime.now(), null);
+        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
 
         String id2 = "2";
         Person person2 = new Person("Jane", "Doe", "Doe");
-        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", LocalDateTime.now(), null);
+        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
 
         // when
         Mockito.when(userRepository

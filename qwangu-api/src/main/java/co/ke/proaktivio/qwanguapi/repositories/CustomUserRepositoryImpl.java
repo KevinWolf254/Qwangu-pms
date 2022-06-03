@@ -42,7 +42,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     if (exists)
                         throw new CustomAlreadyExistsException("User with email address %s already exists!".formatted(emailAddress));
                     LocalDateTime now = LocalDateTime.now();
-                    return template.save(new User(null, dto.getPerson(), emailAddress, dto.getRoleId(), now, null));
+                    return template.save(new User( null, dto.getPerson(), emailAddress, dto.getRoleId(), null, false, false, false, false, now, null));
                 });
     }
 

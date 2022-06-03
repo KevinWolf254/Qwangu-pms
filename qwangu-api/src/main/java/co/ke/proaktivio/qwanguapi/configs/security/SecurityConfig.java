@@ -11,6 +11,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
@@ -31,16 +32,20 @@ public class SecurityConfig {
     }
 
     @Bean
-    public MapReactiveUserDetailsService userDetailsService() {
-        User.UserBuilder userBuilder = User.withDefaultPasswordEncoder();
-        UserDetails rob = userBuilder.username("rob")
-                .password("rob")
-                .roles("USER")
-                .build();
-        UserDetails admin = userBuilder.username("admin")
-                .password("admin")
-                .roles("USER", "ADMIN")
-                .build();
-        return new MapReactiveUserDetailsService(rob, admin);
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(16);
     }
+
+//    public MapReactiveUserDetailsService userDetailsService() {
+//        User.UserBuilder userBuilder = User.withDefaultPasswordEncoder();
+//        UserDetails rob = userBuilder.username("rob")
+//                .password("rob")
+//                .roles("USER")
+//                .build();
+//        UserDetails admin = userBuilder.username("admin")
+//                .password("admin")
+//                .roles("USER", "ADMIN")
+//                .build();
+//        return new MapReactiveUserDetailsService(rob, admin);
+//    }
 }

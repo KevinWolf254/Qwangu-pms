@@ -67,7 +67,7 @@ class UserConfigsTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
         UserDto dto = new UserDto(person, emailAddress, roleId);
-        User user = new User("1", person, emailAddress, roleId, LocalDateTime.now(), null);
+        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
 
         //when
         Mockito.when(userService.create(dto)).thenReturn(Mono.just(user));
@@ -298,7 +298,7 @@ class UserConfigsTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
         UserDto dto = new UserDto(person, emailAddress, roleId);
-        User user = new User(id, person, emailAddress, roleId, LocalDateTime.now(), LocalDateTime.now());
+        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), LocalDateTime.now());
 
         //when
         Mockito.when(userService.update(id, dto)).thenReturn(Mono.just(user));
@@ -509,7 +509,7 @@ class UserConfigsTest {
         String roleId = "1";
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User(id, person, emailAddress, roleId, now, null);
+        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null);
 
         String page = "1";
         String pageSize = "10";
