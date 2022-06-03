@@ -73,7 +73,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.name").isEqualTo(name)
-//                .jsonPath("$.data.created").isEqualTo(now.toString())
+                .jsonPath("$.data.created").isNotEmpty()
                 .jsonPath("$.data.modified").isEmpty()
                 .consumeWith(System.out::println);
     }

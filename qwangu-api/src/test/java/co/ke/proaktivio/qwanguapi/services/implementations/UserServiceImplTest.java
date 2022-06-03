@@ -175,12 +175,12 @@ class UserServiceImplTest {
 
         // when
         Mockito.when(userRepository
-                .findPaginated(Optional.empty(),Optional.empty(), 0, 10,OrderType.ASC))
+                .findPaginated(Optional.empty(),Optional.empty(), 1, 10,OrderType.ASC))
                 .thenReturn(Flux.just(userEntity, userEntity2));
         // then
         StepVerifier
                 .create(userService
-                        .findPaginated(Optional.empty(),Optional.empty(), 0, 10,OrderType.ASC))
+                        .findPaginated(Optional.empty(),Optional.empty(), 1, 10,OrderType.ASC))
                 .expectNext(userEntity)
                 .expectNext(userEntity2)
                 .verifyComplete();
@@ -192,12 +192,12 @@ class UserServiceImplTest {
         // given
         // when
         Mockito.when(userRepository
-                        .findPaginated(Optional.empty(),Optional.empty(), 0, 10,OrderType.ASC))
+                        .findPaginated(Optional.empty(),Optional.empty(), 1, 10,OrderType.ASC))
                 .thenReturn(Flux.error(new CustomNotFoundException("Users were not found!")));
         // then
         StepVerifier
                 .create(userService
-                        .findPaginated(Optional.empty(),Optional.empty(), 0, 10,OrderType.ASC))
+                        .findPaginated(Optional.empty(),Optional.empty(), 1, 10,OrderType.ASC))
                 .expectErrorMatches(e ->
                         e instanceof CustomNotFoundException &&
                                 e.getMessage().equalsIgnoreCase("Users were not found!"))

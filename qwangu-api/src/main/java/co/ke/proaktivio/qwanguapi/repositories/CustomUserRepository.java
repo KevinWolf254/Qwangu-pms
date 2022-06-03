@@ -11,6 +11,6 @@ import java.util.Optional;
 public interface CustomUserRepository {
     Mono<User> create(UserDto dto);
     Mono<User> update(String id, UserDto dto);
-    Flux<User> findPaginated(Optional<String> id, Optional<String> roleId, int page, int pageSize, OrderType order);
+    Flux<User> findPaginated(Optional<String> id, Optional<String> emailAddress, int page, int pageSize, OrderType order);
     Mono<Boolean> delete(String id);
 }

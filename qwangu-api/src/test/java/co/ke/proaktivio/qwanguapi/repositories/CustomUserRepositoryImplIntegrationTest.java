@@ -309,7 +309,7 @@ class CustomUserRepositoryImplIntegrationTest {
                         .just(userEntity, userEntity2))
                 .flatMap(entity -> template.save(entity, "USER"))
                 .thenMany(customUserRepository.findPaginated(Optional.empty(),
-                        Optional.empty(), 0, 10,
+                        Optional.empty(), 1, 10,
                         OrderType.ASC))
                 .doOnNext(System.out::println);
 
@@ -328,7 +328,7 @@ class CustomUserRepositoryImplIntegrationTest {
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
                 .thenMany(customUserRepository.findPaginated(Optional.empty(),
-                        Optional.empty(), 0, 10,
+                        Optional.empty(), 1, 10,
                         OrderType.ASC))
                 .doOnError(a -> System.out.println("---- Found no users!"));
         // then

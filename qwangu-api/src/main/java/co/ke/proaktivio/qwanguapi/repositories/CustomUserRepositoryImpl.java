@@ -67,14 +67,14 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     }
 
     @Override
-    public Flux<User> findPaginated(Optional<String> id, Optional<String> roleId, int page, int pageSize, OrderType order) {
-        Pageable pageable = PageRequest.of(page, pageSize);
+    public Flux<User> findPaginated(Optional<String> id, Optional<String> emailAddress, int page, int pageSize, OrderType order) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
         id.ifPresent(s -> query.addCriteria(Criteria.where("id").is(s)));
-        roleId.ifPresent(s -> query.addCriteria(Criteria.where("roleId").is(s)));
+        emailAddress.ifPresent(s -> query.addCriteria(Criteria.where("emailAddress").is(s)));
         query.with(pageable)
                 .with(sort);
         return template.find(query, User.class)
