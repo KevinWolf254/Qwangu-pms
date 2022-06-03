@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
@@ -18,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
@@ -29,7 +31,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 
-@ContextConfiguration(classes = {UserConfigs.class, UserHandler.class})
+@ContextConfiguration(classes = {UserConfigs.class, UserHandler.class, SecurityConfig.class})
 @WebFluxTest
 class UserConfigsTest {
     @Autowired
@@ -45,6 +47,19 @@ class UserConfigsTest {
     }
 
     @Test
+    @DisplayName("create returns unauthorised when user is not authenticated status 401")
+    void create_returnsUnauthorized_status401() {
+        // then
+        client
+                .post()
+                .uri("/v1/users")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser
     @DisplayName("create returns a user when email address does not exist")
     void create_returnsUser_whenEmailAddressDoesNotExist_status201() {
         // given
@@ -84,6 +99,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns CustomAlreadyExistsException with status 400")
     void create_returnsCustomAlreadyExistsException_status400() {
         // given
@@ -114,6 +130,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns CustomBadRequestException when required validation fails with status 403")
     void create_returnsCustomBadRequestException_whenRequiredValidationFails_status403() {
         // given
@@ -142,6 +159,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns CustomBadRequestException when min length validation fails with status 403")
     void create_returnsCustomBadRequestException_whenMinLengthValidationFails_status403() {
         // given
@@ -170,6 +188,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns CustomBadRequestException when max length validation fails with status 403")
     void create_returnsCustomBadRequestException_whenMaxLengthValidationFails_status403() {
         // given
@@ -198,6 +217,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns CustomBadRequestException when email address validation fails with status 403")
     void create_returnsCustomBadRequestException_whenEmailValidationFails_status403() {
         // given
@@ -226,6 +246,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns Exception with status 500")
     void create_returnsException_status500() {
         // given
@@ -254,6 +275,21 @@ class UserConfigsTest {
     }
 
     @Test
+    @DisplayName("update returns unauthorised when user is not authenticated status 401")
+    void update_returnsUnauthorized_status401() {
+        // given
+        String id = "1";
+        // then
+        client
+                .put()
+                .uri("/v1/users/{id}", id)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser
     @DisplayName("update returns a Mono of updated User when id and email address are paired")
     void update_returnsUpdatedUser_status200() {
         // given
@@ -294,6 +330,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("update returns CustomBadRequestException when required validation fails with status 403")
     void update_returnsCustomBadRequestException_whenRequiredValidationFails_status403() {
         // given
@@ -323,6 +360,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("update returns CustomBadRequestException when min length validation fails with status 403")
     void update_returnsCustomBadRequestException_whenMinLengthValidationFails_status403() {
         // given
@@ -352,6 +390,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("update returns CustomBadRequestException when max length validation fails with status 403")
     void update_returnsCustomBadRequestException_whenMaxLengthValidationFails_status403() {
         // given
@@ -381,6 +420,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("update returns CustomBadRequestException when email address validation fails with status 403")
     void update_returnsCustomBadRequestException_whenEmailValidationFails_status403() {
         // given
@@ -410,6 +450,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("update returns Exception with status 500")
     void update_returnsException_status500() {
         // given
@@ -438,6 +479,28 @@ class UserConfigsTest {
     }
 
     @Test
+    @DisplayName("find returns unauthorised when user is not authenticated status 401")
+    void find_returnsUnauthorized_status401() {
+        // then
+        Function<UriBuilder, URI> uriFunc = uriBuilder ->
+                uriBuilder
+                        .path("/v1/users")
+                        .queryParam("id", 1)
+                        .queryParam("name", "name")
+                        .queryParam("page", 1)
+                        .queryParam("pageSize", 10)
+                        .queryParam("order", OrderType.ASC)
+                        .build();
+        client
+                .put()
+                .uri(uriFunc)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser
     @DisplayName("Find returns a Flux of Users")
     void find_returnsFluxOfUsers_status200() {
         // given
@@ -446,7 +509,6 @@ class UserConfigsTest {
         String roleId = "1";
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
-        UserDto dto = new UserDto(person, emailAddress, roleId);
         User user = new User(id, person, emailAddress, roleId, now, null);
 
         String page = "1";
@@ -499,6 +561,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("find returns CustomNotFoundException with status 404")
     void find_returnsCustomNotFoundException_status404() {
         // given
@@ -545,6 +608,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("find returns Exception with status 500")
     void find_returnsException_status500() {
         // given
@@ -590,6 +654,21 @@ class UserConfigsTest {
     }
 
     @Test
+    @DisplayName("Delete by id  returns unauthorised when user is not authenticated status 401")
+    void deleteById_returnsUnauthorized_status401() {
+        // given
+        String id = "1";
+        // then
+        client
+                .put()
+                .uri("/v1/users/{id}", id)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser
     @DisplayName("delete by id returns a Mono of boolean when id exists")
     void deleteById_returnsTrue_status200() {
         // given
@@ -614,6 +693,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("delete by id returns CustomNotFoundException with status 404")
     void deleteById_returnsCustomNotFoundException_status404() {
         // given
@@ -639,6 +719,7 @@ class UserConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("delete by id returns Exception with status 500")
     void deleteById_returnsException_status500() {
         // given

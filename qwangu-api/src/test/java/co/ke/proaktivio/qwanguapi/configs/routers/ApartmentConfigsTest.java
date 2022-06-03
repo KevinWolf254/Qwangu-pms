@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
@@ -8,7 +9,6 @@ import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.ErrorCode;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.pojos.SuccessResponse;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
@@ -20,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
@@ -31,7 +32,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 
-@ContextConfiguration(classes = {ApartmentConfigs.class, ApartmentHandler.class})
+@ContextConfiguration(classes = {ApartmentConfigs.class, ApartmentHandler.class, SecurityConfig.class})
 @WebFluxTest
 class ApartmentConfigsTest {
     @Autowired
@@ -42,11 +43,22 @@ class ApartmentConfigsTest {
     private ApartmentService apartmentService;
 
     @Before
-    public void setUp() {
-        client = WebTestClient.bindToApplicationContext(context).build();
+    public void setUp() {client = WebTestClient.bindToApplicationContext(context).build();}
+
+    @Test
+    @DisplayName("create returns unauthorised when user is not authenticated status 401")
+    void create_returnsUnauthorized_status401() {
+        // then
+        client
+                .post()
+                .uri("/v1/apartments")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns a Mono of Apartment when name does not exist")
     void create_returnsMonoApartment_status201() {
         // given
@@ -59,7 +71,8 @@ class ApartmentConfigsTest {
         Mockito.when(apartmentService.create(dto)).thenReturn(Mono.just(apartment));
 
         // then
-        client.post()
+        client
+                .post()
                 .uri("/v1/apartments")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), ApartmentDto.class)
@@ -79,6 +92,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns CustomAlreadyExistsException with status 400")
     void create_returnsCustomAlreadyExistsException_status400() {
         // given
@@ -89,7 +103,8 @@ class ApartmentConfigsTest {
         Mockito.when(apartmentService.create(dto)).thenThrow(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name)));
 
         //then
-        client.post()
+        client
+                .post()
                 .uri("/v1/apartments")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), ApartmentDto.class)
@@ -105,6 +120,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns CustomBadRequestException when apartment name is null or blank with status 403")
     void create_returnsCustomBadRequestException_whenApartmentNameIsNullOrBlank_status403() {
         // given
@@ -130,6 +146,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns CustomBadRequestException when apartment name length is less than 6 with status 403")
     void create_returnsCustomBadRequestException_whenApartmentNameLengthLessThan6_status403() {
         // given
@@ -155,6 +172,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("create returns Exception with status 500")
     void create_returnsException_status500() {
         // given
@@ -181,6 +199,21 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @DisplayName("update returns unauthorised when user is not authenticated status 401")
+    void update_returnsUnauthorized_status401() {
+        // given
+        String id = "1";
+        // then
+        client
+                .put()
+                .uri("/v1/apartments/{id}",id)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser
     @DisplayName("update returns a Mono of updated Apartment when name does not exist")
     void update_returnsUpdatedApartment_status200() {
         // given
@@ -216,6 +249,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("update returns CustomBadRequestException when apartment name is null or blank with status 403")
     void update_returnsCustomBadRequestException_whenApartmentNameIsNullOrBlank_status403() {
         // given
@@ -227,6 +261,7 @@ class ApartmentConfigsTest {
 
         // then
         client
+//                .mutateWith(csrf())
                 .put()
                 .uri("/v1/apartments/{id}",id)
                 .accept(MediaType.APPLICATION_JSON)
@@ -243,6 +278,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("update returns CustomBadRequestException when apartment name length is less than 6 with status 403")
     void update_returnsCustomBadRequestException_whenApartmentNameLengthLessThan6_status403() {
         // given
@@ -268,6 +304,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("update returns CustomAlreadyExistsException with status 400")
     void update_returnsCustomAlreadyExistsException_status400() {
         // given
@@ -295,6 +332,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("update returns Exception with status 500")
     void update_returnsException_status500() {
         // given
@@ -323,6 +361,28 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @DisplayName("find returns unauthorised when user is not authenticated status 401")
+    void find_returnsUnauthorized_status401() {
+        // then
+        Function<UriBuilder, URI> uriFunc = uriBuilder ->
+                uriBuilder
+                        .path("/v1/apartments")
+                        .queryParam("id", 1)
+                        .queryParam("name", "name")
+                        .queryParam("page", 1)
+                        .queryParam("pageSize", 10)
+                        .queryParam("order", OrderType.ASC)
+                        .build();
+        client
+                .put()
+                .uri(uriFunc)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser
     @DisplayName("find returns a Flux of Apartments")
     void find_returnsFluxOfApartments_status200() {
         // given
@@ -372,6 +432,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("find returns CustomNotFoundException with status 404")
     void find_returnsCustomNotFoundException_status404() {
         // given
@@ -417,6 +478,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("find returns Exception with status 500")
     void find_returnsException_status500() {
         // given
@@ -462,7 +524,22 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @DisplayName("DeleteById returns a Mono of boolean when id exists")
+    @DisplayName("Delete by id  returns unauthorised when user is not authenticated status 401")
+    void deleteById_returnsUnauthorized_status401() {
+        // given
+        String id = "1";
+        // then
+        client
+                .put()
+                .uri("/v1/apartments/{id}", id)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("Delete by id returns a Mono of boolean when id exists")
     void deleteById_returnsTrue_status200() {
         // given
         String id = "1";
@@ -486,6 +563,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("deleteById returns CustomNotFoundException with status 404")
     void deleteById_returnsCustomNotFoundException_status404() {
         // given
@@ -511,6 +589,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("deleteById returns Exception with status 500")
     void deleteById_returnsException_status500() {
         // given

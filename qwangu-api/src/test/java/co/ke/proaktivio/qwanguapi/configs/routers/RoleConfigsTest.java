@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.RoleHandler;
 import co.ke.proaktivio.qwanguapi.models.Authority;
@@ -16,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
@@ -27,7 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
-@ContextConfiguration(classes = {RoleConfigs.class, RoleHandler.class})
+@ContextConfiguration(classes = {RoleConfigs.class, RoleHandler.class, SecurityConfig.class})
 @WebFluxTest
 class RoleConfigsTest {
     @Autowired
@@ -43,6 +46,28 @@ class RoleConfigsTest {
     }
 
     @Test
+    @DisplayName("find returns unauthorised when user is not authenticated status 401")
+    void find_returnsUnauthorized_status401() {
+        // then
+        Function<UriBuilder, URI> uriFunc = uriBuilder ->
+                uriBuilder
+                        .path("/v1/roles")
+                        .queryParam("id", 1)
+                        .queryParam("name", "name")
+                        .queryParam("page", 1)
+                        .queryParam("pageSize", 10)
+                        .queryParam("order", OrderType.ASC)
+                        .build();
+        client
+                .put()
+                .uri(uriFunc)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser
     @DisplayName("Find returns a Flux of roles")
     void find_returnsFluxOfRoles_status200() {
         // given
@@ -95,6 +120,7 @@ class RoleConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("find returns CustomNotFoundException with status 404")
     void find_returnsCustomNotFoundException_status404() {
         // given
@@ -141,6 +167,7 @@ class RoleConfigsTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("find returns Exception with status 500")
     void find_returnsException_status500() {
         // given
