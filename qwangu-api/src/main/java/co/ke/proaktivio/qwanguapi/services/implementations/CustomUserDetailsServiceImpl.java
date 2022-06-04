@@ -13,8 +13,12 @@ import co.ke.proaktivio.qwanguapi.services.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,10 +29,14 @@ public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
     @Override
     public Mono<UserDetails> findByUsername(String username) {
         return userRepository.findOne(Example.of(new User(username)))
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("User %s could not be found!".formatted(username))))
-                .flatMap(user -> roleRepository
-                        .findOne(Example.of(new Role(user.getRoleId())))
-                        .switchIfEmpty(Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username))))
-                        .map(role -> (UserDetails) new CustomUserDetails(user, role)));
+                .switchIfEmpty(Mono.error(new UsernameNotFoundException("User %s could not be found!".formatted(username))))
+                .flatMap(user -> {
+                    if (StringUtils.hasText(user.getRoleId()))
+                        return roleRepository
+                                .findOne(Example.of(new Role(user.getRoleId())))
+                                .switchIfEmpty(Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username))))
+                                .map(role -> (UserDetails) new CustomUserDetails(user, role));
+                    return Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username)));
+                });
     }
 }

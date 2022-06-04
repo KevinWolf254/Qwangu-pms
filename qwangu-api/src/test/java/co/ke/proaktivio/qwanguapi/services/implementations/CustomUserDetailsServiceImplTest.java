@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.springframework.data.domain.Example;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -73,7 +74,7 @@ class CustomUserDetailsServiceImplTest {
 
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(username))))
-                .thenReturn(Mono.error(new CustomNotFoundException("User %s could not be found!".formatted(username))));
+                .thenReturn(Mono.empty());
 
         // then
         Mono<UserDetails> request = customUserDetailsService.findByUsername(username)
@@ -81,13 +82,13 @@ class CustomUserDetailsServiceImplTest {
                 .doOnError(System.out::println);
         StepVerifier
                 .create(request)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                .expectErrorMatches(e -> e instanceof UsernameNotFoundException &&
                         e.getMessage().equalsIgnoreCase("User %s could not be found!".formatted(username)))
                 .verify();
     }
 
     @Test
-    void findByUsername_returnsCustomNotFoundException_whenRoleIdDoesNotExists() {
+    void findByUsername_returnsCustomNotFoundException_whenRoleIdIsNull() {
         // given
         String id = "1";
         String username = "person@gmail.com";
@@ -99,8 +100,39 @@ class CustomUserDetailsServiceImplTest {
         Mockito.when(userRepository.findOne(Example.of(new User(username))))
                 .thenReturn(Mono.just(user));
 
+//        Mockito.when(roleRepository.findOne(Example.of(new Role(user.getRoleId()))))
+//                .thenReturn(Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username))));
+
+//        Mockito.when(roleRepository.findOne(Example.of(new Role(user.getRoleId()))))
+//                .thenReturn(Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username))));
+
+        // then
+        Mono<UserDetails> request = customUserDetailsService.findByUsername(username)
+                .doOnSuccess(System.out::println)
+                .doOnError(System.out::println);
+        StepVerifier
+                .create(request)
+                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                        e.getMessage().equalsIgnoreCase("Role for user %s could not be found!".formatted(username)))
+                .verify();
+    }
+
+
+    @Test
+    void findByUsername_returnsCustomNotFoundException_whenRoleIdDoesNotExist() {
+        // given
+        String id = "1";
+        String username = "person@gmail.com";
+        LocalDateTime now = LocalDateTime.now();
+        Person person = new Person("John", "Doe", "Doe");
+        User user = new User(id, person, username, "1", null, false, false, false, true, now, null);
+
+        // when
+        Mockito.when(userRepository.findOne(Example.of(new User(username))))
+                .thenReturn(Mono.just(user));
+
         Mockito.when(roleRepository.findOne(Example.of(new Role(user.getRoleId()))))
-                .thenReturn(Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username))));
+                .thenReturn(Mono.empty());
 
         // then
         Mono<UserDetails> request = customUserDetailsService.findByUsername(username)
