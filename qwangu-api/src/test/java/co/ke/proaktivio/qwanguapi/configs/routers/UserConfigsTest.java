@@ -19,7 +19,9 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
@@ -31,6 +33,9 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 @ContextConfiguration(classes = {UserConfigs.class, UserHandler.class, SecurityConfig.class})
 @WebFluxTest
 class UserConfigsTest {
@@ -41,6 +46,11 @@ class UserConfigsTest {
     @MockBean
     private UserService userService;
 
+    @MockBean
+    private ReactiveAuthenticationManager authenticationManager;
+    @MockBean
+    private ServerSecurityContextRepository contextRepository;
+
     @Before
     public void setUp() {
         client = WebTestClient.bindToApplicationContext(context).build();
@@ -49,6 +59,8 @@ class UserConfigsTest {
     @Test
     @DisplayName("create returns unauthorised when user is not authenticated status 401")
     void create_returnsUnauthorized_status401() {
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
         client
                 .post()
@@ -279,6 +291,8 @@ class UserConfigsTest {
     void update_returnsUnauthorized_status401() {
         // given
         String id = "1";
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
         client
                 .put()
@@ -481,6 +495,8 @@ class UserConfigsTest {
     @Test
     @DisplayName("find returns unauthorised when user is not authenticated status 401")
     void find_returnsUnauthorized_status401() {
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
@@ -658,6 +674,8 @@ class UserConfigsTest {
     void deleteById_returnsUnauthorized_status401() {
         // given
         String id = "1";
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
         client
                 .put()

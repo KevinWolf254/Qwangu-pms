@@ -1,1 +1,3 @@
-
+jwt:
+  secret: alksossowmdkdofnonoffkbffjwpnwjluopkhgyipkjhtrgfhipokhgrr
+  expiration: 3600

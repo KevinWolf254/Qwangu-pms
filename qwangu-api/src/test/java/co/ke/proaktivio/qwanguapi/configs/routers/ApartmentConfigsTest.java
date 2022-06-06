@@ -14,14 +14,17 @@ import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Flux;
@@ -32,8 +35,12 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 
-@ContextConfiguration(classes = {ApartmentConfigs.class, ApartmentHandler.class, SecurityConfig.class})
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity;
+
 @WebFluxTest
+@ContextConfiguration(classes = {ApartmentConfigs.class, ApartmentHandler.class, SecurityConfig.class})
 class ApartmentConfigsTest {
     @Autowired
     private ApplicationContext context;
@@ -42,12 +49,18 @@ class ApartmentConfigsTest {
     @MockBean
     private ApartmentService apartmentService;
 
+    @MockBean
+    private ReactiveAuthenticationManager authenticationManager;
+    @MockBean
+    private ServerSecurityContextRepository contextRepository;
+
     @Before
     public void setUp() {client = WebTestClient.bindToApplicationContext(context).build();}
 
     @Test
     @DisplayName("create returns unauthorised when user is not authenticated status 401")
     void create_returnsUnauthorized_status401() {
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
         client
                 .post()
@@ -68,7 +81,7 @@ class ApartmentConfigsTest {
         var apartment = new Apartment("1", name, now, null);
 
         //when
-        Mockito.when(apartmentService.create(dto)).thenReturn(Mono.just(apartment));
+        when(apartmentService.create(dto)).thenReturn(Mono.just(apartment));
 
         // then
         client
@@ -100,7 +113,7 @@ class ApartmentConfigsTest {
         var dto = new ApartmentDto(name);
 
         //when
-        Mockito.when(apartmentService.create(dto)).thenThrow(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name)));
+        when(apartmentService.create(dto)).thenThrow(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name)));
 
         //then
         client
@@ -127,7 +140,7 @@ class ApartmentConfigsTest {
         var dto = new ApartmentDto("");
 
         //when
-        Mockito.when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name is required. Name must be at least 6 characters in length."));
+        when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name is required. Name must be at least 6 characters in length."));
 
         // then
         client.post()
@@ -153,7 +166,7 @@ class ApartmentConfigsTest {
         var dto = new ApartmentDto("Apart");
 
         //when
-        Mockito.when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
+        when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
 
         // then
         client.post()
@@ -180,7 +193,7 @@ class ApartmentConfigsTest {
         var dto = new ApartmentDto(name);
 
         //when
-        Mockito.when(apartmentService.create(dto)).thenThrow(new RuntimeException("Something happened!"));
+        when(apartmentService.create(dto)).thenThrow(new RuntimeException("Something happened!"));
 
         //then
         client.post()
@@ -203,6 +216,8 @@ class ApartmentConfigsTest {
     void update_returnsUnauthorized_status401() {
         // given
         String id = "1";
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
         client
                 .put()
@@ -226,7 +241,7 @@ class ApartmentConfigsTest {
         var apartment = new Apartment("1", name2, now, now);
 
         //when
-        Mockito.when(apartmentService.update(id, dto)).thenReturn(Mono.just(apartment));
+        when(apartmentService.update(id, dto)).thenReturn(Mono.just(apartment));
 
         // then
         client
@@ -257,7 +272,7 @@ class ApartmentConfigsTest {
         var dto = new ApartmentDto(null);
 
         //when
-        Mockito.when(apartmentService.update(id, dto)).thenThrow(new CustomBadRequestException("Name is required."));
+        when(apartmentService.update(id, dto)).thenThrow(new CustomBadRequestException("Name is required."));
 
         // then
         client
@@ -285,7 +300,7 @@ class ApartmentConfigsTest {
         var dto = new ApartmentDto("Apart");
 
         //when
-        Mockito.when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
+        when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
 
         // then
         client.post()
@@ -313,7 +328,7 @@ class ApartmentConfigsTest {
         var dto = new ApartmentDto(name);
 
         //when
-        Mockito.when(apartmentService.update(id, dto)).thenThrow(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name)));
+        when(apartmentService.update(id, dto)).thenThrow(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name)));
 
         //then
         client.put()
@@ -341,7 +356,7 @@ class ApartmentConfigsTest {
         var dto = new ApartmentDto(name);
 
         //when
-        Mockito.when(apartmentService.update(id, dto)).thenThrow(new RuntimeException("Something happened!"));
+        when(apartmentService.update(id, dto)).thenThrow(new RuntimeException("Something happened!"));
 
         //then
         client.put()
@@ -363,6 +378,8 @@ class ApartmentConfigsTest {
     @Test
     @DisplayName("find returns unauthorised when user is not authenticated status 401")
     void find_returnsUnauthorized_status401() {
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
@@ -397,7 +414,7 @@ class ApartmentConfigsTest {
         OrderType order = OrderType.ASC;
 
         // when
-        Mockito.when(apartmentService.findPaginated(
+        when(apartmentService.findPaginated(
                 Optional.of(id),
                 Optional.of(name),
                 finalPage,
@@ -445,7 +462,7 @@ class ApartmentConfigsTest {
         String order = OrderType.ASC.name();
 
         // when
-        Mockito.when(apartmentService.findPaginated(
+        when(apartmentService.findPaginated(
                 Optional.of(id),
                 Optional.of(name),
                 finalPage,
@@ -491,7 +508,7 @@ class ApartmentConfigsTest {
 
         // when
         OrderType order = OrderType.ASC;
-        Mockito.when(apartmentService.findPaginated(
+        when(apartmentService.findPaginated(
                 Optional.of(id),
                 Optional.of(name),
                 finalPage,
@@ -528,6 +545,8 @@ class ApartmentConfigsTest {
     void deleteById_returnsUnauthorized_status401() {
         // given
         String id = "1";
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
         client
                 .put()
@@ -545,7 +564,7 @@ class ApartmentConfigsTest {
         String id = "1";
 
         // when
-        Mockito.when(apartmentService.deleteById(id))
+        when(apartmentService.deleteById(id))
                 .thenReturn(Mono.just(true));
 
         // then
@@ -570,7 +589,7 @@ class ApartmentConfigsTest {
         String id = "1";
 
         // when
-        Mockito.when(apartmentService.deleteById(id))
+        when(apartmentService.deleteById(id))
                 .thenReturn(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(id))));
 
         // then
@@ -596,7 +615,7 @@ class ApartmentConfigsTest {
         String id = "1";
 
         // when
-        Mockito.when(apartmentService.deleteById(id))
+        when(apartmentService.deleteById(id))
                 .thenReturn(Mono.error(new RuntimeException("Something happened!")));
 
         // then

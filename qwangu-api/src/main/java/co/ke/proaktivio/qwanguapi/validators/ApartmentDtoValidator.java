@@ -1,4 +1,4 @@
-package co.ke.proaktivio.qwanguapi.utils.validators;
+package co.ke.proaktivio.qwanguapi.validators;
 
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import org.springframework.validation.Errors;

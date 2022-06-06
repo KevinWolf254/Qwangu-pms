@@ -1,5 +1,7 @@
 server:
   port: 8080
+#  servlet:
+#    context-path: /api
 spring:
   data:
     mongodb:
@@ -10,3 +12,6 @@ spring:
       password: pass123
       auto-index-creation: true
       authentication-database: admin
+jwt:
+  secret: ahasjofnwowuwoeneoeneowbnkamalspsiwnwpsndifnfpoe
+  expiration: 3600

@@ -6,7 +6,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
-import co.ke.proaktivio.qwanguapi.utils.validators.ApartmentDtoValidator;
+import co.ke.proaktivio.qwanguapi.validators.ApartmentDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;

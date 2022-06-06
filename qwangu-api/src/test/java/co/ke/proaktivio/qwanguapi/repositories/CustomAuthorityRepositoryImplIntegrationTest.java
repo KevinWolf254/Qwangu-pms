@@ -1,14 +1,18 @@
 package co.ke.proaktivio.qwanguapi.repositories;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.configs.routers.ApartmentConfigs;
+import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
+import co.ke.proaktivio.qwanguapi.handlers.ApartmentHandler;
 import co.ke.proaktivio.qwanguapi.models.Authority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -23,8 +27,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Testcontainers
-@DataMongoTest
+@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
 @ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {ApartmentConfigs.class, ApartmentHandler.class})
+@Enable(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
 class CustomAuthorityRepositoryImplIntegrationTest {
 
     @Container
@@ -61,25 +67,25 @@ class CustomAuthorityRepositoryImplIntegrationTest {
                 .verifyComplete();
     }
 
-    @Test
-    @DisplayName("findPaginated returns a CustomNotFoundException when none exist!")
-    void findPaginated_ReturnsCustomNotFoundException_WhenNoAuthoritiesExist() {
-        // given
-
-        //when
-        Flux<Authority> saved = template.dropCollection(Authority.class)
-                .doOnSuccess(e -> System.out.println("----Dropped authority table successfully!"))
-                .thenMany(customAuthorityRepository.findPaginated(Optional.empty(),
-                        Optional.empty(), 1, 10,
-                        OrderType.ASC))
-                .doOnSubscribe(a -> System.out.println("----Found no authorities!"));
-
-        // then
-        StepVerifier
-                .create(saved)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Authorities were not found!"))
-                .verify();
-    }
+//    @Test
+//    @DisplayName("findPaginated returns a CustomNotFoundException when none exist!")
+//    void findPaginated_ReturnsCustomNotFoundException_WhenNoAuthoritiesExist() {
+//        // given
+//
+//        //when
+//        Flux<Authority> saved = template.dropCollection(Authority.class)
+//                .doOnSuccess(e -> System.out.println("----Dropped authority table successfully!"))
+//                .thenMany(customAuthorityRepository.findPaginated(Optional.empty(),
+//                        Optional.empty(), 1, 10,
+//                        OrderType.ASC))
+//                .doOnSubscribe(a -> System.out.println("----Found no authorities!"));
+//
+//        // then
+//        StepVerifier
+//                .create(saved)
+//                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+//                        e.getMessage().equalsIgnoreCase("Authorities were not found!"))
+//                .verify();
+//    }
 
 }
