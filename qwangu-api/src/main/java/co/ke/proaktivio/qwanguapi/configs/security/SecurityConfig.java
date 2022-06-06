@@ -1,12 +1,9 @@
 package co.ke.proaktivio.qwanguapi.configs.security;
 
-import co.ke.proaktivio.qwanguapi.security.CustomReactiveAuthenticationManager;
-import co.ke.proaktivio.qwanguapi.security.CustomServerSecurityContextRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -14,7 +11,6 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
-import reactor.core.publisher.Mono;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -37,7 +33,8 @@ public class SecurityConfig {
                 .authenticationManager(authenticationManager)
                 .securityContextRepository(contextRepository)
                 .authorizeExchange()
-                .pathMatchers("/**").authenticated()
+                .pathMatchers("/signIn").permitAll()
+                .anyExchange().authenticated()
                 .and()
                 .build();
     }
