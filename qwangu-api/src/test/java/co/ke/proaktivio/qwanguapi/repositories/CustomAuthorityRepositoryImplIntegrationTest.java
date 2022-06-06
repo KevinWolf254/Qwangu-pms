@@ -1,21 +1,16 @@
 package co.ke.proaktivio.qwanguapi.repositories;
 
-import co.ke.proaktivio.qwanguapi.configs.routers.ApartmentConfigs;
-import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
-import co.ke.proaktivio.qwanguapi.handlers.ApartmentHandler;
 import co.ke.proaktivio.qwanguapi.models.Authority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -28,9 +23,7 @@ import java.util.Optional;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ApartmentConfigs.class, ApartmentHandler.class})
-@Enable(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
+@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
 class CustomAuthorityRepositoryImplIntegrationTest {
 
     @Container

@@ -10,7 +10,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -27,8 +29,8 @@ import reactor.test.StepVerifier;
 import java.util.Optional;
 
 @Testcontainers
-@DataMongoTest
-@ExtendWith(SpringExtension.class)
+@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
+@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
 class CustomApartmentRepositoryImplIntegrationTest {
 
     @Container
