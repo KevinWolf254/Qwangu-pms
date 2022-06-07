@@ -14,11 +14,15 @@ public class UserConfigs {
     @Bean
     RouterFunction<ServerResponse> routeUser(UserHandler handler) {
         return route()
-                .path("v1/users", builder -> builder
-                        .GET(handler::find)
-                        .POST(handler::create)
-                        .PUT("/{id}", handler::update)
-                        .DELETE("/{id}", handler::delete))
+                .path("v1", builder -> builder
+                        .path("users", builder1 -> builder1
+                                .GET(handler::find)
+                                .POST(handler::create)
+                                .PUT("/{id}", handler::update)
+                                .DELETE("/{id}", handler::delete))
+                        .path("signIn", builder2 -> builder2
+                                .POST(handler::signIn)))
+
                 .build();
     }
 }

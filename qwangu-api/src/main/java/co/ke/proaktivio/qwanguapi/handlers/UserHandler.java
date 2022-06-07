@@ -3,13 +3,20 @@ package co.ke.proaktivio.qwanguapi.handlers;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
+import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
+import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.UserDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -27,6 +34,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserHandler {
     private final UserService userService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder encoder;
+    private final JwtUtil jwtUtil;
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(UserDto.class)
@@ -84,6 +94,27 @@ public class UserHandler {
                 .onErrorResume(handleExceptions());
     }
 
+    public Mono<ServerResponse> signIn(ServerRequest request) {
+        return request.bodyToMono(SignUpDto.class)
+//                .map(validateUserDtoFunc(new UserDtoValidator()))
+                .flatMap(dto -> userRepository
+                        .findOne(Example.of(new User(dto.getUsername())))
+                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                        .flatMap(user -> {
+                            boolean passwordsMatch = encoder.encode(dto.getPassword()).equals(user.getPassword());
+                            if(passwordsMatch) {
+                                return Mono.just(new TokenDto(jwtUtil.generateToken(user, new Role())));
+                            }
+                            return Mono.error(new UsernameNotFoundException("Invalid username or password!"));
+                        }))
+                .flatMap(tokenDto ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "Signed in successfully.", tokenDto)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
+    }
+
     private Function<UserDto, UserDto> validateUserDtoFunc(Validator validator) {
         return userDto -> {
             Errors errors = new BeanPropertyBindingResult(userDto, UserDto.class.getName());
@@ -112,9 +143,15 @@ public class UserHandler {
                                 new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", e.getMessage())), ErrorResponse.class)
                         .log();
             }
+            if (e instanceof UsernameNotFoundException) {
+                return ServerResponse.status(HttpStatus.UNAUTHORIZED)
+                        .body(Mono.just(
+                                new ErrorResponse<>(false, ErrorCode.UNAUTHORIZED_ERROR, "Unauthorised", e.getMessage())), ErrorResponse.class)
+                        .log();
+            }
             return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Mono.just(
-                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!","Something happened!")), ErrorResponse.class)
+                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", "Something happened!")), ErrorResponse.class)
                     .log();
         };
     }
