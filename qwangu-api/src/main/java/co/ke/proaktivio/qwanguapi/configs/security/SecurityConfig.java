@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .authenticationManager(authenticationManager)
                 .securityContextRepository(contextRepository)
                 .authorizeExchange()
-                .pathMatchers("/signIn").permitAll()
+                .pathMatchers("/v1/signIn").permitAll()
                 .anyExchange().authenticated()
                 .and()
                 .build();

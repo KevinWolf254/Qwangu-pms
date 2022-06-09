@@ -6,6 +6,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
+import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import co.ke.proaktivio.qwanguapi.services.UserService;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -37,6 +39,7 @@ public class UserHandler {
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
     private final JwtUtil jwtUtil;
+    private final RoleRepository roleRepository;
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(UserDto.class)
@@ -89,7 +92,8 @@ public class UserHandler {
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "User with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
+                                .body(Mono.just(new SuccessResponse<>(true, "User with id %s deleted successfully."
+                                        .formatted(id), null)), SuccessResponse.class)
                                 .log())
                 .onErrorResume(handleExceptions());
     }
@@ -97,16 +101,25 @@ public class UserHandler {
     public Mono<ServerResponse> signIn(ServerRequest request) {
         return request.bodyToMono(SignUpDto.class)
 //                .map(validateUserDtoFunc(new UserDtoValidator()))
-                .flatMap(dto -> userRepository
-                        .findOne(Example.of(new User(dto.getUsername())))
+                .flatMap(dto -> userRepository.findOne(Example.of(new User(dto.getUsername())))
                         .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
                         .flatMap(user -> {
-                            boolean passwordsMatch = encoder.encode(dto.getPassword()).equals(user.getPassword());
-                            if(passwordsMatch) {
-                                return Mono.just(new TokenDto(jwtUtil.generateToken(user, new Role())));
+                            boolean passwordsMatch = encoder.matches(dto.getPassword(), user.getPassword());
+                            if (passwordsMatch) {
+                                return roleRepository.findById(user.getRoleId())
+                                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                                        .flatMap(role -> {
+                                            String token = jwtUtil.generateToken(user, role);
+                                            if(StringUtils.hasText(token))
+                                                return Mono.just(new TokenDto(token));
+                                            return Mono.empty();
+                                        })
+                                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                                        .flatMap(Mono::just);
                             }
                             return Mono.error(new UsernameNotFoundException("Invalid username or password!"));
-                        }))
+                        })
+                )
                 .flatMap(tokenDto ->
                         ServerResponse
                                 .ok()
@@ -114,6 +127,7 @@ public class UserHandler {
                                 .log())
                 .onErrorResume(handleExceptions());
     }
+
 
     private Function<UserDto, UserDto> validateUserDtoFunc(Validator validator) {
         return userDto -> {
