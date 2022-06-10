@@ -3,7 +3,6 @@ package co.ke.proaktivio.qwanguapi.handlers;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
@@ -11,6 +10,7 @@ import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import co.ke.proaktivio.qwanguapi.validators.SignInDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.UserDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -99,8 +99,8 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> signIn(ServerRequest request) {
-        return request.bodyToMono(SignUpDto.class)
-//                .map(validateUserDtoFunc(new UserDtoValidator()))
+        return request.bodyToMono(SignInDto.class)
+                .map(validateSignInDtoFunc(new SignInDtoValidator()))
                 .flatMap(dto -> userRepository.findOne(Example.of(new User(dto.getUsername())))
                         .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
                         .flatMap(user -> {
@@ -140,6 +140,20 @@ public class UserHandler {
                 throw new CustomBadRequestException(errorMessage);
             }
             return userDto;
+        };
+    }
+
+    private Function<SignInDto, SignInDto> validateSignInDtoFunc(Validator validator) {
+        return signInDto -> {
+            Errors errors = new BeanPropertyBindingResult(signInDto, SignInDto.class.getName());
+            validator.validate(signInDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return signInDto;
         };
     }
 

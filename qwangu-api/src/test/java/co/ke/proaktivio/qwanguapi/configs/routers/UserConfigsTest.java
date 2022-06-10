@@ -24,7 +24,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Example;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
@@ -33,7 +32,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -790,7 +788,7 @@ class UserConfigsTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
 
-        SignUpDto dto = new SignUpDto(emailAddress, password);
+        SignInDto dto = new SignInDto(emailAddress, password);
         Role role = new Role(id, "ADMIN", Set.of(), now, null);
         User user = new User(id, person, emailAddress, roleId, password, false, false, false, true, now, null);
 
@@ -806,7 +804,7 @@ class UserConfigsTest {
                 .post()
                 .uri("/v1/signIn")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignUpDto.class)
+                .body(Mono.just(dto), SignInDto.class)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
@@ -823,7 +821,7 @@ class UserConfigsTest {
         // given
         String password = "QwwsefRgvt_@er23";
         String emailAddress = "person@gmail.com";
-        SignUpDto dto = new SignUpDto(emailAddress, password);
+        SignInDto dto = new SignInDto(emailAddress, password);
 
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
@@ -834,7 +832,7 @@ class UserConfigsTest {
                 .post()
                 .uri("/v1/signIn")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignUpDto.class)
+                .body(Mono.just(dto), SignInDto.class)
                 .exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody()
@@ -857,7 +855,7 @@ class UserConfigsTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
 
-        SignUpDto dto = new SignUpDto(emailAddress, password);
+        SignInDto dto = new SignInDto(emailAddress, password);
         User user = new User(id, person, emailAddress, roleId, password, false, false, false, true, now, null);
 
         // when
@@ -870,7 +868,7 @@ class UserConfigsTest {
                 .post()
                 .uri("/v1/signIn")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignUpDto.class)
+                .body(Mono.just(dto), SignInDto.class)
                 .exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody()
@@ -894,7 +892,7 @@ class UserConfigsTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
 
-        SignUpDto dto = new SignUpDto(emailAddress, password);
+        SignInDto dto = new SignInDto(emailAddress, password);
         User user = new User(id, person, emailAddress, roleId, password, false, false, false, true, now, null);
 
         // when
@@ -908,7 +906,7 @@ class UserConfigsTest {
                 .post()
                 .uri("/v1/signIn")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignUpDto.class)
+                .body(Mono.just(dto), SignInDto.class)
                 .exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody()
@@ -931,7 +929,7 @@ class UserConfigsTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
 
-        SignUpDto dto = new SignUpDto(emailAddress, password);
+        SignInDto dto = new SignInDto(emailAddress, password);
         Role role = new Role(id, "ADMIN", Set.of(), now, null);
         User user = new User(id, person, emailAddress, roleId, password, false, false, false, true, now, null);
 
@@ -947,7 +945,7 @@ class UserConfigsTest {
                 .post()
                 .uri("/v1/signIn")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignUpDto.class)
+                .body(Mono.just(dto), SignInDto.class)
                 .exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody()
@@ -959,15 +957,101 @@ class UserConfigsTest {
     }
 
     @Test
-    @DisplayName("signIn returns BadRequestException when email validation fails status 400")
-    void signIn_returnsBadRequestException_whenEmailValidationFails_status400() {
-
+    @DisplayName("signIn returns BadRequestException when username is null status 400")
+    void signIn_returnsBadRequestException_whenUsernameIsNull_status400() {
+        // given
+        String password = "QwwsefRgvt_@er23";
+        SignInDto dto = new SignInDto(null, password);
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .post()
+                .uri("/v1/signIn")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), SignInDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Username is required.")
+                .consumeWith(System.out::println);
     }
 
     @Test
-    @DisplayName("signIn returns BadRequestException when password validation fails status 400")
-    void signIn_returnsBadRequestException_whenPasswordValidationFails_status400() {
+    @DisplayName("signIn returns BadRequestException when username is empty status 400")
+    void signIn_returnsBadRequestException_whenUsernameIsEmpty_status400() {
+        // given
+        String password = "QwwsefRgvt_@er23";
+        SignInDto dto = new SignInDto(" ", password);
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .post()
+                .uri("/v1/signIn")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), SignInDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Username is required. Username must be at least 6 characters in length. Username is not a valid email address.")
+                .consumeWith(System.out::println);
+    }
 
+    @Test
+    @DisplayName("signIn returns BadRequestException when password is null status 400")
+    void signIn_returnsBadRequestException_whenPasswordIsNull_status400() {
+        // given
+        SignInDto dto = new SignInDto("person@gmail.com", null);
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .post()
+                .uri("/v1/signIn")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), SignInDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Password is required.")
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @DisplayName("signIn returns BadRequestException when password is empty status 400")
+    void signIn_returnsBadRequestException_whenPasswordIsEmpty_status400() {
+        // given
+        SignInDto dto = new SignInDto("person@gmail.com", " ");
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .post()
+                .uri("/v1/signIn")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), SignInDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Password is required. Password must be at least 6 characters in length.")
+                .consumeWith(System.out::println);
     }
 
 }
