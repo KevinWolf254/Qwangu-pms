@@ -276,7 +276,6 @@ class UserConfigsTest {
     @DisplayName("create returns Exception with status 500")
     void create_returnsException_status500() {
         // given
-        String id = "1";
         Person person = new Person("John", "Doe", "Doe");
         UserDto dto = new UserDto(person, "person@gmail.com", "1");
 
