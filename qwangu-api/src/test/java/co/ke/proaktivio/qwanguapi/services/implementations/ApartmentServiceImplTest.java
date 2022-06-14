@@ -21,7 +21,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 class ApartmentServiceImplTest {
-
     @Mock
     private ApartmentRepository repository;
     @InjectMocks

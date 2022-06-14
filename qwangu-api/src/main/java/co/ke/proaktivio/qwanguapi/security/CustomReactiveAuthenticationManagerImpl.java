@@ -9,7 +9,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -21,18 +23,22 @@ public class CustomReactiveAuthenticationManagerImpl implements CustomReactiveAu
     public Mono<Authentication> authenticate(Authentication authentication) {
         String token = authentication.getCredentials().toString();
         String username = jwtUtil.getUsername(token);
-        return Mono.just(jwtUtil.validate(token))
-                .map(isValid -> {
-                    if (isValid) {
-                        Claims claims = jwtUtil.getClaims(token);
-                        List<String> roles = claims.get("role", List.class);
-                        return new UsernamePasswordAuthenticationToken(
-                                username,
-                                null,
-                                roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())
-                        );
-                    }
-                    return new UsernamePasswordAuthenticationToken(null, null, List.of());
-                });
+        return Mono
+                .just(jwtUtil.validate(token))
+                .filter(isValid -> isValid)
+                .map(v -> {
+                    Claims claims = jwtUtil.getClaims(token);
+                    String role = claims.get("role", String.class);
+                    return role == null ? Optional.empty() : Optional.of(role);
+                })
+                .filter(Optional::isPresent)
+                .map(role -> username == null || username.isEmpty() || username.isBlank() ? Optional.empty() : role)
+                .filter(Optional::isPresent)
+                .flatMap(optRole -> Mono.just((Authentication) new UsernamePasswordAuthenticationToken(
+                        username,
+                        null,
+                        List.of(new SimpleGrantedAuthority((String) optRole.get())))
+                ))
+                .switchIfEmpty(Mono.just(new UsernamePasswordAuthenticationToken(null, null, List.of())));
     }
 }

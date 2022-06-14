@@ -9,7 +9,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,21 +18,15 @@ import java.util.Map;
 
 @Component
 public class JwtUtilImpl implements JwtUtil {
-    private final JwtPropertiesConfig jwtProperties;
+    private final JwtPropertiesConfig properties;
+    private final Key key;
 
-    private final String expirationTime;
-    private final String secret;
-    private Key key;
+    private final static String EAT = "Africa/Nairobi";
+    private final static ZoneId NAIROBI = ZoneId.of(EAT);
 
-    public JwtUtilImpl(JwtPropertiesConfig jwtProperties) {
-        this.jwtProperties = jwtProperties;
-        expirationTime = jwtProperties.getExpiration();
-        secret = jwtProperties.getSecret();
-    }
-
-    @PostConstruct
-    public void init() {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    public JwtUtilImpl(JwtPropertiesConfig properties) {
+        this.properties = properties;
+        this.key = Keys.hmacShaKeyFor(properties.getSecret().getBytes());
     }
 
     @Override
@@ -55,7 +48,7 @@ public class JwtUtilImpl implements JwtUtil {
     public LocalDateTime getExpirationDate(String token) {
         return getClaims(token).getExpiration()
                 .toInstant()
-                .atZone(ZoneId.of("EAT"))
+                .atZone(NAIROBI)
                 .toLocalDateTime();
     }
 
@@ -77,16 +70,14 @@ public class JwtUtilImpl implements JwtUtil {
     }
 
     private String generate(Map<String, Object> claims, String username) {
-        Long expiration = Long.parseLong(expirationTime); //in second
-        final LocalDateTime createdDate = LocalDateTime.now(ZoneId.of("EAT"));
-        final LocalDateTime expirationDate = createdDate.plusSeconds(expiration);
-//                new Date(createdDate.getTime() + expiration * 1000);
+        final LocalDateTime createdDate = LocalDateTime.now(NAIROBI);
+        final LocalDateTime expirationDate = createdDate.plusSeconds(properties.getExpiration());
 
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
-                .setIssuedAt(Date.from(createdDate.atZone(ZoneId.of("EAT")).toInstant()))
-                .setExpiration(Date.from(expirationDate.atZone(ZoneId.of("EAT")).toInstant()))
+                .setIssuedAt(Date.from(createdDate.atZone(NAIROBI).toInstant()))
+                .setExpiration(Date.from(expirationDate.atZone(NAIROBI).toInstant()))
                 .signWith(key)
                 .compact();
     }

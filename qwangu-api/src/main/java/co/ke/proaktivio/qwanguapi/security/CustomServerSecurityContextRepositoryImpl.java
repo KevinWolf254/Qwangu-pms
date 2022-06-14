@@ -24,17 +24,14 @@ public class CustomServerSecurityContextRepositoryImpl implements CustomServerSe
 
     @Override
     public Mono<SecurityContext> load(ServerWebExchange exchange) {
-        return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+        return Mono
+                .justOrEmpty(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
                 .filter(authHeader -> authHeader.startsWith("Bearer "))
-                .flatMap(authHeader -> {
-                    if(StringUtils.hasText(authHeader)) {
-                        String token = authHeader.substring(7);
-                        if(StringUtils.hasText(token)) {
-                            Authentication authentication = new UsernamePasswordAuthenticationToken(token, token);
-                            return this.authenticationManager.authenticate(authentication).map(SecurityContextImpl::new);
-                        }
-                    }
-                    return Mono.empty();
-                });
+                .filter(authHeader -> StringUtils.hasText(authHeader.substring(7)))
+                .map(header -> header.substring(7))
+                .filter(StringUtils::hasText)
+                .map(token -> new UsernamePasswordAuthenticationToken(token, token))
+                .flatMap(this.authenticationManager::authenticate)
+                .map(SecurityContextImpl::new);
     }
 }
