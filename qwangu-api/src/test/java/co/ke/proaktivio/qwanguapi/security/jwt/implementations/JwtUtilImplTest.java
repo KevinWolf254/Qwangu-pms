@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 class JwtUtilImplTest {
     @Autowired
-    JwtPropertiesConfig configs;
+    private JwtPropertiesConfig configs;
 
     private JwtUtil util;
     private String token;

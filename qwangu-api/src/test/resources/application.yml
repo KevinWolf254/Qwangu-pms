@@ -1,3 +1,28 @@
 jwt:
   secret: alksossowmdkdofnonoffkbffjwpnwjluopkhgyipkjhtrgfhipokhgrr
   expiration: 3600
+#spring:
+#  mail:
+#    host: 127.0.0.1
+#    port: 3025
+#    username: person@gmail.com
+#    password: testing
+#    properties:
+#      mail:
+#        transport:
+#          protocol: smtp
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+email:
+  mail:
+    host: 127.0.0.1
+    port: 3025
+    username: person@gmail.com
+    password: testing
+  noReply: noreply@proaktivio.co.ke
+  template:
+    activate-account: activate_account.ftl
+  resource:
+    activate-account-url: http://localhost:8080/user/activate
