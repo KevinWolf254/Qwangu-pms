@@ -1,4 +1,4 @@
-package co.ke.proaktivio.qwanguapi.repositories;
+package co.ke.proaktivio.qwanguapi.repositories.custom;
 
 import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;

@@ -1,17 +1,14 @@
-package co.ke.proaktivio.qwanguapi.repositories;
+package co.ke.proaktivio.qwanguapi.repositories.custom.impl;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.models.Authority;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
-import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.pojos.UserDto;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -19,7 +16,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -32,12 +28,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
 @ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
-class CustomUserRepositoryImplIntegrationTest {
+class CustomUserRepositoryImplTest {
 
     @Container
     private final static MongoDBContainer container = new MongoDBContainer(DockerImageName.parse("mongo:latest"));

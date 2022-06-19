@@ -1,8 +1,9 @@
-package co.ke.proaktivio.qwanguapi.repositories;
+package co.ke.proaktivio.qwanguapi.repositories.custom.impl;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import co.ke.proaktivio.qwanguapi.repositories.CustomRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

@@ -1,6 +1,7 @@
-package co.ke.proaktivio.qwanguapi.repositories;
+package co.ke.proaktivio.qwanguapi.repositories.custom.impl;
 
-import co.ke.proaktivio.qwanguapi.models.Authority;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,11 +21,12 @@ import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
 @ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
-class CustomAuthorityRepositoryImplIntegrationTest {
+class CustomRoleRepositoryImplTest {
 
     @Container
     private static MongoDBContainer container = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
@@ -38,19 +40,19 @@ class CustomAuthorityRepositoryImplIntegrationTest {
     private ReactiveMongoTemplate template;
 
     @Autowired
-    private CustomAuthorityRepositoryImpl customAuthorityRepository;
+    private CustomRoleRepositoryImpl customRoleRepository;
 
 
     @Test
-    @DisplayName("findPaginated returns a flux of authorities when successful")
+    @DisplayName("find paginated returns a flux of roles when successful")
     void findPaginated_ReturnsFluxOfAuthorities_WhenSuccessful() {
         // given
 
         //when
-        Flux<Authority> saved = Flux.just(new Authority(null, "USERS", true, true, true, true, true, LocalDateTime.now(), null),
-                        new Authority(null, "APARTMENTS", true, true, true, true, true, LocalDateTime.now(), null))
-                .flatMap(a -> template.save(a, "AUTHORITY"))
-                .thenMany(customAuthorityRepository.findPaginated(Optional.empty(),
+        Flux<Role> saved = Flux.just(new Role(null, "ADMIN", Set.of("1"), LocalDateTime.now(), null),
+                        new Role(null, "SUPERVISOR", Set.of("1"), LocalDateTime.now(), null))
+                .flatMap(a -> template.save(a, "ROLE"))
+                .thenMany(customRoleRepository.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
                         OrderType.ASC));
 
@@ -60,25 +62,24 @@ class CustomAuthorityRepositoryImplIntegrationTest {
                 .verifyComplete();
     }
 
-//    @Test
-//    @DisplayName("findPaginated returns a CustomNotFoundException when none exist!")
-//    void findPaginated_ReturnsCustomNotFoundException_WhenNoAuthoritiesExist() {
-//        // given
-//
-//        //when
-//        Flux<Authority> saved = template.dropCollection(Authority.class)
-//                .doOnSuccess(e -> System.out.println("----Dropped authority table successfully!"))
-//                .thenMany(customAuthorityRepository.findPaginated(Optional.empty(),
-//                        Optional.empty(), 1, 10,
-//                        OrderType.ASC))
-//                .doOnSubscribe(a -> System.out.println("----Found no authorities!"));
-//
-//        // then
-//        StepVerifier
-//                .create(saved)
-//                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-//                        e.getMessage().equalsIgnoreCase("Authorities were not found!"))
-//                .verify();
-//    }
+    @Test
+    @DisplayName("find paginated returns a CustomNotFoundException when none exist!")
+    void findPaginated_ReturnsCustomNotFoundException_WhenNoAuthoritiesExist() {
+        // given
 
+        //when
+        Flux<Role> saved = template.dropCollection(Role.class)
+                .doOnSuccess(e -> System.out.println("----Dropped role table successfully!"))
+                .thenMany(customRoleRepository.findPaginated(Optional.empty(),
+                        Optional.empty(), 1, 10,
+                        OrderType.ASC))
+                .doOnSubscribe(a -> System.out.println("----Found no roles!"));
+
+        // then
+        StepVerifier
+                .create(saved)
+                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                        e.getMessage().equalsIgnoreCase("Roles were not found!"))
+                .verify();
+    }
 }

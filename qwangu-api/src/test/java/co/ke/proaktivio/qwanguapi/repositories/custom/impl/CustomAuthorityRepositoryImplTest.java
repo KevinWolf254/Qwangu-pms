@@ -1,12 +1,9 @@
-package co.ke.proaktivio.qwanguapi.repositories;
+package co.ke.proaktivio.qwanguapi.repositories.custom.impl;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Authority;
-import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -14,8 +11,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.StringUtils;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -25,12 +20,11 @@ import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
 @ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
-class CustomRoleRepositoryImplImplementationTest {
+class CustomAuthorityRepositoryImplTest {
 
     @Container
     private static MongoDBContainer container = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
@@ -44,19 +38,19 @@ class CustomRoleRepositoryImplImplementationTest {
     private ReactiveMongoTemplate template;
 
     @Autowired
-    private CustomRoleRepositoryImpl customRoleRepository;
+    private CustomAuthorityRepositoryImpl customAuthorityRepository;
 
 
     @Test
-    @DisplayName("find paginated returns a flux of roles when successful")
+    @DisplayName("findPaginated returns a flux of authorities when successful")
     void findPaginated_ReturnsFluxOfAuthorities_WhenSuccessful() {
         // given
 
         //when
-        Flux<Role> saved = Flux.just(new Role(null, "ADMIN", Set.of("1"), LocalDateTime.now(), null),
-                        new Role(null, "SUPERVISOR", Set.of("1"), LocalDateTime.now(), null))
-                .flatMap(a -> template.save(a, "ROLE"))
-                .thenMany(customRoleRepository.findPaginated(Optional.empty(),
+        Flux<Authority> saved = Flux.just(new Authority(null, "USERS", true, true, true, true, true, LocalDateTime.now(), null),
+                        new Authority(null, "APARTMENTS", true, true, true, true, true, LocalDateTime.now(), null))
+                .flatMap(a -> template.save(a, "AUTHORITY"))
+                .thenMany(customAuthorityRepository.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
                         OrderType.ASC));
 
@@ -66,24 +60,25 @@ class CustomRoleRepositoryImplImplementationTest {
                 .verifyComplete();
     }
 
-    @Test
-    @DisplayName("find paginated returns a CustomNotFoundException when none exist!")
-    void findPaginated_ReturnsCustomNotFoundException_WhenNoAuthoritiesExist() {
-        // given
+//    @Test
+//    @DisplayName("findPaginated returns a CustomNotFoundException when none exist!")
+//    void findPaginated_ReturnsCustomNotFoundException_WhenNoAuthoritiesExist() {
+//        // given
+//
+//        //when
+//        Flux<Authority> saved = template.dropCollection(Authority.class)
+//                .doOnSuccess(e -> System.out.println("----Dropped authority table successfully!"))
+//                .thenMany(customAuthorityRepository.findPaginated(Optional.empty(),
+//                        Optional.empty(), 1, 10,
+//                        OrderType.ASC))
+//                .doOnSubscribe(a -> System.out.println("----Found no authorities!"));
+//
+//        // then
+//        StepVerifier
+//                .create(saved)
+//                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+//                        e.getMessage().equalsIgnoreCase("Authorities were not found!"))
+//                .verify();
+//    }
 
-        //when
-        Flux<Role> saved = template.dropCollection(Role.class)
-                .doOnSuccess(e -> System.out.println("----Dropped role table successfully!"))
-                .thenMany(customRoleRepository.findPaginated(Optional.empty(),
-                        Optional.empty(), 1, 10,
-                        OrderType.ASC))
-                .doOnSubscribe(a -> System.out.println("----Found no roles!"));
-
-        // then
-        StepVerifier
-                .create(saved)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Roles were not found!"))
-                .verify();
-    }
 }
