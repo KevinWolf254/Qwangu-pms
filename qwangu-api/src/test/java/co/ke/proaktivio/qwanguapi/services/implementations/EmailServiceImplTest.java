@@ -1,8 +1,6 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
-import co.ke.proaktivio.qwanguapi.configs.EmailPropertiesConfig;
-import co.ke.proaktivio.qwanguapi.configs.FreeMarkerConfig;
-import co.ke.proaktivio.qwanguapi.configs.JavaMailSenderConfig;
+import co.ke.proaktivio.qwanguapi.configs.*;
 import co.ke.proaktivio.qwanguapi.pojos.Email;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
@@ -14,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -23,6 +24,7 @@ import reactor.test.StepVerifier;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@EnableConfigurationProperties(value = EmailPropertiesConfig.class)
+@EnableConfigurationProperties(value = {MailPropertiesConfig.class, CompanyPropertiesConfig.class,
+        ApplicationPropertiesConfig.class, FreeMarkerTemplatesPropertiesConfig.class})
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class,
         classes = {JavaMailSenderConfig.class, FreeMarkerConfig.class, EmailServiceImpl.class})
 class EmailServiceImplTest {
@@ -39,9 +42,13 @@ class EmailServiceImplTest {
     private JavaMailSender sender;
     @Autowired
     @Qualifier("customFreeMarkerConfigurer")
-    private FreeMarkerConfigurer freemarkerConfigurer;
+    private FreeMarkerConfigurer fc;
     @Autowired
-    private EmailPropertiesConfig config;
+    private CompanyPropertiesConfig cpc;
+    @Autowired
+    private FreeMarkerTemplatesPropertiesConfig fmpc;
+    @Autowired
+    private ApplicationPropertiesConfig apc;
 
     @RegisterExtension
     static GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP)
@@ -53,11 +60,21 @@ class EmailServiceImplTest {
 
     @Test
     void init(){
-        assertThat(this.config.getTemplate()).isNotNull();
-        assertThat(this.config.getTemplate().getActivateAccount()).isEqualTo("activate_account.ftl");
-        assertThat(this.config.getResource()).isNotNull();
-        assertThat(this.config.getResource().getActivateAccountUrl()).isEqualTo("http://localhost:8080/user/activate");
-        assertThat(this.config.getNoReply()).isEqualTo("noreply@proaktivio.co.ke");
+        assertThat(this.fmpc.getTemplates().get(0)).isNotNull();
+        assertThat(this.fmpc.getTemplates().get(0).getName()).isEqualTo("activate_account.ftlh");
+        assertThat(this.fmpc.getTemplates().get(0).getPath()).isEqualTo("src/main/resources/templates");
+        assertThat(this.fmpc.getTemplates().get(0).getModels().get(0)).isEqualTo("https://linked-in.com");
+        assertThat(this.fmpc.getTemplates().get(0).getModels().get(1)).isEqualTo("https://twitter.com");
+        assertThat(this.fmpc.getTemplates().get(0).getModels().get(2)).isEqualTo("https://facebook.com");
+        assertThat(this.fmpc.getTemplates().get(0).getModels().get(3)).isEqualTo("https://instagram.com");
+
+        assertThat(this.cpc.getName()).isEqualTo("proaktivio");
+        assertThat(this.cpc.getUrl()).isEqualTo("https://proaktivio.co.ke");
+        assertThat(this.cpc.getNoReplyEmail()).isEqualTo("noreply@proaktivio.co.ke");
+        assertThat(this.cpc.getSocialMedia().getLinkedInUrl()).isEqualTo("https://linked-in.com");
+        assertThat(this.cpc.getSocialMedia().getTwitterUrl()).isEqualTo("https://twitter.com");
+        assertThat(this.cpc.getSocialMedia().getFacebookUrl()).isEqualTo("https://facebook.com");
+        assertThat(this.cpc.getSocialMedia().getInstagramUrl()).isEqualTo("https://instagram.com");
     }
 
     @Test
@@ -66,11 +83,29 @@ class EmailServiceImplTest {
         Email email = new Email();
         email.setTo(List.of("person@gmail.com"));
         email.setSubject("Account Activation");
-        email.setTemplate(config.getTemplate().getActivateAccount());
+        email.setTemplate(this.fmpc.getTemplates().get(0).getName());
 
         Map<String, Object> models = new HashMap<>();
-        models.put("accountActivationUrl", config.getResource().getActivateAccountUrl());
+        models.put("companyUrl", cpc.getUrl());
+        models.put("accountActivationUrl", apc.getEndPoints().get(0));
+        models.put("linkedInUrl", fmpc.getTemplates().get(0).getModels().get(0));
+        models.put("twitterUrl", fmpc.getTemplates().get(0).getModels().get(1));
+        models.put("facebookUrl", fmpc.getTemplates().get(0).getModels().get(2));
+        models.put("instagramUrl", fmpc.getTemplates().get(0).getModels().get(3));
+        models.put("designedBy", fmpc.getTemplates().get(0).getModels().get(4));
         email.setTemplateModel(models);
+
+        Map<String, Resource> resourceMap = new HashMap<>();
+        List<String> resources = fmpc.getTemplates().get(0).getResources();
+        resourceMap.put("companyLogoImage", new ClassPathResource(resources.get(0)));
+        resourceMap.put("passwordImage", new ClassPathResource(resources.get(1)));
+        resourceMap.put("footerImage", new ClassPathResource(resources.get(2)));
+        resourceMap.put("linkedInImage", new ClassPathResource(resources.get(3)));
+        resourceMap.put("twitterImage", new ClassPathResource(resources.get(4)));
+        resourceMap.put("facebookImage", new ClassPathResource(resources.get(5)));
+        resourceMap.put("instagramImage", new ClassPathResource(resources.get(6)));
+        email.setResources(resourceMap);
+
         // when
         Mono<Boolean> send = emailService.send(email);
         // then
@@ -81,5 +116,45 @@ class EmailServiceImplTest {
         MimeMessage receivedMessage = greenMail.getReceivedMessages()[0];
         assertThat(receivedMessage.getAllRecipients().length).isEqualTo(1);
         assertThat(receivedMessage.getAllRecipients()[0].toString()).isEqualTo("person@gmail.com");
+    }
+
+
+    @Test
+    void send_returnsMailSendException_whenResourceIsNotFound() throws MessagingException {
+
+        // given
+        Email email = new Email();
+        email.setTo(List.of("person@gmail.com"));
+        email.setSubject("Account Activation");
+        email.setTemplate(this.fmpc.getTemplates().get(0).getName());
+
+        Map<String, Object> models = new HashMap<>();
+        models.put("companyUrl", cpc.getUrl());
+        models.put("accountActivationUrl", apc.getEndPoints().get(0));
+        models.put("linkedInUrl", fmpc.getTemplates().get(0).getModels().get(0));
+        models.put("twitterUrl", fmpc.getTemplates().get(0).getModels().get(1));
+        models.put("facebookUrl", fmpc.getTemplates().get(0).getModels().get(2));
+        models.put("instagramUrl", fmpc.getTemplates().get(0).getModels().get(3));
+        models.put("designedBy", fmpc.getTemplates().get(0).getModels().get(4));
+        email.setTemplateModel(models);
+
+        Map<String, Resource> resourceMap = new HashMap<>();
+        List<String> resources = fmpc.getTemplates().get(0).getResources();
+        resourceMap.put("companyLogoImage", new ClassPathResource(resources.get(0)));
+        resourceMap.put("passwordImage", new ClassPathResource(resources.get(1)));
+        resourceMap.put("footerImage", new ClassPathResource(resources.get(2)));
+        resourceMap.put("linkedInImage", new ClassPathResource(resources.get(3)));
+        resourceMap.put("twitterImage", new ClassPathResource(resources.get(4)));
+        resourceMap.put("facebookImage", new ClassPathResource(resources.get(5)));
+        resourceMap.put("instagramImage", new ClassPathResource(resources.get(7)));
+        email.setResources(resourceMap);
+        // when
+        Mono<Boolean> send = emailService.send(email);
+        // then
+        StepVerifier
+                .create(send)
+                .expectErrorMatches(e -> e instanceof MailSendException &&
+                        !e.getMessage().isEmpty())
+                .verify();
     }
 }

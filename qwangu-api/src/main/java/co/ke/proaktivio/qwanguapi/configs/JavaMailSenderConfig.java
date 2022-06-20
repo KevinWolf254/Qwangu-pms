@@ -12,23 +12,22 @@ import java.util.Properties;
 @Configuration
 @RequiredArgsConstructor
 public class JavaMailSenderConfig {
-
-    private final EmailPropertiesConfig config;
+    private final MailPropertiesConfig config;
 
     @Bean
     @Qualifier("customJavaMailSender")
     public JavaMailSender javaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(config.getMail().getHost());
-        mailSender.setUsername(config.getMail().getUsername());
-        mailSender.setPassword(config.getMail().getPassword());
-        mailSender.setPort(config.getMail().getPort());
+        mailSender.setHost(config.getHost());
+        mailSender.setUsername(config.getUsername());
+        mailSender.setPassword(config.getPassword());
+        mailSender.setPort(config.getPort());
         mailSender.setDefaultEncoding("UTF-8");
         Properties pros = new Properties();
         pros.put("mail.smtp.auth", true);
         pros.put("mail.smtp.timeout", 25000);
-        pros.put("mail.smtp.port", config.getMail().getPort());
-        pros.put("mail.smtp.socketFactory.port", config.getMail().getPort());
+        pros.put("mail.smtp.port", config.getPort());
+        pros.put("mail.smtp.socketFactory.port", config.getPort());
         pros.put("mail.smtp.socketFactory.fallback", false);
         mailSender.setJavaMailProperties(pros);
         return mailSender;

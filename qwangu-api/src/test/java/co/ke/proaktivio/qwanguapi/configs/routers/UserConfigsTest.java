@@ -96,7 +96,7 @@ class UserConfigsTest {
         User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
 
         //when
-        Mockito.when(userService.create(dto)).thenReturn(Mono.just(user));
+        Mockito.when(userService.createAndNotify(dto)).thenReturn(Mono.just(user));
 
         // then
         client
@@ -135,7 +135,7 @@ class UserConfigsTest {
         UserDto dto = new UserDto(person, emailAddress, roleId);
 
         // when
-        Mockito.when(userService.create(dto)).thenReturn(Mono.error(new CustomAlreadyExistsException("User with email address %s already exists!".formatted(emailAddress))));
+        Mockito.when(userService.createAndNotify(dto)).thenReturn(Mono.error(new CustomAlreadyExistsException("User with email address %s already exists!".formatted(emailAddress))));
 
         // then
         client

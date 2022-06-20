@@ -165,7 +165,7 @@
 																style="padding-bottom:25px;padding-top:22px;width:100%;padding-right:0px;padding-left:0px;">
 																<div align="center" style="line-height:10px"><img
 																		alt="I'm an image"
-																		src="images/Companify-Logo.png"
+																		src="cid:companyLogoImage"
 																		style="display: block; height: auto; border: 0; width: 149px; max-width: 100%;"
 																		title="I'm an image" width="149" /></div>
 															</td>
@@ -265,7 +265,7 @@
 															<td
 																style="padding-left:40px;padding-right:40px;width:100%;">
 																<div align="center" style="line-height:10px"><img
-																		alt="I'm an image" src="images/Img4_2x.jpg"
+																		alt="I'm an image" src="cid:passwordImage"
 																		style="display: block; height: auto; border: 0; width: 352px; max-width: 100%;"
 																		title="I'm an image" width="352" /></div>
 															</td>
@@ -515,7 +515,7 @@
 															<td style="width:100%;padding-right:0px;padding-left:0px;">
 																<div align="center" style="line-height:10px"><img
 																		alt="I'm an image" class="big"
-																		src="images/footer.png"
+																		src="cid:footerImage"
 																		style="display: block; height: auto; border: 0; width: 640px; max-width: 100%;"
 																		title="I'm an image" width="640" /></div>
 															</td>
@@ -529,7 +529,7 @@
 															<td
 																style="padding-top:40px;width:100%;padding-right:0px;padding-left:0px;">
 																<div align="center" style="line-height:10px"><img
-																		alt="Alternate text" src="images/Logo-white.png"
+																		alt="Alternate text" src="cid:companyLogo"
 																		style="display: block; height: auto; border: 0; width: 149px; max-width: 100%;"
 																		title="Alternate text" width="149" /></div>
 															</td>
@@ -549,34 +549,34 @@
 																	width="208px">
 																	<tr>
 																		<td style="padding:0 10px 0 10px;"><a
-																				href="https://www.facebook.com/"
+																				href="&{facebookUrl}"
 																				target="_blank"><img alt="Facebook"
 																					height="32"
-																					src="images/facebook2x.png"
+																					src="cid:facebookImage"
 																					style="display: block; height: auto; border: 0;"
 																					title="Facebook" width="32" /></a>
 																		</td>
 																		<td style="padding:0 10px 0 10px;"><a
-																				href="https://twitter.com/"
+																				href="&{twitterUrl}"
 																				target="_blank"><img alt="Twitter"
 																					height="32"
-																					src="images/twitter2x.png"
+																					src="cid:twitterImage"
 																					style="display: block; height: auto; border: 0;"
 																					title="Twitter" width="32" /></a>
 																		</td>
 																		<td style="padding:0 10px 0 10px;"><a
-																				href="https://instagram.com/"
+																				href="&{instagramUrl}"
 																				target="_blank"><img alt="Instagram"
 																					height="32"
-																					src="images/instagram2x.png"
+																					src="cid:instagramImage"
 																					style="display: block; height: auto; border: 0;"
 																					title="Instagram" width="32" /></a>
 																		</td>
 																		<td style="padding:0 10px 0 10px;"><a
-																				href="https://www.linkedin.com/"
+																				href="&{linkedInUrl}"
 																				target="_blank"><img alt="LinkedIn"
 																					height="32"
-																					src="images/linkedin2x.png"
+																					src="cid:linkedInImage"
 																					style="display: block; height: auto; border: 0;"
 																					title="LinkedIn" width="32" /></a>
 																		</td>
@@ -706,21 +706,20 @@
 																				<tr>
 																					<td
 																						style="vertical-align: middle; text-align: center; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 6px;">
-																						<a href="https://www.designedwithbee.com/"
+																						<a href="${companyUrl}"
 																							style="text-decoration: none;"
 																							target="_blank"><img
 																								align="center"
-																								alt="Designed with BEE"
+																								alt="${designedBy}"
 																								class="icon" height="32"
-																								src="images/bee.png"
+																								src="cid:companyLogoImage"
 																								style="display: block; height: auto; margin: 0 auto; border: 0;"
 																								width="34" /></a></td>
 																					<td
 																						style="font-family: Montserrat, Trebuchet MS, Lucida Grande, Lucida Sans Unicode, Lucida Sans, Tahoma, sans-serif; font-size: 15px; color: #9d9d9d; vertical-align: middle; letter-spacing: undefined; text-align: center;">
-																						<a href="https://www.designedwithbee.com/"
+																						<a href="${companyUrl}"
 																							style="color: #9d9d9d; text-decoration: none;"
-																							target="_blank">Designed
-																							with BEE</a></td>
+																							target="_blank">${designedBy}</a></td>
 																				</tr>
 																			</table>
 																		</td>

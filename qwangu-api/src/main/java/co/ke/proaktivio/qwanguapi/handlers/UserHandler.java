@@ -44,7 +44,7 @@ public class UserHandler {
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(UserDto.class)
                 .map(validateUserDtoFunc(new UserDtoValidator()))
-                .flatMap(userService::create)
+                .flatMap(userService::createAndNotify)
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/users/%s".formatted(created.getId())))
                         .body(Mono.just(new SuccessResponse<>(true, "User created successfully.", created)), SuccessResponse.class)

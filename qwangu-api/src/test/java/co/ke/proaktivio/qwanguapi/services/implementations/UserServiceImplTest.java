@@ -3,10 +3,13 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.User;
+import co.ke.proaktivio.qwanguapi.pojos.Email;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.pojos.UserDto;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
+import co.ke.proaktivio.qwanguapi.services.EmailGenerator;
+import co.ke.proaktivio.qwanguapi.services.EmailService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,17 +24,22 @@ import reactor.test.StepVerifier;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(SpringExtension.class)
 class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private EmailService emailService;
+    @Mock
+    private static EmailGenerator emailGenerator;
     @InjectMocks
     private UserServiceImpl userService;
 
+
     @Test
-    @DisplayName("Create returns a Mono of User when email address does not exist")
+    @DisplayName("create returns a Mono of User when email address does not exist")
     void create_returnMonoOfUser_WhenEmailAddressDoesNotExist() {
         // given
         Person person = new Person("John", "Doe", "Doe");
@@ -90,6 +98,35 @@ class UserServiceImplTest {
                         e instanceof CustomAlreadyExistsException &&
                                 e.getMessage().equalsIgnoreCase("User with email address %s already exists!".formatted(emailAddress)))
                 .verify();
+    }
+
+
+    @Test
+    @DisplayName("createAndNotify returns a Mono of User when email address does not exist")
+    void createAndNotify_returnMonoOfUser_WhenEmailAddressDoesNotExist() {
+        // given
+        Person person = new Person("John", "Doe", "Doe");
+        String emailAddress = "person@gmail.com";
+        String roleId = "1";
+        UserDto dto = new UserDto(person, emailAddress, roleId);
+        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
+        // when
+        Mockito.when(userRepository.create(dto)).thenReturn(Mono.just(user));
+        Email email = new Email();
+        Mockito.when(emailGenerator.generateAccountActivationEmail(user)).thenReturn(email);
+        Mockito.when(emailService.send(email)).thenReturn(Mono.just(true));
+        // then
+        StepVerifier
+                .create(userService.createAndNotify(dto))
+                .expectNextMatches(u ->
+                        u.getId().equals("1") &&
+                                u.getPerson().equals(person) &&
+                                u.getEmailAddress().equalsIgnoreCase(emailAddress) &&
+                                u.getRoleId().equalsIgnoreCase(roleId) &&
+                                u.getCreated() != null &&
+                                u.getModified() == null
+                )
+                .verifyComplete();
     }
 
     @Test
