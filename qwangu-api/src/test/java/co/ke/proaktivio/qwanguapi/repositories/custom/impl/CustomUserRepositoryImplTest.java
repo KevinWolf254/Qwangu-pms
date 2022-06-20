@@ -34,11 +34,11 @@ import java.util.Set;
 class CustomUserRepositoryImplTest {
 
     @Container
-    private final static MongoDBContainer container = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
+    private final static MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", container::getReplicaSetUrl);
+        registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
 
     @Autowired
@@ -354,7 +354,7 @@ class CustomUserRepositoryImplTest {
                 .thenMany(Flux
                         .just(userEntity, userEntity2))
                 .flatMap(entity -> template.save(entity, "USER"))
-                .doOnNext(u -> System.out.println("---- Created %s".formatted(u)))
+                .doOnNext(u -> System.out.printf("---- Created %s%n", u))
                 .flatMap(user -> customUserRepository.delete(user.getId()))
                 .doOnNext(b -> System.out.println("---- Deleted user!"));
 

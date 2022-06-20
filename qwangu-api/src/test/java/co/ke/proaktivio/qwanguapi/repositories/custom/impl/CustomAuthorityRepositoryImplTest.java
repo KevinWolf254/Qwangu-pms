@@ -27,11 +27,11 @@ import java.util.Optional;
 class CustomAuthorityRepositoryImplTest {
 
     @Container
-    private static MongoDBContainer container = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
+    private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", container::getReplicaSetUrl);
+        registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
 
     @Autowired
