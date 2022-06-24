@@ -18,7 +18,7 @@ jwt:
 
 mail:
   host: 127.0.0.1
-  port: 587
+  port: 3025
   username: person@gmail.com
   password: testing
 
