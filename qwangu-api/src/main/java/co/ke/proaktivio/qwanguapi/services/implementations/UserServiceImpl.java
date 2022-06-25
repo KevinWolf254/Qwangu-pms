@@ -22,6 +22,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final EmailGenerator emailGenerator;
+
     @Override
     public Mono<User> create(UserDto dto) {
         return userRepository.create(dto);

@@ -24,8 +24,6 @@ import reactor.test.StepVerifier;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-
 @ExtendWith(SpringExtension.class)
 class UserServiceImplTest {
     @Mock
@@ -110,6 +108,7 @@ class UserServiceImplTest {
         String roleId = "1";
         UserDto dto = new UserDto(person, emailAddress, roleId);
         User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
+
         // when
         Mockito.when(userRepository.create(dto)).thenReturn(Mono.just(user));
         Email email = new Email();

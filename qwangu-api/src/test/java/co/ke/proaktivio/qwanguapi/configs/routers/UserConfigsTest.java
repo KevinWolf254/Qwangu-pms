@@ -23,6 +23,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Example;
 import org.springframework.http.MediaType;
+import org.springframework.mail.MailException;
+import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -268,6 +270,37 @@ class UserConfigsTest {
                 .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isEqualTo("Email address is not valid.")
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("create returns MailException with status 400")
+    void create_returnsMailException_status400() {
+        // given
+        String roleId = "1";
+        String emailAddress = "a@gmail.com";
+        Person person = new Person("John", "Doe", "Doe");
+        UserDto dto = new UserDto(person, emailAddress, roleId);
+
+        // when
+        Mockito.when(userService.createAndNotify(dto)).thenReturn(Mono.error(new MailSendException("")));
+
+        // then
+        client
+                .post()
+                .uri("/v1/users")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), UserDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Mail could not be sent!")
                 .consumeWith(System.out::println);
     }
 

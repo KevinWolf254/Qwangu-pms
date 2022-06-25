@@ -8,8 +8,7 @@ import co.ke.proaktivio.qwanguapi.pojos.UserDto;
 import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
-import co.ke.proaktivio.qwanguapi.services.EmailGenerator;
-import co.ke.proaktivio.qwanguapi.services.EmailService;
+import co.ke.proaktivio.qwanguapi.services.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,15 +44,11 @@ class UserServiceImplIntegrationTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private EmailService emailService;
-    @Autowired
-    private EmailGenerator emailGenerator;
-    @Autowired
     private RoleRepository roleRepository;
     @Autowired
     private AuthorityRepository authorityRepository;
     @Autowired
-    private UserServiceImpl userService;
+    private UserService userService;
 
     @Test
     @DisplayName("createAndNotify rollsBack when a runtime exception occurs")

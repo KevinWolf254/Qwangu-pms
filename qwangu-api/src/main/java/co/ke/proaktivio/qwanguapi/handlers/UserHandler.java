@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.MailException;
+import org.springframework.mail.MailSendException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -175,6 +177,12 @@ public class UserHandler {
                 return ServerResponse.status(HttpStatus.UNAUTHORIZED)
                         .body(Mono.just(
                                 new ErrorResponse<>(false, ErrorCode.UNAUTHORIZED_ERROR, "Unauthorised", e.getMessage())), ErrorResponse.class)
+                        .log();
+            }
+            if (e instanceof MailException) {
+                return ServerResponse.status(HttpStatus.BAD_REQUEST)
+                        .body(Mono.just(
+                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", "Mail could not be sent!")), ErrorResponse.class)
                         .log();
             }
             return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
