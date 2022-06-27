@@ -17,6 +17,7 @@ public class UserConfigs {
                 .path("v1", builder -> builder
                         .path("users", builder1 -> builder1
                                 .GET(handler::find)
+                                .GET("/{id}/activate", handler::activate)
                                 .POST(handler::create)
                                 .PUT("/{id}", handler::update)
                                 .DELETE("/{id}", handler::delete))

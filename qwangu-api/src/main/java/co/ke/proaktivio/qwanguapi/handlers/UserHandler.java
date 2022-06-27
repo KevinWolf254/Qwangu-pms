@@ -8,6 +8,7 @@ import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
+import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
 import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.SignInDtoValidator;
@@ -30,6 +31,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -52,6 +54,22 @@ public class UserHandler {
                         .body(Mono.just(new SuccessResponse<>(true, "User created successfully.", created)), SuccessResponse.class)
                         .log())
                 .onErrorResume(handleExceptions());
+    }
+
+    public Mono<ServerResponse> activate(ServerRequest request) {
+        String id = request.pathVariable("id");
+        Optional<String> tokenOpt = request.queryParam("token");
+        return Mono.just(tokenOpt)
+                .map(tOpt -> tOpt.orElse(null))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
+                .flatMap(token -> userService.activate(tokenOpt, Optional.of(id)))
+                .flatMap(updated ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "User updated successfully.", updated)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
+
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
