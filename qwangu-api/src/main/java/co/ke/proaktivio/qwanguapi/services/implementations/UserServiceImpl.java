@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +38,7 @@ public class UserServiceImpl implements UserService {
     public Mono<User> createAndNotify(UserDto dto) {
         return create(dto)
                 .flatMap(user -> {
-                    Email email = emailGenerator.generateAccountActivationEmail(user);
+                    Email email = emailGenerator.generateAccountActivationEmail(user, UUID.randomUUID().toString());
                     return emailService
                             .send(email)
                             .map(success -> user);

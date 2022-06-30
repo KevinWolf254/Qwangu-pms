@@ -23,6 +23,9 @@ import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(SpringExtension.class)
 class UserServiceImplTest {
@@ -112,8 +115,8 @@ class UserServiceImplTest {
         // when
         Mockito.when(userRepository.create(dto)).thenReturn(Mono.just(user));
         Email email = new Email();
-        Mockito.when(emailGenerator.generateAccountActivationEmail(user)).thenReturn(email);
-        Mockito.when(emailService.send(email)).thenReturn(Mono.just(true));
+        Mockito.when(emailGenerator.generateAccountActivationEmail(user, UUID.randomUUID().toString())).thenReturn(email);
+        Mockito.when(emailService.send(any())).thenReturn(Mono.just(true));
         // then
         StepVerifier
                 .create(userService.createAndNotify(dto))

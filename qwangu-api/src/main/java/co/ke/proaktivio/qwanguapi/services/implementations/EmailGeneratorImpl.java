@@ -6,6 +6,7 @@ import co.ke.proaktivio.qwanguapi.configs.FreeMarkerTemplatesPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Email;
 import co.ke.proaktivio.qwanguapi.services.EmailGenerator;
+import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -23,7 +24,7 @@ public class EmailGeneratorImpl implements EmailGenerator {
     private final ApplicationPropertiesConfig apc;
 
     @Override
-    public Email generateAccountActivationEmail(User user) {
+    public Email generateAccountActivationEmail(User user, String token) {
         Email email = new Email();
         email.setTo(List.of(user.getEmailAddress()));
         email.setSubject("Account Activation");
@@ -31,7 +32,8 @@ public class EmailGeneratorImpl implements EmailGenerator {
 
         Map<String, Object> models = new HashMap<>();
         models.put("companyUrl", cpc.getUrl());
-        models.put("accountActivationUrl", apc.getEndPoints().get(0));
+        var activationUrl = apc.getEndPoints().get(0) + apc.getEndPoints().get(1) + user.getId() + "/activate" + "/?token=" + token;
+        models.put("accountActivationUrl", activationUrl);
         models.put("linkedInUrl", fmpc.getTemplates().get(0).getModels().get(0));
         models.put("twitterUrl", fmpc.getTemplates().get(0).getModels().get(1));
         models.put("facebookUrl", fmpc.getTemplates().get(0).getModels().get(2));
@@ -54,7 +56,7 @@ public class EmailGeneratorImpl implements EmailGenerator {
 
 
     @Override
-    public Email generatePasswordForgottenEmail(User user) {
+    public Email generatePasswordForgottenEmail(User user, String token) {
         return null;
     }
 }

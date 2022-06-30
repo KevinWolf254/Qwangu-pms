@@ -22,13 +22,13 @@ public class OneTimeTokenServiceImpl implements OneTimeTokenService {
     private static Integer TOKEN_EXPIRATION_HOURS = 12;
 
     @Override
-    public Mono<OneTimeToken> create(String userId) {
+    public Mono<OneTimeToken> create(String userId, String uuid) {
         return Mono.just(userId)
                 .flatMap(id -> userRepository.findById(userId))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s could not be found!".formatted(userId))))
                 .map(user -> {
                     LocalDateTime now = LocalDateTime.now();
-                    return new OneTimeToken(null, UUID.randomUUID().toString(), now, now.plusHours(TOKEN_EXPIRATION_HOURS), userId);
+                    return new OneTimeToken(null, uuid, now, now.plusHours(TOKEN_EXPIRATION_HOURS), userId);
                 })
                 .flatMap(oneTimeTokenRepository::save);
     }
@@ -47,6 +47,6 @@ public class OneTimeTokenServiceImpl implements OneTimeTokenService {
         return Mono.just(id)
                 .flatMap(oneTimeTokenRepository::findById)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Token could not be found!")))
-                .flatMap(isTrue -> oneTimeTokenRepository.deleteById(id));
+                .flatMap(t -> oneTimeTokenRepository.deleteById(t.getId()));
     }
 }
