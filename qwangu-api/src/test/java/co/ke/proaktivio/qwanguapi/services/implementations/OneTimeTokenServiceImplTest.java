@@ -18,7 +18,7 @@ import reactor.test.StepVerifier;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(SpringExtension.class)
 class OneTimeTokenServiceImplTest {
@@ -42,7 +42,7 @@ class OneTimeTokenServiceImplTest {
         OneTimeToken token = new OneTimeToken("1", UUID.randomUUID().toString(), now, now.plusHours(12), userId);
         // when
         Mockito.when(userRepository.findById(userId)).thenReturn(Mono.just(user));
-        Mockito.when(oneTimeTokenRepository.save(token)).thenReturn(Mono.just(token));
+        Mockito.when(oneTimeTokenRepository.save(any())).thenReturn(Mono.just(token));
         // then
         StepVerifier
                 .create(oneTimeTokenService.create(userId))

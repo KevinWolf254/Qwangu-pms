@@ -26,11 +26,11 @@ public class OneTimeTokenServiceImpl implements OneTimeTokenService {
         return Mono.just(userId)
                 .flatMap(id -> userRepository.findById(userId))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s could not be found!".formatted(userId))))
-                .flatMap(user -> {
+                .map(user -> {
                     LocalDateTime now = LocalDateTime.now();
-                    OneTimeToken token = new OneTimeToken(null, UUID.randomUUID().toString(), now, now.plusHours(TOKEN_EXPIRATION_HOURS), userId);
-                    return oneTimeTokenRepository.save(token);
-                });
+                    return new OneTimeToken(null, UUID.randomUUID().toString(), now, now.plusHours(TOKEN_EXPIRATION_HOURS), userId);
+                })
+                .flatMap(oneTimeTokenRepository::save);
     }
 
     @Override
