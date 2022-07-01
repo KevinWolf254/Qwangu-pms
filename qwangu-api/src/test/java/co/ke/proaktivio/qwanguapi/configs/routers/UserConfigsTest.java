@@ -5,12 +5,8 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
-import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
-import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
-import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
-import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
@@ -21,12 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.domain.Example;
 import org.springframework.http.MediaType;
-import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,7 +31,6 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -53,15 +45,6 @@ class UserConfigsTest {
     private WebTestClient client;
     @MockBean
     private UserService userService;
-    @MockBean
-    private UserRepository userRepository;
-    @MockBean
-    private PasswordEncoder encoder;
-    @MockBean
-    private JwtUtil jwtUtil;
-    @MockBean
-    private RoleRepository roleRepository;
-
     @MockBean
     private ReactiveAuthenticationManager authenticationManager;
     @MockBean
@@ -813,23 +796,14 @@ class UserConfigsTest {
     void signIn_returnsAJwt_whenUserExists_status200() {
         // given
         String password = "QwwsefRgvt_@er23";
-
-        String id = "1";
-        String roleId = "1";
-        LocalDateTime now = LocalDateTime.now();
         String emailAddress = "person@gmail.com";
-        Person person = new Person("John", "Doe", "Doe");
 
         SignInDto dto = new SignInDto(emailAddress, password);
-        Role role = new Role(id, "ADMIN", Set.of(), now, null);
-        User user = new User(id, person, emailAddress, roleId, password, false, false, false, true, now, null);
+        var token = new TokenDto("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c");
 
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userRepository.findOne(Example.of(new User(emailAddress)))).thenReturn(Mono.just(user));
-        when(encoder.matches(dto.getPassword(), user.getPassword())).thenReturn(true);
-        when(roleRepository.findById(roleId)).thenReturn(Mono.just(role));
-        when(jwtUtil.generateToken(user, role)).thenReturn("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c");
+        when(userService.signIn(dto)).thenReturn(Mono.just(token));
 
         // then
         client
@@ -844,147 +818,6 @@ class UserConfigsTest {
                 .jsonPath("$.success").isEqualTo(true)
                 .jsonPath("$.message").isEqualTo("Signed in successfully.")
                 .jsonPath("$.data").isNotEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @DisplayName("signIn returns UsernameNotFoundException when a user does not exist status 401")
-    void signIn_returnsUsernameNotFoundException_whenUserDoesNotExist_status401() {
-        // given
-        String password = "QwwsefRgvt_@er23";
-        String emailAddress = "person@gmail.com";
-        SignInDto dto = new SignInDto(emailAddress, password);
-
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userRepository.findOne(Example.of(new User(emailAddress)))).thenReturn(Mono.empty());
-
-        // then
-        client
-                .post()
-                .uri("/v1/signIn")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignInDto.class)
-                .exchange()
-                .expectStatus().isUnauthorized()
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Unauthorised")
-                .jsonPath("$.data").isEqualTo("Invalid username or password!")
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @DisplayName("signIn returns UsernameNotFoundException when a passwords do not match status 401")
-    void signIn_returnsUsernameNotFoundException_whenPasswordsDoNotMatch_status401() {
-        // given
-        String password = "QwwsefRgvt_@er23";
-
-        String id = "1";
-        String roleId = "1";
-        LocalDateTime now = LocalDateTime.now();
-        String emailAddress = "person@gmail.com";
-        Person person = new Person("John", "Doe", "Doe");
-
-        SignInDto dto = new SignInDto(emailAddress, password);
-        User user = new User(id, person, emailAddress, roleId, password, false, false, false, true, now, null);
-
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userRepository.findOne(Example.of(new User(emailAddress)))).thenReturn(Mono.just(user));
-        when(encoder.matches(dto.getPassword(), user.getPassword())).thenReturn(false);
-
-        // then
-        client
-                .post()
-                .uri("/v1/signIn")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignInDto.class)
-                .exchange()
-                .expectStatus().isUnauthorized()
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Unauthorised")
-                .jsonPath("$.data").isEqualTo("Invalid username or password!")
-                .consumeWith(System.out::println);
-
-    }
-
-    @Test
-    @DisplayName("signIn returns UsernameNotFoundException when role id does not exist status 401")
-    void signIn_returnsUsernameNotFoundException_whenRoleIdDoeNotExist_status401() {
-        // given
-        String password = "QwwsefRgvt_@er23";
-
-        String id = "1";
-        String roleId = "1";
-        LocalDateTime now = LocalDateTime.now();
-        String emailAddress = "person@gmail.com";
-        Person person = new Person("John", "Doe", "Doe");
-
-        SignInDto dto = new SignInDto(emailAddress, password);
-        User user = new User(id, person, emailAddress, roleId, password, false, false, false, true, now, null);
-
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userRepository.findOne(Example.of(new User(emailAddress)))).thenReturn(Mono.just(user));
-        when(encoder.matches(dto.getPassword(), user.getPassword())).thenReturn(true);
-        when(roleRepository.findById(roleId)).thenReturn(Mono.empty());
-
-        // then
-        client
-                .post()
-                .uri("/v1/signIn")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignInDto.class)
-                .exchange()
-                .expectStatus().isUnauthorized()
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Unauthorised")
-                .jsonPath("$.data").isEqualTo("Invalid username or password!")
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @DisplayName("signIn returns UsernameNotFoundException when token isnt generated status 401")
-    void signIn_returnsUsernameNotFoundException_whenTokenIsntGenerated_status401() {
-        // given
-        String password = "QwwsefRgvt_@er23";
-
-        String id = "1";
-        String roleId = "1";
-        LocalDateTime now = LocalDateTime.now();
-        String emailAddress = "person@gmail.com";
-        Person person = new Person("John", "Doe", "Doe");
-
-        SignInDto dto = new SignInDto(emailAddress, password);
-        Role role = new Role(id, "ADMIN", Set.of(), now, null);
-        User user = new User(id, person, emailAddress, roleId, password, false, false, false, true, now, null);
-
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userRepository.findOne(Example.of(new User(emailAddress)))).thenReturn(Mono.just(user));
-        when(encoder.matches(dto.getPassword(), user.getPassword())).thenReturn(true);
-        when(roleRepository.findById(roleId)).thenReturn(Mono.just(role));
-        when(jwtUtil.generateToken(user, role)).thenReturn(null);
-
-        // then
-        client
-                .post()
-                .uri("/v1/signIn")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignInDto.class)
-                .exchange()
-                .expectStatus().isUnauthorized()
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Unauthorised")
-                .jsonPath("$.data").isEqualTo("Invalid username or password!")
                 .consumeWith(System.out::println);
     }
 
@@ -1086,4 +919,52 @@ class UserConfigsTest {
                 .consumeWith(System.out::println);
     }
 
+    @Test
+    @WithMockUser
+    void changePassword() {
+        // given
+        String id = "1";
+        PasswordDto dto = new PasswordDto("pass!123@Pass", "pass@1234!Pass");
+        LocalDateTime now = LocalDateTime.now();
+        String roleId = "1";
+        String emailAddress = "person@gmail.com";
+        Person person = new Person("John", "Doe", "Doe");
+        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null);
+
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        when(userService.changePassword(id, dto)).thenReturn(Mono.just(user));
+
+        // then
+        client
+                .post()
+                .uri("/v1/users/{id}/changePassword", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), PasswordDto.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("User updated successfully.")
+                .jsonPath("$.data").isNotEmpty()
+                .consumeWith(System.out::println);
+
+        // then
+        PasswordDto passwordsNotValid = new PasswordDto("pass!123", "pass@1234");
+        client
+                .post()
+                .uri("/v1/users/{id}/changePassword", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(passwordsNotValid), PasswordDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data").isEqualTo("Current password is not valid. New password is not valid.")
+                .consumeWith(System.out::println);
+    }
 }

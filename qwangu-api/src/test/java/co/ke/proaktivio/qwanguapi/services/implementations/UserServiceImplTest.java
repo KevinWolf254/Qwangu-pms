@@ -1,21 +1,26 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
-import co.ke.proaktivio.qwanguapi.pojos.Email;
-import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.pojos.Person;
-import co.ke.proaktivio.qwanguapi.pojos.UserDto;
+import co.ke.proaktivio.qwanguapi.pojos.*;
+import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
+import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import co.ke.proaktivio.qwanguapi.services.EmailGenerator;
 import co.ke.proaktivio.qwanguapi.services.EmailService;
+import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.data.domain.Example;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -23,6 +28,7 @@ import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +41,14 @@ class UserServiceImplTest {
     private EmailService emailService;
     @Mock
     private static EmailGenerator emailGenerator;
+    @Mock
+    private OneTimeTokenService oneTimeTokenService;
+    @Mock
+    private PasswordEncoder encoder;
+    @Mock
+    private RoleRepository roleRepository;
+    @Mock
+    private JwtUtil jwtUtil;
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -101,6 +115,100 @@ class UserServiceImplTest {
                 .verify();
     }
 
+    @Test
+    @DisplayName("signIn return a TokenDto when successful or UserNotFFoundException when an error occurs")
+    void signIn() {
+        // given
+        String password = "pass@123";
+        String encodedPassword = encoder.encode(password);
+        var dto = new SignInDto("person@gmail.com", password);
+        LocalDateTime now = LocalDateTime.now();
+        var person = new Person("John", "Doe", "Doe");
+        var user = new User("1", person, "person@gmail.com", "1", encodedPassword,
+                false, false, false, true, now, now);
+        var role = new Role("1", "ADMIN", Set.of("1"), now, null);
+        var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+        // when
+        Mockito.when(userRepository.findOne(Example.of(new User(dto.getUsername())))).thenReturn(Mono.just(user));
+        Mockito.when(encoder.matches(dto.getPassword(), user.getPassword())).thenReturn(true);
+        Mockito.when(roleRepository.findById("1")).thenReturn(Mono.just(role));
+        Mockito.when(jwtUtil.generateToken(user, role)).thenReturn(token);
+        // then
+        StepVerifier
+                .create(userService.signIn(dto))
+                .expectNextCount(1)
+                .verifyComplete();
+
+        // then
+        Mockito.when(userRepository.findOne(Example.of(new User(dto.getUsername())))).thenReturn(Mono.empty());
+        StepVerifier
+                .create(userService.signIn(dto))
+                .expectErrorMatches(e -> e instanceof UsernameNotFoundException &&
+                        e.getMessage().equals("Invalid username or password!"))
+                .verify();
+        //then
+        Mockito.when(userRepository.findOne(Example.of(new User(dto.getUsername())))).thenReturn(Mono.just(user));
+        Mockito.when(encoder.matches(dto.getPassword(), user.getPassword())).thenReturn(false);
+        StepVerifier
+                .create(userService.signIn(dto))
+                .expectErrorMatches(e -> e instanceof UsernameNotFoundException &&
+                        e.getMessage().equals("Invalid username or password!"))
+                .verify();
+        // then
+        Mockito.when(roleRepository.findById("1")).thenReturn(Mono.empty());
+        StepVerifier
+                .create(userService.signIn(dto))
+                .expectErrorMatches(e -> e instanceof UsernameNotFoundException &&
+                        e.getMessage().equals("Invalid username or password!"))
+                .verify();
+        // then
+        Mockito.when(roleRepository.findById("1")).thenReturn(Mono.just(role));
+        Mockito.when(jwtUtil.generateToken(user, role)).thenReturn(null);
+        StepVerifier
+                .create(userService.signIn(dto))
+                .expectErrorMatches(e -> e instanceof UsernameNotFoundException &&
+                        e.getMessage().equals("Invalid username or password!"))
+                .verify();
+    }
+
+    @Test
+    @DisplayName("changePassword returns a User when successful or UserNotFFoundException/CustomBadRequestException when an error occurs")
+    void changePassword() {
+        // given
+        String currentPassword = "pass@123!Pass";
+        String encodedPassword = encoder.encode(currentPassword);
+        String userId = "1";
+        PasswordDto dto = new PasswordDto(currentPassword, "pass!123@Pass");
+        LocalDateTime now = LocalDateTime.now();
+        var person = new Person("John", "Doe", "Doe");
+        var user = new User("1", person, "person@gmail.com", "1", encodedPassword,
+                false, false, false, true, now, now);
+        // when
+        Mockito.when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        Mockito.when(encoder.matches(dto.getCurrentPassword(), user.getPassword())).thenReturn(true);
+        Mockito.when(userRepository.save(user)).thenReturn(Mono.just(user));
+
+        // then
+        StepVerifier
+                .create(userService.changePassword(userId, dto))
+                .expectNext(user)
+                .verifyComplete();
+        // then
+        Mockito.when(userRepository.findById(userId)).thenReturn(Mono.empty());
+        StepVerifier
+                .create(userService.changePassword(userId, dto))
+                .expectErrorMatches(e -> e instanceof UsernameNotFoundException &&
+                        e.getMessage().equals("User with id %s does not exist!".formatted(userId)))
+                .verify();
+        // then
+        Mockito.when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        Mockito.when(encoder.matches(dto.getCurrentPassword(), user.getPassword())).thenReturn(false);
+        StepVerifier
+                .create(userService.changePassword(userId, dto))
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
+                        e.getMessage().equals("Passwords do not match!"))
+                .verify();
+    }
 
     @Test
     @DisplayName("createAndNotify returns a Mono of User when email address does not exist")
@@ -256,6 +364,7 @@ class UserServiceImplTest {
                 .expectNext(true)
                 .verifyComplete();
     }
+
     @Test
     @DisplayName("delete returns CustomNotFoundException when users do not exist")
     void delete_returnsCustomNotFoundException_whenUsersDoNotExist() {

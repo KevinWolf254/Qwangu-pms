@@ -18,7 +18,7 @@ public class UserConfigs {
                         .path("users", builder1 -> builder1
                                 .GET(handler::find)
                                 .GET("/{id}/activate", handler::activate)
-                                .GET("/{id}/changePassword", handler::changePassword)
+                                .POST("/{id}/changePassword", handler::changePassword)
 //                                .GET("/{id}/resetPassword", handler::resetPassword)
                                 .POST(handler::create)
 //                                .POST(handler::forgotPassword)

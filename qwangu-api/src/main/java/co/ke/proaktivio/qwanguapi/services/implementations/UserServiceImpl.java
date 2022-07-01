@@ -81,7 +81,9 @@ public class UserServiceImpl implements UserService {
                                         .map(role -> jwtUtil.generateToken(user, role))
                                         .filter(StringUtils::hasText)
                                         .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                                        .map(TokenDto::new)))
+                                        .map(TokenDto::new)
+                                )
+                        )
                 );
     }
 
@@ -89,7 +91,7 @@ public class UserServiceImpl implements UserService {
     public Mono<User> changePassword(String userId, PasswordDto dto) {
         return userRepository
                 .findById(userId)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s does not exist!".formatted(userId))))
+                .switchIfEmpty(Mono.error(new UsernameNotFoundException("User with id %s does not exist!".formatted(userId))))
                 .flatMap(user -> Mono.just(encoder.matches(dto.getCurrentPassword(), user.getPassword()))
                         .filter(passwordMatch -> passwordMatch)
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Passwords do not match!")))

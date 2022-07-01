@@ -26,7 +26,7 @@ public class PasswordDtoValidator implements Validator {
         String password = request.getCurrentPassword();
         if (password != null) {
             var p = Pattern.compile(PASSWORD_REGEX);
-            if (!p.matcher(PASSWORD_REGEX).matches())
+            if (!p.matcher(password).matches())
                 errors.rejectValue("currentPassword", "field.currentPassword.invalid", "Current password is not valid.");
         }
     }
@@ -36,7 +36,7 @@ public class PasswordDtoValidator implements Validator {
         String password = request.getCurrentPassword();
         if (password != null) {
             var p = Pattern.compile(PASSWORD_REGEX);
-            if (!p.matcher(PASSWORD_REGEX).matches())
+            if (!p.matcher(password).matches())
                 errors.rejectValue("newPassword", "field.newPassword.invalid", "New password is not valid.");
         }
     }
