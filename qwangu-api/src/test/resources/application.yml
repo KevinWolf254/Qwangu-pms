@@ -25,8 +25,6 @@ application:
 ftl:
   templates:
     -
-      name: activate_account.ftlh
-      path: src/main/resources/templates
       models:
         - https://linked-in.com
         - https://twitter.com
@@ -41,4 +39,11 @@ ftl:
         - templates/images/twitter.png
         - templates/images/facebook.png
         - templates/images/instagram.png
-        - templates/images/doesnotexist.png
+    -
+      name: activate_account.ftlh
+      path: src/main/resources/templates
+    -
+      name: reset_password:ftlh
+      path: src/main/resources/templates
+      resources:
+        - templates/images/resetPassword/password_reset.gif

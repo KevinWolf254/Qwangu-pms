@@ -6,9 +6,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
-import co.ke.proaktivio.qwanguapi.validators.PasswordDtoValidator;
-import co.ke.proaktivio.qwanguapi.validators.SignInDtoValidator;
-import co.ke.proaktivio.qwanguapi.validators.UserDtoValidator;
+import co.ke.proaktivio.qwanguapi.validators.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -70,6 +68,60 @@ public class UserHandler {
                         ServerResponse
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true, "User updated successfully.", user)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
+    }
+
+    public Mono<ServerResponse> sendResetPassword(ServerRequest request) {
+        return request
+                .bodyToMono(EmailDto.class)
+                .map(validateEmailDtoFunc(new EmailDtoValidator()))
+                .flatMap(userService::sendResetPassword)
+                .flatMap(none ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "Email for password reset will be sent if email address exists.", null)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(e -> {
+                    if (e instanceof CustomNotFoundException) {
+                        return ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "Email for password reset will be sent if email address exists.", null)), SuccessResponse.class)
+                                .log();
+                    }
+                    return Mono.error(e);
+                })
+                .onErrorResume(handleExceptions());
+    }
+
+    public Mono<ServerResponse> findToken(ServerRequest request) {
+        String id = request.pathVariable("id");
+        Optional<String> tokenOpt = request.queryParam("token");
+        return Mono.just(tokenOpt)
+                .map(tOpt -> tOpt.orElse(null))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
+                .flatMap(token -> userService.findToken(Optional.of(token), Optional.of(id)))
+                .flatMap(token ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "Token was found successfully.", token)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
+    }
+
+    public Mono<ServerResponse> resetPassword(ServerRequest request) {
+        String id = request.pathVariable("id");
+        Optional<String> tokenOpt = request.queryParam("token");
+        return Mono.just(tokenOpt)
+                .map(tOpt -> tOpt.orElse(null))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
+                .flatMap(token -> request.bodyToMono(ResetPasswordDto.class)
+                        .map(validateResetPasswordDtoFunc(new ResetPasswordDtoValidator()))
+                        .flatMap(dto -> userService.resetPassword(id, token, dto.getPassword())))
+                .flatMap(user ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "User password updated successfully.", user)), SuccessResponse.class)
                                 .log())
                 .onErrorResume(handleExceptions());
     }
@@ -174,6 +226,34 @@ public class UserHandler {
                 throw new CustomBadRequestException(errorMessage);
             }
             return signInDto;
+        };
+    }
+
+    private Function<EmailDto, EmailDto> validateEmailDtoFunc(Validator validator) {
+        return emailDto -> {
+            Errors errors = new BeanPropertyBindingResult(emailDto, EmailDto.class.getName());
+            validator.validate(emailDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return emailDto;
+        };
+    }
+
+    private Function<ResetPasswordDto, ResetPasswordDto> validateResetPasswordDtoFunc(Validator validator) {
+        return passwordDto -> {
+            Errors errors = new BeanPropertyBindingResult(passwordDto, ResetPasswordDto.class.getName());
+            validator.validate(passwordDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return passwordDto;
         };
     }
 

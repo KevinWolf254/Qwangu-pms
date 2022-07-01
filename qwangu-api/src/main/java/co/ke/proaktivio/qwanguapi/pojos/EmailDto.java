@@ -5,11 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Data
-@ToString
-@NoArgsConstructor
 @AllArgsConstructor
-public class PasswordDto {
-    private String currentPassword;
-    private String newPassword;
+@NoArgsConstructor
+@ToString
+@Data
+public class EmailDto {
+    private String emailAddress;
 }

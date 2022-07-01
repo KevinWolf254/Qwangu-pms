@@ -9,7 +9,6 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class PasswordDto {
-    private String currentPassword;
-    private String newPassword;
+public class ResetPasswordDto {
+    private String password;
 }
