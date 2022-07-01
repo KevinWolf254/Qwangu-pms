@@ -3,26 +3,18 @@ package co.ke.proaktivio.qwanguapi.handlers;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
-import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
-import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
-import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
-import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
 import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import co.ke.proaktivio.qwanguapi.validators.PasswordDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.SignInDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.UserDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
-import org.springframework.mail.MailSendException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -31,7 +23,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -40,13 +31,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserHandler {
     private final UserService userService;
-    private final UserRepository userRepository;
-    private final PasswordEncoder encoder;
-    private final JwtUtil jwtUtil;
-    private final RoleRepository roleRepository;
 
     public Mono<ServerResponse> create(ServerRequest request) {
-        return request.bodyToMono(UserDto.class)
+        return request
+                .bodyToMono(UserDto.class)
                 .map(validateUserDtoFunc(new UserDtoValidator()))
                 .flatMap(userService::createAndNotify)
                 .flatMap(created -> ServerResponse
@@ -72,9 +60,24 @@ public class UserHandler {
 
     }
 
+    public Mono<ServerResponse> changePassword(ServerRequest request) {
+        String id = request.pathVariable("id");
+        return request
+                .bodyToMono(PasswordDto.class)
+                .map(validatePasswordDtoFunc(new PasswordDtoValidator()))
+                .flatMap(dto -> userService.changePassword(id, dto))
+                .flatMap(user ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "User updated successfully.", user)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
+    }
+
     public Mono<ServerResponse> update(ServerRequest request) {
         String id = request.pathVariable("id");
-        return request.bodyToMono(UserDto.class)
+        return request
+                .bodyToMono(UserDto.class)
                 .map(validateUserDtoFunc(new UserDtoValidator()))
                 .flatMap(dto -> userService.update(id, dto))
                 .flatMap(updated ->
@@ -108,7 +111,8 @@ public class UserHandler {
 
     public Mono<ServerResponse> delete(ServerRequest request) {
         String id = request.pathVariable("id");
-        return userService.deleteById(id)
+        return userService
+                .deleteById(id)
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
@@ -119,27 +123,10 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> signIn(ServerRequest request) {
-        return request.bodyToMono(SignInDto.class)
+        return request
+                .bodyToMono(SignInDto.class)
                 .map(validateSignInDtoFunc(new SignInDtoValidator()))
-                .flatMap(dto -> userRepository.findOne(Example.of(new User(dto.getUsername())))
-                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                        .flatMap(user -> {
-                            boolean passwordsMatch = encoder.matches(dto.getPassword(), user.getPassword());
-                            if (passwordsMatch) {
-                                return roleRepository.findById(user.getRoleId())
-                                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                                        .flatMap(role -> {
-                                            String token = jwtUtil.generateToken(user, role);
-                                            if(StringUtils.hasText(token))
-                                                return Mono.just(new TokenDto(token));
-                                            return Mono.empty();
-                                        })
-                                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                                        .flatMap(Mono::just);
-                            }
-                            return Mono.error(new UsernameNotFoundException("Invalid username or password!"));
-                        })
-                )
+                .flatMap(userService::signIn)
                 .flatMap(tokenDto ->
                         ServerResponse
                                 .ok()
@@ -147,7 +134,6 @@ public class UserHandler {
                                 .log())
                 .onErrorResume(handleExceptions());
     }
-
 
     private Function<UserDto, UserDto> validateUserDtoFunc(Validator validator) {
         return userDto -> {
@@ -160,6 +146,20 @@ public class UserHandler {
                 throw new CustomBadRequestException(errorMessage);
             }
             return userDto;
+        };
+    }
+
+    private Function<PasswordDto, PasswordDto> validatePasswordDtoFunc(Validator validator) {
+        return passwordDto -> {
+            Errors errors = new BeanPropertyBindingResult(passwordDto, PasswordDto.class.getName());
+            validator.validate(passwordDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return passwordDto;
         };
     }
 
