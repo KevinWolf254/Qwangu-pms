@@ -5,6 +5,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
+import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final EmailGenerator emailGenerator;
     private final OneTimeTokenService oneTimeTokenService;
+    private final OneTimeTokenRepository oneTimeTokenRepository;
     private final PasswordEncoder encoder;
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
@@ -57,18 +59,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> activate(Optional<String> tokenOpt, Optional<String> userIdOpt) {
-        return oneTimeTokenService
-                .find(tokenOpt, userIdOpt)
-                .filter(token -> token.getExpiration().isBefore(LocalDateTime.now()))
+    public Mono<User> activate(String token, String userId) {
+        return oneTimeTokenService.find(token, userId)
+                .filter(t -> t.getExpiration().isAfter(LocalDateTime.now()) || t.getExpiration().isEqual(LocalDateTime.now()))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token has expired! Contact administrator.")))
-                .flatMap(ott -> userRepository.findById(userIdOpt.get()))
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("User could not be found!")))
-                .flatMap(user -> {
-                    user.setModified(LocalDateTime.now());
-                    user.setEnabled(true);
-                    return userRepository.save(user);
-                });
+                .flatMap(ott -> userRepository.findById(userId)
+                        .switchIfEmpty(Mono.error(new CustomBadRequestException("User could not be found!")))
+                        .flatMap(user -> {
+                            user.setModified(LocalDateTime.now());
+                            user.setEnabled(true);
+                            return userRepository.save(user);
+                        })
+                        .map(user -> {
+                            oneTimeTokenRepository.deleteById(ott.getId());
+                            return user;
+                        })
+                );
     }
 
     @Override
@@ -108,19 +114,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> resetPassword(String id, String token, String password) {
-        return userRepository.findById(id)
-                .switchIfEmpty(Mono.error(new UsernameNotFoundException("User with id %s could not bbe found!".formatted(id))))
-                .filter(User::getEnabled)
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("User is disabled!")))
-                .flatMap(user -> oneTimeTokenService.find(Optional.of(token), Optional.of(user.getId()))
-                        .filter(tokenDto -> tokenDto.getExpiration().isBefore(LocalDateTime.now()))
-                        .switchIfEmpty(Mono.error(new CustomBadRequestException("Token has expired! Contact administrator.")))
-                        .map(tokenDto -> {
+    public Mono<User> resetPassword(String token, String password) {
+        return oneTimeTokenRepository.findOne(Example.of(new OneTimeToken(token)))
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Token could not be found!")))
+                .filter(t -> t.getExpiration().isAfter(LocalDateTime.now()) || t.getExpiration().isEqual(LocalDateTime.now()))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token has expired! Contact administrator.")))
+                .flatMap(ott -> userRepository.findById(ott.getUserId())
+                        .switchIfEmpty(Mono.error(new CustomNotFoundException("User could not be found!")))
+                        .filter(User::getEnabled)
+                        .switchIfEmpty(Mono.error(new CustomBadRequestException("User is disabled! Contact administrator.")))
+                        .map(user -> {
                             user.setPassword(encoder.encode(password));
                             return user;
-                        }))
-                .flatMap(userRepository::save);
+                        })
+                        .flatMap(userRepository::save)
+                        .map(user -> {
+                            oneTimeTokenRepository.deleteById(ott.getId());
+                            return user;
+                        })
+                );
     }
 
     @Override
@@ -151,10 +163,5 @@ public class UserServiceImpl implements UserService {
                             .map(success -> email);
                 })
                 .flatMap(r -> Mono.empty());
-    }
-
-    @Override
-    public Mono<OneTimeToken> findToken(Optional<String> tokenOpt, Optional<String> idOpt) {
-        return oneTimeTokenService.find(tokenOpt, idOpt);
     }
 }

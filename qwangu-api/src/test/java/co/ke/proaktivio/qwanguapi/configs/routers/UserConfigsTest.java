@@ -5,6 +5,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
+import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UserService;
@@ -31,6 +32,7 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -920,6 +922,23 @@ class UserConfigsTest {
     }
 
     @Test
+    @DisplayName("changePassword returns unauthorised when user is not authenticated status 401")
+    void changePassword_returnsUnauthorized_status401() {
+        // given
+        String id = "1";
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+
+        // then
+        client
+                .get()
+                .uri("/v1/users/{id}/changePassword", id)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
     @WithMockUser
     void changePassword() {
         // given
@@ -936,9 +955,10 @@ class UserConfigsTest {
         when(userService.changePassword(id, dto)).thenReturn(Mono.just(user));
 
         // then
+        String uri = "/v1/users/%s/changePassword".formatted(id);
         client
                 .post()
-                .uri("/v1/users/{id}/changePassword", id)
+                .uri(uri)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), PasswordDto.class)
                 .exchange()
@@ -965,6 +985,278 @@ class UserConfigsTest {
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data").isEqualTo("Current password is not valid. New password is not valid.")
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @DisplayName("activate returns unauthorised when user is not authenticated status 401")
+    void activate_returnsUnauthorized_status401() {
+        // given
+        String id = "1";
+        Function<UriBuilder, URI> uriFunc = uriBuilder ->
+                uriBuilder
+                        .path("/v1/users/%s/activate".formatted(id))
+                        .queryParam("token", "")
+                        .build();
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+
+        // then
+        client
+                .get()
+                .uri(uriFunc)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser
+    void activate() {
+        // given
+        String id = "1";
+        Function<UriBuilder, URI> uriFunc = uriBuilder ->
+                uriBuilder
+                        .path("/v1/users/%s/activate".formatted(id))
+                        .queryParam("token", "")
+                        .build();
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+
+        // then
+        client
+                .get()
+                .uri(uriFunc)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Token is required!")
+                .consumeWith(System.out::println);
+
+        // given
+        String uuid = UUID.randomUUID().toString();
+        LocalDateTime now = LocalDateTime.now();
+        String roleId = "1";
+        String emailAddress = "person@gmail.com";
+        Person person = new Person("John", "Doe", "Doe");
+        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null);
+        Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
+                uriBuilder
+                        .path("/v1/users/%s/activate".formatted(id))
+                        .queryParam("token", uuid)
+                        .build();
+        // when
+        when(userService.activate(uuid, id)).thenReturn(Mono.just(user));
+
+        // then
+        client
+                .get()
+                .uri(uriFunc2)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("User updated successfully.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.id").isEqualTo("1")
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @DisplayName("sendResetPassword returns success when user is not authenticated status 200")
+    void sendResetPassword_returnsSuccess_status200() {
+        // given
+        var emailDto = new EmailDto("person@gmail.com");
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        when(userService.sendResetPassword(emailDto)).thenReturn(Mono.empty());
+
+        // then
+        client
+                .post()
+                .uri("/v1/users/sendResetPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(emailDto), EmailDto.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("Email for password reset will be sent if email address exists.")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    void sendResetPassword() {
+        // given
+        var emailDto = new EmailDto("person.com");
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .post()
+                .uri("/v1/users/sendResetPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(emailDto), EmailDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Email address is not valid.")
+                .consumeWith(System.out::println);
+
+        // given
+        var emailDto1 = new EmailDto("");
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .post()
+                .uri("/v1/users/sendResetPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(emailDto1), EmailDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid.")
+                .consumeWith(System.out::println);
+
+        // given
+        var emailDto2 = new EmailDto(null);
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .post()
+                .uri("/v1/users/sendResetPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(emailDto2), EmailDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Email address is required.")
+                .consumeWith(System.out::println);
+        // given
+        var emailDto3 = new EmailDto("person@gmail.com");
+        // when
+        when(userService.sendResetPassword(emailDto3)).thenReturn(Mono.error(new CustomNotFoundException("")));
+
+        // then
+        client
+                .post()
+                .uri("/v1/users/sendResetPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(emailDto3), EmailDto.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("Email for password reset will be sent if email address exists.")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @DisplayName("resetPassword returns success when user is not authenticated status 200")
+    void resetPassword_returnsSuccess_status200() {
+        // given
+        String id = "1";
+        String password = "qwerty@123Man";
+        var resetPasswordDto = new ResetPasswordDto(password);
+        var token = UUID.randomUUID().toString();
+        var now = LocalDateTime.now();
+        String roleId = "1";
+        String emailAddress = "person@gmail.com";
+        Person person = new Person("John", "Doe", "Doe");
+        var user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null);
+        Function<UriBuilder, URI> uriFunc = uriBuilder ->
+                uriBuilder
+                        .path("/v1/resetPassword")
+                        .queryParam("token", token)
+                        .build();
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        when(userService.resetPassword(token, resetPasswordDto.getPassword())).thenReturn(Mono.just(user));
+
+        // then
+        client
+                .post()
+                .uri(uriFunc)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(resetPasswordDto), ResetPasswordDto.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("User password updated successfully.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.id").isEqualTo("1")
+                .consumeWith(System.out::println);
+
+        // then
+        client
+                .post()
+                .uri("/v1/resetPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(resetPasswordDto), ResetPasswordDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Token is required!")
+                .consumeWith(System.out::println);
+
+        // then
+        client
+                .post()
+                .uri(uriFunc)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(new ResetPasswordDto()), ResetPasswordDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Password is required.")
+                .consumeWith(System.out::println);
+
+        // then
+        client
+                .post()
+                .uri(uriFunc)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(new ResetPasswordDto("pass")), ResetPasswordDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isEqualTo("Password is not valid.")
                 .consumeWith(System.out::println);
     }
 }

@@ -20,7 +20,8 @@ company:
 
 application:
   end-points:
-    - http://localhost:8080/user/activate
+    - http://localhost:8080/
+    - v1/users/
 
 ftl:
   templates:

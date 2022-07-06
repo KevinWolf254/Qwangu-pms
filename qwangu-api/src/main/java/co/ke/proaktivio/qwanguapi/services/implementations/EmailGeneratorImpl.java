@@ -6,7 +6,6 @@ import co.ke.proaktivio.qwanguapi.configs.FreeMarkerTemplatesPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Email;
 import co.ke.proaktivio.qwanguapi.services.EmailGenerator;
-import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -64,7 +63,7 @@ public class EmailGeneratorImpl implements EmailGenerator {
 
         Map<String, Object> models = new HashMap<>();
         models.put("companyUrl", cpc.getUrl());
-        var resetPasswordUrl = apc.getEndPoints().get(0) + apc.getEndPoints().get(1) + user.getId() + "/token" + "/?token=" + token;
+        var resetPasswordUrl = apc.getEndPoints().get(0) + apc.getEndPoints().get(1) + "/token" + "/?token=" + token;
         models.put("resetPasswordUrl", resetPasswordUrl);
         models.put("linkedInUrl", fmpc.getTemplates().get(0).getModels().get(0));
         models.put("twitterUrl", fmpc.getTemplates().get(0).getModels().get(1));

@@ -3,9 +3,11 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
+import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
@@ -27,11 +29,10 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(SpringExtension.class)
 class UserServiceImplTest {
@@ -43,6 +44,8 @@ class UserServiceImplTest {
     private static EmailGenerator emailGenerator;
     @Mock
     private OneTimeTokenService oneTimeTokenService;
+    @Mock
+    private OneTimeTokenRepository oneTimeTokenRepository;
     @Mock
     private PasswordEncoder encoder;
     @Mock
@@ -218,13 +221,19 @@ class UserServiceImplTest {
         String emailAddress = "person@gmail.com";
         String roleId = "1";
         UserDto dto = new UserDto(person, emailAddress, roleId);
-        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
-
+        String userId = "1";
+        User user = new User(userId, person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
+        String token = UUID.randomUUID().toString();
+        var now = LocalDateTime.now();
+        var oneTimeToken = new OneTimeToken(null, token, now, now.plusHours(12), user.getId());
+        Email email = new Email();
+        email.setSubject("Account Activation");
+        email.setTo(List.of(emailAddress));
         // when
         Mockito.when(userRepository.create(dto)).thenReturn(Mono.just(user));
-        Email email = new Email();
-        Mockito.when(emailGenerator.generateAccountActivationEmail(user, UUID.randomUUID().toString())).thenReturn(email);
-        Mockito.when(emailService.send(any())).thenReturn(Mono.just(true));
+        Mockito.when(emailGenerator.generateAccountActivationEmail(eq(user), any(String.class))).thenReturn(email);
+        Mockito.when(oneTimeTokenService.create(eq(userId), any(String.class))).thenReturn(Mono.just(oneTimeToken));
+        Mockito.when(emailService.send(email)).thenReturn(Mono.just(false));
         // then
         StepVerifier
                 .create(userService.createAndNotify(dto))
@@ -377,6 +386,140 @@ class UserServiceImplTest {
                 .create(userService.deleteById(id))
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
                         e.getMessage().equalsIgnoreCase("User with id %s does not exist!".formatted(id)))
+                .verify();
+    }
+
+    @Test
+    void active() {
+        // given
+        var token = UUID.randomUUID().toString();
+        var userId = "1";
+        Person person = new Person("John", "Doe", "Doe");
+        User user = new User(userId, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
+        LocalDateTime now = LocalDateTime.now();
+        OneTimeToken ott = new OneTimeToken("1", token, now, now.plusHours(12), userId);
+
+        // when
+        Mockito.when(oneTimeTokenService.find(token, userId)).thenReturn(Mono.just(ott));
+        Mockito.when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        Mockito.when(userRepository.save(user)).thenReturn(Mono.just(user));
+        Mockito.when(oneTimeTokenRepository.deleteById(ott.getId())).thenReturn(Mono.empty());
+
+        // then
+        StepVerifier
+                .create(userService.activate(token, userId))
+                .expectNext(user)
+                .verifyComplete();
+
+        // when
+        ott.setCreated(now.plusMinutes(30));
+        ott.setExpiration(now);
+        // then
+        StepVerifier
+                .create(userService.activate(token, userId))
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
+                        e.getMessage().equalsIgnoreCase("Token has expired! Contact administrator."))
+                .verify();
+
+        // when
+        ott.setCreated(now);
+        ott.setExpiration(now.plusHours(12));
+        Mockito.when(userRepository.findById(userId)).thenReturn(Mono.empty());
+        // then
+        StepVerifier
+                .create(userService.activate(token, userId))
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
+                        e.getMessage().equalsIgnoreCase("User could not be found!"))
+                .verify();
+
+    }
+
+    @Test
+    void resetPassword() {
+        // given
+        var token = UUID.randomUUID().toString();
+        var password = "password!234P";
+        var userId = "1";
+        Person person = new Person("John", "Doe", "Doe");
+        User user = new User(userId, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
+        LocalDateTime now = LocalDateTime.now();
+        OneTimeToken ott = new OneTimeToken("1", token, now, now.plusHours(12), userId);
+
+        // when
+        Mockito.when(oneTimeTokenRepository.findOne(Example.of(new OneTimeToken(token)))).thenReturn(Mono.just(ott));
+        Mockito.when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        Mockito.when(userRepository.save(user)).thenReturn(Mono.just(user));
+        Mockito.when(oneTimeTokenRepository.deleteById(ott.getId())).thenReturn(Mono.empty());
+
+        // then
+        StepVerifier
+                .create(userService.resetPassword(token, userId))
+                .expectNext(user)
+                .verifyComplete();
+
+        // when
+        ott.setCreated(now.plusMinutes(30));
+        ott.setExpiration(now);
+        // then
+        StepVerifier
+                .create(userService.resetPassword(token, userId))
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
+                        e.getMessage().equalsIgnoreCase("Token has expired! Contact administrator."))
+                .verify();
+
+        // when
+        ott.setCreated(now);
+        ott.setExpiration(now.plusHours(12));
+        Mockito.when(userRepository.findById(userId)).thenReturn(Mono.empty());
+        // then
+        StepVerifier
+                .create(userService.resetPassword(token, userId))
+                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                        e.getMessage().equalsIgnoreCase("User could not be found!"))
+                .verify();
+
+        // when
+        user.setEnabled(false);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        // then
+        StepVerifier
+                .create(userService.resetPassword(token, userId))
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
+                        e.getMessage().equalsIgnoreCase("User is disabled! Contact administrator."))
+                .verify();
+    }
+
+    @Test
+    void sendResetPassword() {
+        // given
+        String emailAddress = "person@gmail.com";
+        var emailDto = new EmailDto(emailAddress);
+        var userId = "1";
+        Person person = new Person("John", "Doe", "Doe");
+        User user = new User(userId, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
+        String token = UUID.randomUUID().toString();
+        LocalDateTime now = LocalDateTime.now();
+        OneTimeToken ott = new OneTimeToken("1", token, now, now.plusHours(12), userId);
+        Email email = new Email();
+        email.setTo(List.of(emailAddress));
+        email.setSubject("Password Reset");
+        // when
+        Mockito.when(userRepository.findOne(Example.of(new User(emailAddress)))).thenReturn(Mono.just(user));
+        Mockito.when(oneTimeTokenService.create(userId, token)).thenReturn(Mono.just(ott));
+        Mockito.when(emailService.send(email)).thenReturn(Mono.just(true));
+
+        // then
+        StepVerifier
+                .create(userService.sendResetPassword(emailDto))
+                .expectComplete();
+
+        Mockito.when(userRepository.findOne(Example.of(new User(emailAddress)))).thenReturn(Mono.empty());
+
+        // then
+        StepVerifier
+                .create(userService.sendResetPassword(emailDto))
+                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                        e.getMessage().equalsIgnoreCase("Email address person@gmail.com could not be found!"))
                 .verify();
     }
 }

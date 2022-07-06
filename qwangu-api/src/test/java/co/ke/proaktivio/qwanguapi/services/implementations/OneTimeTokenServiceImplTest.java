@@ -75,15 +75,13 @@ class OneTimeTokenServiceImplTest {
         // given
         String uuid = UUID.randomUUID().toString();
         String userId = "1";
-        Optional<String> tokenOpt = Optional.of(uuid);
-        Optional<String> userIdOpt = Optional.of(userId);
         LocalDateTime now = LocalDateTime.now();
         OneTimeToken token = new OneTimeToken("1", uuid, now, now.plusHours(12), userId);
         // when
         Mockito.when(oneTimeTokenRepository.findOne(any())).thenReturn(Mono.just(token));
         // then
         StepVerifier
-                .create(oneTimeTokenService.find(tokenOpt, userIdOpt))
+                .create(oneTimeTokenService.find(uuid, userId))
                 .expectNext(token)
                 .verifyComplete();
     }
@@ -93,13 +91,11 @@ class OneTimeTokenServiceImplTest {
         // given
         String uuid = UUID.randomUUID().toString();
         String userId = "1";
-        Optional<String> tokenOpt = Optional.of(uuid);
-        Optional<String> userIdOpt = Optional.of(userId);
         // when
         Mockito.when(oneTimeTokenRepository.findOne(any())).thenReturn(Mono.empty());
         // then
         StepVerifier
-                .create(oneTimeTokenService.find(tokenOpt, userIdOpt))
+                .create(oneTimeTokenService.find(uuid, userId))
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
                         e.getMessage().equals("Token could not be found!"))
                 .verify();

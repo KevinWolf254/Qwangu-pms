@@ -15,19 +15,19 @@ public class UserConfigs {
     RouterFunction<ServerResponse> routeUser(UserHandler handler) {
         return route()
                 .path("v1", builder -> builder
-                        .path("users", builder1 -> builder1
-                                .GET(handler::find)
+                        .path("users", builder3 -> builder3
                                 .GET("/{id}/activate", handler::activate)
-                                .GET("/{id}/token", handler::findToken)
-                                .POST(handler::create)
+                                .GET(handler::find)
                                 .POST("/sendResetPassword", handler::sendResetPassword)
                                 .POST("/{id}/changePassword", handler::changePassword)
+                                .POST(handler::create)
                                 .PUT("/{id}", handler::update)
-                                .PUT("/{id}/resetPassword", handler::resetPassword)
-                                .DELETE("/{id}", handler::delete))
-                        .path("signIn", builder2 -> builder2
-                                .POST(handler::signIn)))
-
+                                .DELETE("/{id}", handler::delete)
+                        )
+                        .path("signIn", builder1 -> builder1
+                                .POST(handler::signIn))
+                        .path("resetPassword", builder2 -> builder2
+                                .POST(handler::resetPassword)))
                 .build();
     }
 }

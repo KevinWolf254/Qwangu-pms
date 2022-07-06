@@ -14,7 +14,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -24,7 +23,6 @@ import reactor.test.StepVerifier;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         ApplicationPropertiesConfig.class, FreeMarkerTemplatesPropertiesConfig.class})
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class,
         classes = {JavaMailSenderConfig.class, FreeMarkerConfig.class, EmailServiceImpl.class})
-class EmailServiceImplTest {
+class EmailServiceImplIntegrationTest {
     @Autowired
     @Qualifier("customJavaMailSender")
     private JavaMailSender sender;
@@ -60,9 +58,9 @@ class EmailServiceImplTest {
 
     @Test
     void init(){
-        assertThat(this.fmpc.getTemplates().get(0)).isNotNull();
-        assertThat(this.fmpc.getTemplates().get(0).getName()).isEqualTo("activate_account.ftlh");
-        assertThat(this.fmpc.getTemplates().get(0).getPath()).isEqualTo("src/main/resources/templates");
+        assertThat(this.fmpc.getTemplates().get(1)).isNotNull();
+        assertThat(this.fmpc.getTemplates().get(1).getName()).isEqualTo("activate_account.ftlh");
+        assertThat(this.fmpc.getTemplates().get(1).getPath()).isEqualTo("src/main/resources/templates");
         assertThat(this.fmpc.getTemplates().get(0).getModels().get(0)).isEqualTo("https://linked-in.com");
         assertThat(this.fmpc.getTemplates().get(0).getModels().get(1)).isEqualTo("https://twitter.com");
         assertThat(this.fmpc.getTemplates().get(0).getModels().get(2)).isEqualTo("https://facebook.com");
@@ -83,7 +81,7 @@ class EmailServiceImplTest {
         Email email = new Email();
         email.setTo(List.of("person@gmail.com"));
         email.setSubject("Account Activation");
-        email.setTemplate(this.fmpc.getTemplates().get(0).getName());
+        email.setTemplate(this.fmpc.getTemplates().get(1).getName());
 
         Map<String, Object> models = new HashMap<>();
         models.put("companyUrl", cpc.getUrl());
@@ -126,7 +124,7 @@ class EmailServiceImplTest {
         Email email = new Email();
         email.setTo(List.of("person@gmail.com"));
         email.setSubject("Account Activation");
-        email.setTemplate(this.fmpc.getTemplates().get(0).getName());
+        email.setTemplate(this.fmpc.getTemplates().get(1).getName());
 
         Map<String, Object> models = new HashMap<>();
         models.put("companyUrl", cpc.getUrl());
@@ -146,15 +144,13 @@ class EmailServiceImplTest {
         resourceMap.put("linkedInImage", new ClassPathResource(resources.get(3)));
         resourceMap.put("twitterImage", new ClassPathResource(resources.get(4)));
         resourceMap.put("facebookImage", new ClassPathResource(resources.get(5)));
-        resourceMap.put("instagramImage", new ClassPathResource(resources.get(7)));
+        resourceMap.put("instagramImage", new ClassPathResource(resources.get(6)));
         email.setResources(resourceMap);
         // when
-        Mono<Boolean> send = emailService.send(email);
         // then
         StepVerifier
-                .create(send)
-                .expectErrorMatches(e -> e instanceof MailSendException &&
-                        !e.getMessage().isEmpty())
-                .verify();
+                .create(emailService.send(email))
+                .expectNext(true)
+                .verifyComplete();
     }
 }

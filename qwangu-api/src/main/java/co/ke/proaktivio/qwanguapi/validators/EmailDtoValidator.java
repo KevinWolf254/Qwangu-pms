@@ -1,8 +1,6 @@
 package co.ke.proaktivio.qwanguapi.validators;
 
 import co.ke.proaktivio.qwanguapi.pojos.EmailDto;
-import co.ke.proaktivio.qwanguapi.pojos.UserDto;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;

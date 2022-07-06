@@ -1,11 +1,13 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.models.Authority;
+import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.pojos.UserDto;
 import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
+import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.services.UserService;
@@ -27,6 +29,7 @@ import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
@@ -49,6 +52,8 @@ class UserServiceImplIntegrationTest {
     private AuthorityRepository authorityRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private OneTimeTokenRepository oneTimeTokenRepository;
 
     @Test
     @DisplayName("createAndNotify rollsBack when a runtime exception occurs")
@@ -62,25 +67,21 @@ class UserServiceImplIntegrationTest {
         Role role = new Role("1", "ADMIN", null, LocalDateTime.now(), null);
 
         // when
-        Mono<User> create = userRepository
-                .deleteAll()
+        Mono<User> create = userRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Users!"))
-                .then(roleRepository
-                        .deleteAll()
-                        .doOnSuccess(t -> System.out.println("---- Deleted all Roles!")))
-                .then(authorityRepository
-                        .deleteAll()
-                        .doOnSuccess(t -> System.out.println("---- Deleted all Authorities!")))
-                .then(authorityRepository
-                        .save(authority)
-                        .doOnSuccess(System.out::println))
+                .then(roleRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all Roles!"))
+                .then(authorityRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all Authorities!"))
+                .then(authorityRepository.save(authority))
+                .doOnSuccess(System.out::println)
                 .flatMap(authResult -> {
                     role.setAuthorityIds(Set.of(authResult.getId()));
                     return roleRepository.save(role);
                 })
-                .doOnSuccess(System.out::println)
+                .doOnSuccess(r -> System.out.println("---- Saved " + r))
                 .flatMap(roleResult -> userService.create(dto))
-                .doOnSuccess(System.out::println);
+                .doOnSuccess(u -> System.out.println("---- Saved " + u));
 
         Mono<User> userCreateWithEmailError = userService
                 .createAndNotify(dto2)

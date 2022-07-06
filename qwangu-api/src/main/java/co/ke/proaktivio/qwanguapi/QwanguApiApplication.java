@@ -4,8 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
-@ComponentScan("co.ke.proaktivio.qwanguapi.security")
-@ComponentScan("co.ke.proaktivio.qwanguapi.configs")
+@ComponentScan("co.ke.proaktivio.qwanguapi.*")
 @SpringBootApplication
 public class QwanguApiApplication {
 

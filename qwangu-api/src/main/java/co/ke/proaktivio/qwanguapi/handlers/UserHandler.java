@@ -1,6 +1,5 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.pojos.*;
@@ -8,22 +7,16 @@ import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.http.HttpStatus;
-import org.springframework.mail.MailException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
+import static co.ke.proaktivio.qwanguapi.utils.CustomUserHandlerValidatorUtil.*;
 
 @Component
 @RequiredArgsConstructor
@@ -46,9 +39,10 @@ public class UserHandler {
         String id = request.pathVariable("id");
         Optional<String> tokenOpt = request.queryParam("token");
         return Mono.just(tokenOpt)
-                .map(tOpt -> tOpt.orElse(null))
+                .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
-                .flatMap(token -> userService.activate(tokenOpt, Optional.of(id)))
+                .map(Optional::get)
+                .flatMap(token -> userService.activate(token, id))
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
@@ -77,7 +71,7 @@ public class UserHandler {
                 .bodyToMono(EmailDto.class)
                 .map(validateEmailDtoFunc(new EmailDtoValidator()))
                 .flatMap(userService::sendResetPassword)
-                .flatMap(none ->
+                .then(
                         ServerResponse
                                 .ok()
                                 .body(Mono.just(new SuccessResponse<>(true, "Email for password reset will be sent if email address exists.", null)), SuccessResponse.class)
@@ -94,30 +88,16 @@ public class UserHandler {
                 .onErrorResume(handleExceptions());
     }
 
-    public Mono<ServerResponse> findToken(ServerRequest request) {
-        String id = request.pathVariable("id");
-        Optional<String> tokenOpt = request.queryParam("token");
-        return Mono.just(tokenOpt)
-                .map(tOpt -> tOpt.orElse(null))
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
-                .flatMap(token -> userService.findToken(Optional.of(token), Optional.of(id)))
-                .flatMap(token ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Token was found successfully.", token)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
-    }
-
     public Mono<ServerResponse> resetPassword(ServerRequest request) {
-        String id = request.pathVariable("id");
         Optional<String> tokenOpt = request.queryParam("token");
         return Mono.just(tokenOpt)
-                .map(tOpt -> tOpt.orElse(null))
+                .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
-                .flatMap(token -> request.bodyToMono(ResetPasswordDto.class)
+                .map(Optional::get)
+                .flatMap(token -> request
+                        .bodyToMono(ResetPasswordDto.class)
                         .map(validateResetPasswordDtoFunc(new ResetPasswordDtoValidator()))
-                        .flatMap(dto -> userService.resetPassword(id, token, dto.getPassword())))
+                        .flatMap(dto -> userService.resetPassword(token, dto.getPassword())))
                 .flatMap(user ->
                         ServerResponse
                                 .ok()
@@ -187,106 +167,4 @@ public class UserHandler {
                 .onErrorResume(handleExceptions());
     }
 
-    private Function<UserDto, UserDto> validateUserDtoFunc(Validator validator) {
-        return userDto -> {
-            Errors errors = new BeanPropertyBindingResult(userDto, UserDto.class.getName());
-            validator.validate(userDto, errors);
-            if (!errors.getAllErrors().isEmpty()) {
-                String errorMessage = errors.getAllErrors().stream()
-                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                        .collect(Collectors.joining(" "));
-                throw new CustomBadRequestException(errorMessage);
-            }
-            return userDto;
-        };
-    }
-
-    private Function<PasswordDto, PasswordDto> validatePasswordDtoFunc(Validator validator) {
-        return passwordDto -> {
-            Errors errors = new BeanPropertyBindingResult(passwordDto, PasswordDto.class.getName());
-            validator.validate(passwordDto, errors);
-            if (!errors.getAllErrors().isEmpty()) {
-                String errorMessage = errors.getAllErrors().stream()
-                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                        .collect(Collectors.joining(" "));
-                throw new CustomBadRequestException(errorMessage);
-            }
-            return passwordDto;
-        };
-    }
-
-    private Function<SignInDto, SignInDto> validateSignInDtoFunc(Validator validator) {
-        return signInDto -> {
-            Errors errors = new BeanPropertyBindingResult(signInDto, SignInDto.class.getName());
-            validator.validate(signInDto, errors);
-            if (!errors.getAllErrors().isEmpty()) {
-                String errorMessage = errors.getAllErrors().stream()
-                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                        .collect(Collectors.joining(" "));
-                throw new CustomBadRequestException(errorMessage);
-            }
-            return signInDto;
-        };
-    }
-
-    private Function<EmailDto, EmailDto> validateEmailDtoFunc(Validator validator) {
-        return emailDto -> {
-            Errors errors = new BeanPropertyBindingResult(emailDto, EmailDto.class.getName());
-            validator.validate(emailDto, errors);
-            if (!errors.getAllErrors().isEmpty()) {
-                String errorMessage = errors.getAllErrors().stream()
-                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                        .collect(Collectors.joining(" "));
-                throw new CustomBadRequestException(errorMessage);
-            }
-            return emailDto;
-        };
-    }
-
-    private Function<ResetPasswordDto, ResetPasswordDto> validateResetPasswordDtoFunc(Validator validator) {
-        return passwordDto -> {
-            Errors errors = new BeanPropertyBindingResult(passwordDto, ResetPasswordDto.class.getName());
-            validator.validate(passwordDto, errors);
-            if (!errors.getAllErrors().isEmpty()) {
-                String errorMessage = errors.getAllErrors().stream()
-                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                        .collect(Collectors.joining(" "));
-                throw new CustomBadRequestException(errorMessage);
-            }
-            return passwordDto;
-        };
-    }
-
-    private Function<Throwable, Mono<? extends ServerResponse>> handleExceptions() {
-        return e -> {
-            if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
-                return ServerResponse.badRequest()
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", e.getMessage())), ErrorResponse.class)
-                        .log();
-            }
-            if (e instanceof CustomNotFoundException) {
-                return ServerResponse.status(HttpStatus.NOT_FOUND)
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", e.getMessage())), ErrorResponse.class)
-                        .log();
-            }
-            if (e instanceof UsernameNotFoundException) {
-                return ServerResponse.status(HttpStatus.UNAUTHORIZED)
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.UNAUTHORIZED_ERROR, "Unauthorised", e.getMessage())), ErrorResponse.class)
-                        .log();
-            }
-            if (e instanceof MailException) {
-                return ServerResponse.status(HttpStatus.BAD_REQUEST)
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", "Mail could not be sent!")), ErrorResponse.class)
-                        .log();
-            }
-            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Mono.just(
-                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", "Something happened!")), ErrorResponse.class)
-                    .log();
-        };
-    }
 }

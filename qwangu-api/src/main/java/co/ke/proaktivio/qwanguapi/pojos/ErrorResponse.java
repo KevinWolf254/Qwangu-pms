@@ -5,10 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class ErrorResponse<T> {
     private boolean success;
     private ErrorCode errorCode;

@@ -11,15 +11,13 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class OneTimeTokenServiceImpl implements OneTimeTokenService {
     private final OneTimeTokenRepository oneTimeTokenRepository;
     private final UserRepository userRepository;
-    private static Integer TOKEN_EXPIRATION_HOURS = 12;
+    private static final Integer TOKEN_EXPIRATION_HOURS = 12;
 
     @Override
     public Mono<OneTimeToken> create(String userId, String uuid) {
@@ -34,9 +32,8 @@ public class OneTimeTokenServiceImpl implements OneTimeTokenService {
     }
 
     @Override
-    public Mono<OneTimeToken> find(Optional<String> tokenOpt, Optional<String> userIdOpt) {
-        OneTimeToken oneTimeToken = new OneTimeToken(null, tokenOpt.orElse(null), null, null,
-                userIdOpt.orElse(null));
+    public Mono<OneTimeToken> find(String token, String userId) {
+        OneTimeToken oneTimeToken = new OneTimeToken(null, token, null, null, userId);
         return oneTimeTokenRepository
                 .findOne(Example.of(oneTimeToken))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Token could not be found!")));
