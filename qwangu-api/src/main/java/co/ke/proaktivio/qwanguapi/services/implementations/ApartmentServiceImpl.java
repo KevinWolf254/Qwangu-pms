@@ -15,7 +15,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ApartmentServiceImpl implements ApartmentService {
-
     private final ApartmentRepository repository;
 
     @Override
