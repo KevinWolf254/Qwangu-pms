@@ -1,0 +1,123 @@
+package co.ke.proaktivio.qwanguapi.handlers;
+
+import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.models.Unit;
+import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import co.ke.proaktivio.qwanguapi.pojos.SuccessResponse;
+import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
+import co.ke.proaktivio.qwanguapi.services.UnitService;
+import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Mono;
+
+import java.net.URI;
+import java.util.Optional;
+
+import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
+
+@Component
+@RequiredArgsConstructor
+public class UnitHandler {
+    private final UnitService unitService;
+
+    public Mono<ServerResponse> create(ServerRequest request) {
+        return request.bodyToMono(UnitDto.class)
+//                .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
+                .flatMap(unitService::create)
+                .flatMap(created ->
+                        ServerResponse.created(URI.create("v1/units/%s".formatted(created.getId())))
+                                .body(Mono.just(new SuccessResponse<>(true, "Unit created successfully.",
+                                        created)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
+    }
+
+    public Mono<ServerResponse> update(ServerRequest request) {
+        String id = request.pathVariable("id");
+        return request.bodyToMono(UnitDto.class)
+//                .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
+                .flatMap(dto -> unitService.update(id, dto))
+                .flatMap(updated ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "Unit updated successfully.",
+                                        updated)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
+    }
+
+    private Optional<Integer> convertToInteger(Optional<String> paramOpt) {
+        Optional<Integer> result = Optional.empty();
+        if (paramOpt.isPresent()) {
+            String value = paramOpt.get();
+            if (NumberUtils.isParsable(value))
+                result = Optional.of(NumberUtils.createInteger(value));
+        }
+        return result;
+    }
+
+    private Optional<Unit.Identifier> convertToIdentifier(String param) {
+        if(EnumUtils.isValidEnumIgnoreCase(Unit.Identifier.class, param)){
+            return Optional.of(EnumUtils.getEnum(Unit.Identifier.class, param));
+        }
+        throw new CustomBadRequestException("Not a valid Identifier!");
+    }
+
+    private Optional<Unit.Type> convertToType(String param) {
+        if(EnumUtils.isValidEnumIgnoreCase(Unit.Type.class, param)){
+            return Optional.of(EnumUtils.getEnum(Unit.Type.class, param));
+        }
+        throw new CustomBadRequestException("Not a valid Type!");
+    }
+    public Mono<ServerResponse> find(ServerRequest request) {
+        Optional<String> id = request.queryParam("id");
+        Optional<String> accountNo = request.queryParam("accountNo");
+        Optional<String> type = request.queryParam("type");
+        Optional<String> identifier = request.queryParam("identifier");
+        Optional<String> floorNo = request.queryParam("floorNo");
+        Optional<String> bedrooms = request.queryParam("bedrooms");
+        Optional<String> bathrooms = request.queryParam("bathrooms");
+        Optional<String> apartmentId = request.queryParam("apartmentId");
+        Optional<String> page = request.queryParam("page");
+        Optional<String> pageSize = request.queryParam("pageSize");
+        Optional<String> order = request.queryParam("order");
+        Optional<Integer> floorNoResult = convertToInteger(floorNo);
+        Optional<Integer> noOfBedrooms = convertToInteger(bedrooms);
+        Optional<Integer> noOfBathrooms = convertToInteger(bathrooms);
+        return unitService.findPaginated(
+                        id,
+                        accountNo,
+                        type.flatMap(this::convertToType),
+                        identifier.flatMap(this::convertToIdentifier),
+                        floorNoResult,
+                        noOfBedrooms,
+                        noOfBathrooms,
+                        apartmentId,
+                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
+                        pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
+                        order.map(OrderType::valueOf).orElse(OrderType.DESC)
+                ).collectList()
+                .flatMap(results ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "Units found successfully.", results)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
+    }
+
+    public Mono<ServerResponse> delete(ServerRequest request) {
+        String id = request.pathVariable("id");
+        return unitService.deleteById(id)
+                .flatMap(result ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "Unit with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
+    }
+}
