@@ -2,21 +2,29 @@ package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Unit;
+import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.SuccessResponse;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import co.ke.proaktivio.qwanguapi.validators.UnitDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
@@ -27,7 +35,7 @@ public class UnitHandler {
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(UnitDto.class)
-//                .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
+                .map(validateUnitDtoFunc(new UnitDtoValidator()))
                 .flatMap(unitService::create)
                 .flatMap(created ->
                         ServerResponse.created(URI.create("v1/units/%s".formatted(created.getId())))
@@ -40,7 +48,7 @@ public class UnitHandler {
     public Mono<ServerResponse> update(ServerRequest request) {
         String id = request.pathVariable("id");
         return request.bodyToMono(UnitDto.class)
-//                .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
+                .map(validateUnitDtoFunc(new UnitDtoValidator()))
                 .flatMap(dto -> unitService.update(id, dto))
                 .flatMap(updated ->
                         ServerResponse
@@ -119,5 +127,20 @@ public class UnitHandler {
                                 .body(Mono.just(new SuccessResponse<>(true, "Unit with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
                                 .log())
                 .onErrorResume(handleExceptions());
+    }
+
+
+    private Function<UnitDto, UnitDto> validateUnitDtoFunc(Validator validator) {
+        return apartmentDto -> {
+            Errors errors = new BeanPropertyBindingResult(apartmentDto, ApartmentDto.class.getName());
+            validator.validate(apartmentDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return apartmentDto;
+        };
     }
 }

@@ -24,6 +24,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
+
 @Component
 @RequiredArgsConstructor
 public class ApartmentHandler {
@@ -96,27 +98,6 @@ public class ApartmentHandler {
                 throw new CustomBadRequestException(errorMessage);
             }
             return apartmentDto;
-        };
-    }
-
-    private Function<Throwable, Mono<? extends ServerResponse>> handleExceptions() {
-        return e -> {
-            if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
-                return ServerResponse.badRequest()
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", e.getMessage())), ErrorResponse.class)
-                        .log();
-            }
-            if (e instanceof CustomNotFoundException) {
-                return ServerResponse.status(HttpStatus.NOT_FOUND)
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", e.getMessage())), ErrorResponse.class)
-                        .log();
-            }
-            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Mono.just(
-                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", "Something happened!")), ErrorResponse.class)
-                    .log();
         };
     }
 }
