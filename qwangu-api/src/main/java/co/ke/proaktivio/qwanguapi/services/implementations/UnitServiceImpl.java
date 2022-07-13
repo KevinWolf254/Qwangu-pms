@@ -81,15 +81,27 @@ public class UnitServiceImpl implements UnitService {
         return unitRepository.findById(id)
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(id))))
-                .filter(u -> dto.getType() != null && u.getType() != null &&
+                .filter(u -> dto.getType() != null &&
+                        u.getType() != null &&
                         u.getType() == dto.getType())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's type!")))
-                .filter(u -> u.getIdentifier() != null && u.getFloorNo() != null &&
-                        dto.getIdentifier() != null && dto.getFloorNo() != null &&
-                        u.getIdentifier() == dto.getIdentifier() &&
-                        Objects.equals(u.getFloorNo(), dto.getFloorNo()))
+                .filter(u -> {
+                    if(u.getType()!= null && u.getType().equals(Unit.Type.APARTMENT_UNIT)) {
+                       return (u.getIdentifier() != null &&
+                               u.getFloorNo() != null &&
+                                dto.getIdentifier() != null &&
+                               dto.getFloorNo() != null &&
+                                u.getIdentifier().equals(dto.getIdentifier()) &&
+                                Objects.equals(u.getFloorNo(), dto.getFloorNo()));
+                    }
+                    return true;
+                })
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's floorNo and identifier!")))
-                .filter(u -> !Objects.equals(u.getApartmentId(), dto.getApartmentId()))
+                .filter(u -> {
+                    if(u.getType() != null && u.getType().equals(Unit.Type.APARTMENT_UNIT))
+                        return Objects.equals(u.getApartmentId(), dto.getApartmentId());
+                    return true;
+                })
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's Apartment!")))
                 .map(u -> {
                     if (dto.getNoOfBedrooms() != null)
@@ -106,6 +118,7 @@ public class UnitServiceImpl implements UnitService {
                         u.setSecurityPerMonth(dto.getSecurityPerMonth());
                     if (dto.getGarbagePerMonth() != null)
                         u.setGarbagePerMonth(dto.getGarbagePerMonth());
+                    u.setModified(LocalDateTime.now());
                     return u;
                 })
                 .flatMap(unitRepository::save);
@@ -114,7 +127,7 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public Flux<Unit> findPaginated(Optional<String> id, Optional<String> accountNo, Optional<Unit.Type> type,
                                     Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
-                                    Optional<Integer> bedrooms, Optional<String> apartmentId, int page, int pageSize,
+                                    Optional<Integer> bedrooms, Optional<Integer> bathrooms, Optional<String> apartmentId, int page, int pageSize,
                                     OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
@@ -126,7 +139,8 @@ public class UnitServiceImpl implements UnitService {
         type.ifPresent(t -> query.addCriteria(Criteria.where("type").is(t)));
         identifier.ifPresent(t -> query.addCriteria(Criteria.where("identifier").is(t)));
         floorNo.ifPresent(t -> query.addCriteria(Criteria.where("floorNo").is(t)));
-        bedrooms.ifPresent(t -> query.addCriteria(Criteria.where("bedrooms").is(t)));
+        bedrooms.ifPresent(t -> query.addCriteria(Criteria.where("noOfBedrooms").is(t)));
+        bathrooms.ifPresent(t -> query.addCriteria(Criteria.where("noOfBathrooms").is(t)));
         apartmentId.ifPresent(t -> query.addCriteria(Criteria.where("apartmentId").is(t)));
         query.with(pageable)
                 .with(sort);
@@ -138,7 +152,7 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public Mono<Boolean> deleteById(String id) {
         return template
-                .findById(id, Apartment.class)
+                .findById(id, Unit.class)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(id))))
                 .flatMap(template::remove)
                 .map(DeleteResult::wasAcknowledged);
