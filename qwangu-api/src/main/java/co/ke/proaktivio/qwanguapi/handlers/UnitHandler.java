@@ -2,10 +2,7 @@ package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Unit;
-import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
-import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.pojos.SuccessResponse;
-import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
+import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.UnitDtoValidator;
@@ -88,34 +85,44 @@ public class UnitHandler {
         Optional<String> type = request.queryParam("type");
         Optional<String> identifier = request.queryParam("identifier");
         Optional<String> floorNo = request.queryParam("floorNo");
-        Optional<String> bedrooms = request.queryParam("bedrooms");
-        Optional<String> bathrooms = request.queryParam("bathrooms");
+        Optional<String> bedrooms = request.queryParam("noOfBedrooms");
+        Optional<String> bathrooms = request.queryParam("noOfBathrooms");
         Optional<String> apartmentId = request.queryParam("apartmentId");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
-        Optional<Integer> floorNoResult = convertToInteger(floorNo);
-        Optional<Integer> noOfBedrooms = convertToInteger(bedrooms);
-        Optional<Integer> noOfBathrooms = convertToInteger(bathrooms);
-        return unitService.findPaginated(
-                        id,
-                        accountNo,
-                        type.flatMap(this::convertToType),
-                        identifier.flatMap(this::convertToIdentifier),
-                        floorNoResult,
-                        noOfBedrooms,
-                        noOfBathrooms,
-                        apartmentId,
-                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
-                        pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
-                        order.map(OrderType::valueOf).orElse(OrderType.DESC)
-                ).collectList()
-                .flatMap(results ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Units found successfully.", results)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+        try {
+            Optional<Integer> floorNoResult = convertToInteger(floorNo);
+            Optional<Integer> noOfBedrooms = convertToInteger(bedrooms);
+            Optional<Integer> noOfBathrooms = convertToInteger(bathrooms);
+            Optional<Unit.Type> finalType = type.flatMap(this::convertToType);
+            Optional<Unit.Identifier> finalIdentifier = identifier.flatMap(this::convertToIdentifier);
+            Integer finalPage = page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1);
+            Integer finalPageSize = pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10);
+            OrderType finalOrder = order.map(OrderType::valueOf).orElse(OrderType.DESC);
+
+            return unitService.findPaginated(
+                            id,
+                            accountNo,
+                            finalType,
+                            finalIdentifier,
+                            floorNoResult,
+                            noOfBedrooms,
+                            noOfBathrooms,
+                            apartmentId,
+                            finalPage,
+                            finalPageSize,
+                            finalOrder
+                    ).collectList()
+                    .flatMap(results ->
+                            ServerResponse
+                                    .ok()
+                                    .body(Mono.just(new SuccessResponse<>(true, "Units found successfully.", results)), SuccessResponse.class)
+                                    .log())
+                    .onErrorResume(handleExceptions());
+        } catch (Exception e) {
+            return handleExceptions(e);
+        }
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {

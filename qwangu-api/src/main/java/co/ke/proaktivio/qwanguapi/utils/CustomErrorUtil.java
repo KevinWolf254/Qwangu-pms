@@ -16,35 +16,37 @@ import java.util.function.Function;
 public class CustomErrorUtil {
 
     public static Function<Throwable, Mono<? extends ServerResponse>> handleExceptions() {
-        return e -> {
-            if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
-                return ServerResponse.badRequest()
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", e.getMessage())), ErrorResponse.class)
-                        .log();
-            }
-            if (e instanceof CustomNotFoundException) {
-                return ServerResponse.status(HttpStatus.NOT_FOUND)
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", e.getMessage())), ErrorResponse.class)
-                        .log();
-            }
-            if (e instanceof UsernameNotFoundException) {
-                return ServerResponse.status(HttpStatus.UNAUTHORIZED)
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.UNAUTHORIZED_ERROR, "Unauthorised", e.getMessage())), ErrorResponse.class)
-                        .log();
-            }
-            if (e instanceof MailException) {
-                return ServerResponse.status(HttpStatus.BAD_REQUEST)
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", "Mail could not be sent!")), ErrorResponse.class)
-                        .log();
-            }
-            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return e -> handleExceptions(e);
+    }
+
+    public static Mono<ServerResponse> handleExceptions(Throwable e) {
+        if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException) {
+            return ServerResponse.badRequest()
                     .body(Mono.just(
-                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", "Something happened!")), ErrorResponse.class)
+                            new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", e.getMessage())), ErrorResponse.class)
                     .log();
-        };
+        }
+        if (e instanceof CustomNotFoundException) {
+            return ServerResponse.status(HttpStatus.NOT_FOUND)
+                    .body(Mono.just(
+                            new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", e.getMessage())), ErrorResponse.class)
+                    .log();
+        }
+        if (e instanceof UsernameNotFoundException) {
+            return ServerResponse.status(HttpStatus.UNAUTHORIZED)
+                    .body(Mono.just(
+                            new ErrorResponse<>(false, ErrorCode.UNAUTHORIZED_ERROR, "Unauthorised", e.getMessage())), ErrorResponse.class)
+                    .log();
+        }
+        if (e instanceof MailException) {
+            return ServerResponse.status(HttpStatus.BAD_REQUEST)
+                    .body(Mono.just(
+                            new ErrorResponse<>(false, ErrorCode.BAD_REQUEST_ERROR, "Bad request.", "Mail could not be sent!")), ErrorResponse.class)
+                    .log();
+        }
+        return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Mono.just(
+                        new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!", "Something happened!")), ErrorResponse.class)
+                .log();
     }
 }

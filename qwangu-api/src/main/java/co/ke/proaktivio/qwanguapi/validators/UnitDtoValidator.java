@@ -34,12 +34,12 @@ public class UnitDtoValidator implements Validator {
     }
 
     private void validateUnitIdentifier(UnitDto request, Errors errors) {
-        if(request.getType().equals(Unit.Type.APARTMENT_UNIT))
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "identifier", "field.required", "Type is required.");
+        if(request.getType() != null && request.getType().equals(Unit.Type.APARTMENT_UNIT))
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "identifier", "field.required", "Identifier is required.");
     }
 
     private void validateFloorNo(UnitDto request, Errors errors) {
-        if(request.getType().equals(Unit.Type.APARTMENT_UNIT))
+        if(request.getType() != null && request.getType().equals(Unit.Type.APARTMENT_UNIT))
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "floorNo", "field.required", "Floor No is required.");
     }
 
@@ -72,7 +72,7 @@ public class UnitDtoValidator implements Validator {
     }
 
     private void validateApartmentId(UnitDto request, Errors errors) {
-        if(request.getType().equals(Unit.Type.APARTMENT_UNIT))
+        if(request.getType() != null && request.getType().equals(Unit.Type.APARTMENT_UNIT))
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "apartmentId", "field.required", "Apartment Id is required.");
     }
 }
