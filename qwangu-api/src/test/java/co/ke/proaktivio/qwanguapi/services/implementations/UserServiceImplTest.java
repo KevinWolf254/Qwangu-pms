@@ -444,12 +444,13 @@ class UserServiceImplTest {
         User user = new User(userId, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
         LocalDateTime now = LocalDateTime.now();
         OneTimeToken ott = new OneTimeToken("1", token, now, now.plusHours(12), userId);
+        OneTimeToken ott2 = new OneTimeToken("1", token, now.minusDays(2), now.minusDays(1), userId);
 
         // when
         Mockito.when(oneTimeTokenRepository.findOne(Example.of(new OneTimeToken(token)))).thenReturn(Mono.just(ott));
         Mockito.when(userRepository.findById(userId)).thenReturn(Mono.just(user));
         Mockito.when(userRepository.save(user)).thenReturn(Mono.just(user));
-        Mockito.when(oneTimeTokenRepository.deleteById(ott.getId())).thenReturn(Mono.empty());
+        Mockito.when(oneTimeTokenRepository.deleteById("1")).thenReturn(Mono.empty());
 
         // then
         StepVerifier
@@ -458,8 +459,7 @@ class UserServiceImplTest {
                 .verifyComplete();
 
         // when
-        ott.setCreated(now.plusMinutes(30));
-        ott.setExpiration(now);
+        Mockito.when(oneTimeTokenRepository.findOne(Example.of(new OneTimeToken(token)))).thenReturn(Mono.just(ott2));
         // then
         StepVerifier
                 .create(userService.resetPassword(token, userId))
@@ -468,8 +468,7 @@ class UserServiceImplTest {
                 .verify();
 
         // when
-        ott.setCreated(now);
-        ott.setExpiration(now.plusHours(12));
+        Mockito.when(oneTimeTokenRepository.findOne(Example.of(new OneTimeToken(token)))).thenReturn(Mono.just(ott));
         Mockito.when(userRepository.findById(userId)).thenReturn(Mono.empty());
         // then
         StepVerifier

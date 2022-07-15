@@ -3,7 +3,6 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
@@ -44,7 +43,7 @@ public class UnitServiceImpl implements UnitService {
     private Mono<Unit> createNonApartmentUnit(UnitDto dto) {
         var accountNo = RandomStringUtils.randomAlphanumeric(4);
         return Mono.just(dto)
-                .map(d -> new Unit(null, accountNo, dto.getType(), null, null,
+                .map(d -> new Unit(null, true, accountNo, dto.getType(), null, null,
                         dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
                         dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
                         LocalDateTime.now(), null, null))
@@ -69,7 +68,7 @@ public class UnitServiceImpl implements UnitService {
                 .flatMap(r -> apartmentRepository.findById(apartmentId))
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(apartmentId))))
-                .map(aprt -> new Unit(null, accountNo, dto.getType(), dto.getIdentifier(), dto.getFloorNo(),
+                .map(aprt -> new Unit(null, true, accountNo, dto.getType(), dto.getIdentifier(), dto.getFloorNo(),
                         dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
                         dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
                         LocalDateTime.now(), null, aprt.getId()))
@@ -104,6 +103,8 @@ public class UnitServiceImpl implements UnitService {
                 })
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's Apartment!")))
                 .map(u -> {
+                    if(dto.getVacant() != null)
+                        u.setVacant(dto.getVacant());
                     if (dto.getNoOfBedrooms() != null)
                         u.setNoOfBedrooms(dto.getNoOfBedrooms());
                     if (dto.getNoOfBathrooms() != null)
@@ -125,7 +126,7 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public Flux<Unit> findPaginated(Optional<String> id, Optional<String> accountNo, Optional<Unit.Type> type,
+    public Flux<Unit> findPaginated(Optional<String> id, Optional<Boolean> vacant, Optional<String> accountNo, Optional<Unit.Type> type,
                                     Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
                                     Optional<Integer> bedrooms, Optional<Integer> bathrooms, Optional<String> apartmentId, int page, int pageSize,
                                     OrderType order) {
@@ -135,6 +136,7 @@ public class UnitServiceImpl implements UnitService {
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
         id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
+        vacant.ifPresent(i -> query.addCriteria(Criteria.where("vacant").is(i)));
         accountNo.ifPresent(acct -> query.addCriteria(Criteria.where("accountNo").is(acct)));
         type.ifPresent(t -> query.addCriteria(Criteria.where("type").is(t)));
         identifier.ifPresent(t -> query.addCriteria(Criteria.where("identifier").is(t)));

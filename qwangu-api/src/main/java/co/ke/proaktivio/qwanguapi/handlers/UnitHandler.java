@@ -81,6 +81,7 @@ public class UnitHandler {
     }
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> id = request.queryParam("id");
+        Optional<String> isVacant = request.queryParam("isVacant");
         Optional<String> accountNo = request.queryParam("accountNo");
         Optional<String> type = request.queryParam("type");
         Optional<String> identifier = request.queryParam("identifier");
@@ -92,6 +93,9 @@ public class UnitHandler {
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
         try {
+            if(isVacant.isPresent() && !isVacant.get().equals("Y") && !isVacant.get().equals("N"))
+                throw new CustomBadRequestException("Is vacant should be Y or N!");
+
             Optional<Integer> floorNoResult = convertToInteger(floorNo);
             Optional<Integer> noOfBedrooms = convertToInteger(bedrooms);
             Optional<Integer> noOfBathrooms = convertToInteger(bathrooms);
@@ -100,9 +104,11 @@ public class UnitHandler {
             Integer finalPage = page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1);
             Integer finalPageSize = pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10);
             OrderType finalOrder = order.map(OrderType::valueOf).orElse(OrderType.DESC);
+            Optional<Boolean> vacant = isVacant.map(s -> s.equals("Y"));
 
             return unitService.findPaginated(
                             id,
+                            vacant,
                             accountNo,
                             finalType,
                             finalIdentifier,

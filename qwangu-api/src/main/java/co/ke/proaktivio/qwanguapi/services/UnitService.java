@@ -14,9 +14,10 @@ public interface UnitService {
 
     Mono<Unit> update(String id, UnitDto dto);
 
-    Flux<Unit> findPaginated(Optional<String> id, Optional<String> accountNo, Optional<Unit.Type> type,
-                             Optional<Unit.Identifier> identifier, Optional<Integer> floorNo, Optional<Integer> bedrooms,
-                             Optional<Integer> bathrooms, Optional<String> apartmentId, int page, int pageSize, OrderType order);
+    Flux<Unit> findPaginated(Optional<String> id, Optional<Boolean> vacant, Optional<String> accountNo, Optional<Unit.Type> type,
+                             Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
+                             Optional<Integer> bedrooms, Optional<Integer> bathrooms, Optional<String> apartmentId, int page, int pageSize,
+                             OrderType order);
 
     Mono<Boolean> deleteById(String id);
 

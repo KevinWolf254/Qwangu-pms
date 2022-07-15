@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 public class Unit {
     @Id
     private String id;
+    private Boolean vacant;
     @Indexed(unique = true)
     private String accountNo;
     private Type type;

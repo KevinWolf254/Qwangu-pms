@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UnitDto {
+    private Boolean vacant;
     private Unit.Type type;
     private Unit.Identifier identifier;
     private Integer floorNo;

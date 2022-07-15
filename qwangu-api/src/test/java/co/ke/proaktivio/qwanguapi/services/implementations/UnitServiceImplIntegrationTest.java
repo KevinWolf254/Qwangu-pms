@@ -59,11 +59,11 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var dto = new UnitDto(Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dto = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, id);
-        var dtoWithNonExistingApartment = new UnitDto(Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dtoWithNonExistingApartment = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, "2");
-        var dtoNotApartmentUnit = new UnitDto(Unit.Type.MAISONETTES, null, null, 2, 1, 2, Unit.Currency.KES,
+        var dtoNotApartmentUnit = new UnitDto(true, Unit.Type.MAISONETTES, null, null, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, null);
         // when
         Mono<Unit> createUnit = apartmentRepository.deleteAll()
@@ -117,21 +117,21 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var dto = new UnitDto(Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dto = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, id);
-        var dtoUpdate = new UnitDto(Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dtoUpdate = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 26000, 510, 510, "1");
-        var unit = new Unit("301", "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+        var unit = new Unit("301", true, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var dtoThatChangesUnitType = new UnitDto(Unit.Type.MAISONETTES, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dtoThatChangesUnitType = new UnitDto(true, Unit.Type.MAISONETTES, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, "1");
-        var unit2 = new Unit("302", "TE35", Unit.Type.APARTMENT_UNIT, Unit.Identifier.C,
+        var unit2 = new Unit("302", true, "TE35", Unit.Type.APARTMENT_UNIT, Unit.Identifier.C,
                 3, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, "1");
-        var unitNotForApartment = new Unit("4444", "SE44", Unit.Type.MAISONETTES, null,
+        var unitNotForApartment = new Unit("4444", true, "SE44", Unit.Type.MAISONETTES, null,
                 null, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, null);
-        var dtoUpdateNotForApartment = new UnitDto(Unit.Type.MAISONETTES, null, null, 5, 3, 2, Unit.Currency.KES,
+        var dtoUpdateNotForApartment = new UnitDto(true, Unit.Type.MAISONETTES, null, null, 5, 3, 2, Unit.Currency.KES,
                 45000, 1510, 1510, null);
 
         // when
@@ -209,9 +209,9 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var unit = new Unit("301", "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+        var unit = new Unit("301", true, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var unit2 = new Unit("303", "TE36", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
+        var unit2 = new Unit("303", true, "TE36", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
 
         // when
@@ -223,7 +223,7 @@ class UnitServiceImplIntegrationTest {
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(unitRepository.save(unit))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.findPaginated(Optional.of("301"), Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT),
+                .thenMany(unitService.findPaginated(Optional.of("301"), Optional.of(true), Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT),
                         Optional.of(Unit.Identifier.B), Optional.of(2), Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.ASC));
         // then
         StepVerifier
@@ -232,7 +232,7 @@ class UnitServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Unit> findUnitNonExisting = unitService.findPaginated(Optional.of("302"), Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT),
+        Flux<Unit> findUnitNonExisting = unitService.findPaginated(Optional.of("302"), Optional.of(true), Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT),
                 Optional.of(Unit.Identifier.B), Optional.of(2), Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.ASC);
         // then
         StepVerifier
@@ -244,7 +244,7 @@ class UnitServiceImplIntegrationTest {
         // when
         Flux<Unit> createUnitAndFindAllOnSecondFloor = unitRepository.save(unit2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.findPaginated(Optional.empty(), Optional.empty(), Optional.of(Unit.Type.APARTMENT_UNIT),
+                .thenMany(unitService.findPaginated(Optional.empty(), Optional.of(true),Optional.empty(), Optional.of(Unit.Type.APARTMENT_UNIT),
                         Optional.empty(), Optional.of(2), Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.DESC));
         // then
         StepVerifier
@@ -258,7 +258,7 @@ class UnitServiceImplIntegrationTest {
     @DisplayName("deleteById a unit that exists.")
     void deleteById() {
         // given
-        var unit = new Unit("9999", "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+        var unit = new Unit("9999", true, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
 
         // when
