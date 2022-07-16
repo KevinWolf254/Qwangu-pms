@@ -76,6 +76,9 @@ public class TenantServiceImpl implements TenantService {
                     if(tenant.getMiddleName() !=null && !tenant.getMiddleName().trim().isEmpty() &&
                             !tenant.getMiddleName().trim().isBlank())
                         tenant.setMiddleName(dto.getMiddleName());
+                    if(tenant.getSurname() !=null && !tenant.getSurname().trim().isEmpty() &&
+                            !tenant.getSurname().trim().isBlank())
+                        tenant.setSurname(dto.getSurname());
                     if(tenant.getEmailAddress() !=null && !tenant.getEmailAddress().trim().isEmpty() &&
                     !tenant.getEmailAddress().trim().isBlank())
                         tenant.setEmailAddress(dto.getEmailAddress());
@@ -89,7 +92,8 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public Flux<Tenant> findPaginated(Optional<String> id, Optional<String> mobileNumber, Optional<String> emailAddress, int page, int pageSize, OrderType order) {
+    public Flux<Tenant> findPaginated(Optional<String> id, Optional<String> mobileNumber, Optional<String> emailAddress,
+                                      int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
