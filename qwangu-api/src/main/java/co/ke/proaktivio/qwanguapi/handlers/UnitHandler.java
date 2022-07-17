@@ -142,7 +142,6 @@ public class UnitHandler {
                 .onErrorResume(handleExceptions());
     }
 
-
     private Function<UnitDto, UnitDto> validateUnitDtoFunc(Validator validator) {
         return apartmentDto -> {
             Errors errors = new BeanPropertyBindingResult(apartmentDto, ApartmentDto.class.getName());
