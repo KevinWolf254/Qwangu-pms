@@ -5,6 +5,7 @@ import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.TenantService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import co.ke.proaktivio.qwanguapi.validators.TenantDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.UnitDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
@@ -33,11 +34,11 @@ public class TenantHandler {
     public Mono<ServerResponse> create(ServerRequest request) {
         return request
                 .bodyToMono(TenantDto.class)
-//                .map(validateUnitDtoFunc(new UnitDtoValidator()))
+                .map(validateTenantDtoFunc(new TenantDtoValidator()))
                 .flatMap(tenantService::create)
                 .flatMap(created ->
-                        ServerResponse.created(URI.create("v1/units/%s".formatted(created.getId())))
-                                .body(Mono.just(new SuccessResponse<>(true, "Unit created successfully.",
+                        ServerResponse.created(URI.create("v1/tenants/%s".formatted(created.getId())))
+                                .body(Mono.just(new SuccessResponse<>(true, "Tenant created successfully.",
                                         created)), SuccessResponse.class)
                                 .log())
                 .onErrorResume(handleExceptions());
@@ -47,12 +48,12 @@ public class TenantHandler {
         String id = request.pathVariable("id");
         return request
                 .bodyToMono(TenantDto.class)
-//                .map(validateUnitDtoFunc(new UnitDtoValidator()))
+                .map(validateTenantDtoFunc(new TenantDtoValidator()))
                 .flatMap(dto -> tenantService.update(id, dto))
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Unit updated successfully.",
+                                .body(Mono.just(new SuccessResponse<>(true, "Tenant updated successfully.",
                                         updated)), SuccessResponse.class)
                                 .log())
                 .onErrorResume(handleExceptions());
@@ -101,17 +102,17 @@ public class TenantHandler {
     }
 
 
-    private Function<UnitDto, UnitDto> validateUnitDtoFunc(Validator validator) {
-        return apartmentDto -> {
-            Errors errors = new BeanPropertyBindingResult(apartmentDto, ApartmentDto.class.getName());
-            validator.validate(apartmentDto, errors);
+    private Function<TenantDto, TenantDto> validateTenantDtoFunc(Validator validator) {
+        return tenantDto -> {
+            Errors errors = new BeanPropertyBindingResult(tenantDto, TenantDto.class.getName());
+            validator.validate(tenantDto, errors);
             if (!errors.getAllErrors().isEmpty()) {
                 String errorMessage = errors.getAllErrors().stream()
                         .map(DefaultMessageSourceResolvable::getDefaultMessage)
                         .collect(Collectors.joining(" "));
                 throw new CustomBadRequestException(errorMessage);
             }
-            return apartmentDto;
+            return tenantDto;
         };
     }
 }
