@@ -9,9 +9,8 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class NoticeDto {
+public abstract class NoticeDto {
     private Boolean active;
     private LocalDateTime notificationDate;
     private LocalDateTime vacatingDate;
-    private String occupationId;
 }
