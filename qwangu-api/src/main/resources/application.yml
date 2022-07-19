@@ -62,3 +62,10 @@ ftl:
       path: src/main/resources/templates
       resources:
         - templates/images/resetPassword/password_reset.gif
+
+daraja:
+  urls:
+    - https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
+  basicAuthentication:
+    consumerKey:
+    consumerSecret:
