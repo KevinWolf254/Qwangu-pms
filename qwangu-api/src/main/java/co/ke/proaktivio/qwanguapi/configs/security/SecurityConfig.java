@@ -1,16 +1,21 @@
 package co.ke.proaktivio.qwanguapi.configs.security;
 
+import co.ke.proaktivio.qwanguapi.configs.MpesaPropertiesConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authorization.AuthorizationContext;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
+import reactor.core.publisher.Mono;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -19,6 +24,7 @@ import org.springframework.security.web.server.context.ServerSecurityContextRepo
 public class SecurityConfig {
     private final ReactiveAuthenticationManager authenticationManager;
     private final ServerSecurityContextRepository contextRepository;
+    private final MpesaPropertiesConfig mpesaPropertiesConfig;
 
     @Bean
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
@@ -39,6 +45,7 @@ public class SecurityConfig {
                         "/v1/token",
                         "/v1/resetPassword"
                 ).permitAll()
+                .pathMatchers("/v1/mpesa/c2b/**").access(this::whiteListIp)
                 .anyExchange().authenticated()
                 .and()
                 .build();
@@ -49,4 +56,11 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder(16);
     }
 
+    private Mono<AuthorizationDecision> whiteListIp(Mono<Authentication> authentication, AuthorizationContext context) {
+        String ip = context.getExchange().getRequest().getRemoteAddress().getAddress().toString().replace("/", "");
+        return authentication.map((a) -> new AuthorizationDecision(a.isAuthenticated()))
+                .defaultIfEmpty(new AuthorizationDecision(
+                        (mpesaPropertiesConfig.getWhiteListedUrls().contains(ip)) ? true : false
+                ));
+    }
 }

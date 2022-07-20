@@ -14,14 +14,9 @@ public class CreateNoticeDtoValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        validateIsActive((CreateNoticeDto) target, errors);
         validateNotificationDate((CreateNoticeDto) target, errors);
         validateVacatingDate((CreateNoticeDto) target, errors);
         validateOccupationId((CreateNoticeDto) target, errors);
-    }
-
-    private void validateIsActive(CreateNoticeDto request, Errors errors) {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "active", "field.required", "Active is required.");
     }
 
     private void validateNotificationDate(CreateNoticeDto request, Errors errors) {

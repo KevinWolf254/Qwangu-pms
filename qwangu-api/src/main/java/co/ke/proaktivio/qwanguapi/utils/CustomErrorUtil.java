@@ -7,6 +7,7 @@ import co.ke.proaktivio.qwanguapi.pojos.ErrorCode;
 import co.ke.proaktivio.qwanguapi.pojos.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -32,7 +33,7 @@ public class CustomErrorUtil {
                             new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", e.getMessage())), ErrorResponse.class)
                     .log();
         }
-        if (e instanceof UsernameNotFoundException) {
+        if (e instanceof UsernameNotFoundException || e instanceof AccessDeniedException) {
             return ServerResponse.status(HttpStatus.UNAUTHORIZED)
                     .body(Mono.just(
                             new ErrorResponse<>(false, ErrorCode.UNAUTHORIZED_ERROR, "Unauthorised", e.getMessage())), ErrorResponse.class)

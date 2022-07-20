@@ -22,6 +22,7 @@ public class Payment {
     private Status status;
     private String transactionId;
     private String transactionType;
+    private LocalDateTime transactionTime;
     private BigDecimal amount;
     private String shortCode;
     private String referenceNo;

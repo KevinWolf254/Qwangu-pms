@@ -1,4 +1,4 @@
-package co.ke.proaktivio.qwanguapi.configs;
+package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.DarajaCustomerToBusinessHandler;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +15,7 @@ public class DarajaCustomerToBusinessConfigs {
     RouterFunction<ServerResponse> customerToBusinessUser(DarajaCustomerToBusinessHandler handler) {
         return route()
                 .path("v1", builder -> builder
-                        .path("c2b", builder1 -> builder1
+                        .path("mpesa/c2b", builder1 -> builder1
                                 .POST("/validate", handler::validate)
                                 .POST("/confirm", handler::confirm)
                         ))

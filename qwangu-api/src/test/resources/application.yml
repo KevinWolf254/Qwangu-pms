@@ -48,3 +48,12 @@ ftl:
       path: src/main/resources/templates
       resources:
         - templates/images/resetPassword/password_reset.gif
+safaricom:
+  whiteListedUrls:
+    - http://127.0.0.1
+  daraja:
+    basicAuthentication:
+      consumerKey:
+      consumerSecret:
+    urls:
+      - https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials

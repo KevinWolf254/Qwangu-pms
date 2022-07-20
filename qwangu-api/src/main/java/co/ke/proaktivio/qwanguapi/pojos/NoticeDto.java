@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class NoticeDto {
-    private Boolean active;
     private LocalDateTime notificationDate;
     private LocalDateTime vacatingDate;
 }

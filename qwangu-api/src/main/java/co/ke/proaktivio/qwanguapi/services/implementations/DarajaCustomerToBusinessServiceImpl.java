@@ -11,6 +11,7 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +30,9 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
                 .map(r -> {
                     Payment.Status status = r.getReferenceNumber() != null && !r.getReferenceNumber().trim().isEmpty() && !r.getReferenceNumber().trim().isBlank() ?
                             r.getReferenceNumber().startsWith(bookingRegEx) ? Payment.Status.BOOKING_NEW : Payment.Status.RENT_NEW : Payment.Status.RENT_NEW;
-                    return new Payment(null, Payment.Type.MPESA_PAY_BILL, status, r.getTransactionId(), r.getTransactionType(),
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("YYYYMMDDHHmmss ");
+                    LocalDateTime transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter);
+                    return new Payment(null, dto.getTransactionType().equals("Pay Bill") ? Payment.Type.MPESA_PAY_BILL : Payment.Type.MPESA_TILL, status, r.getTransactionId(), r.getTransactionType(), transactionTime,
                             BigDecimal.valueOf(Double.parseDouble(r.getAmount())), r.getShortCode(), r.getReferenceNumber(), r.getInvoiceNo(), r.getAccountBalance(),
                                 r.getThirdPartyId(), r.getMobileNumber(), r.getFirstName(), r.getMiddleName(), r.getLastName(),
                                 LocalDateTime.now(), null);

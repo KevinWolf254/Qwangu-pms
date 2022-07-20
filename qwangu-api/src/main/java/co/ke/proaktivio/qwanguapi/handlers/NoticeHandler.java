@@ -76,7 +76,7 @@ public class NoticeHandler {
                     .flatMap(results ->
                             ServerResponse
                                     .ok()
-                                    .body(Mono.just(new SuccessResponse<>(true, "Apartments found successfully.", results)), SuccessResponse.class)
+                                    .body(Mono.just(new SuccessResponse<>(true, "Notices found successfully.", results)), SuccessResponse.class)
                                     .log())
                     .onErrorResume(handleExceptions());
         } catch (Exception e) {
