@@ -4,9 +4,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.pojos.CreateNoticeDto;
-import co.ke.proaktivio.qwanguapi.pojos.NoticeDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateNoticeDto;
 import co.ke.proaktivio.qwanguapi.repositories.NoticeRepository;
@@ -53,7 +51,7 @@ public class NoticeServiceImpl implements NoticeService {
                         .findById(notice.getOccupationId())
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(notice.getOccupationId()))))
                         .filter(Occupation::getActive)
-                        .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not create notice of occupation that is not active!")))
+                        .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice of occupation that is not active!")))
                         .then(Mono.just(notice)))
                 .map(notice -> {
                     if (dto.getActive() != null)
