@@ -33,7 +33,7 @@ import java.util.Optional;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
+@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.services", "co.ke.proaktivio.qwanguapi.repositories"})
 class OccupationServiceImplIntegrationTest {
     @Autowired
     private OccupationRepository occupationRepository;

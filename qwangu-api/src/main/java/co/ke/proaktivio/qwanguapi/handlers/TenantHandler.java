@@ -96,7 +96,7 @@ public class TenantHandler {
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Unit with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
+                                .body(Mono.just(new SuccessResponse<>(true, "Tenant with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
                                 .log())
                 .onErrorResume(handleExceptions());
     }

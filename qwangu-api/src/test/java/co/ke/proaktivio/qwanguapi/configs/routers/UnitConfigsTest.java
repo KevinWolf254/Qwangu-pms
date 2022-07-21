@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.handlers.UnitHandler;
 import co.ke.proaktivio.qwanguapi.models.Unit;
@@ -11,6 +12,7 @@ import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
@@ -33,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @WebFluxTest
+@EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
 @ContextConfiguration(classes = {UnitConfigs.class, UnitHandler.class, SecurityConfig.class})
 public class UnitConfigsTest {
     @Autowired
