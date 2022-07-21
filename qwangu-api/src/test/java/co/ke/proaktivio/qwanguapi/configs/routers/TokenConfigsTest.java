@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.handlers.TokenHandler;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
@@ -9,6 +10,7 @@ import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
@@ -30,6 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @WebFluxTest
+@EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
 @ContextConfiguration(classes = {TokenConfigs.class, TokenHandler.class, SecurityConfig.class})
 class TokenConfigsTest {
     @Autowired
@@ -37,7 +40,6 @@ class TokenConfigsTest {
     @Autowired
     private WebTestClient client;
     @MockBean
-//    private OneTimeTokenService oneTimeTokenService;
     private OneTimeTokenRepository oneTimeTokenRepository;
     @MockBean
     private ReactiveAuthenticationManager authenticationManager;
