@@ -47,8 +47,8 @@ class NoticeServiceImplIntegrationTest {
     private final LocalDateTime now = LocalDateTime.now();
     private final Occupation occupation = new Occupation("1", true, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
     private final Occupation occupationNotActive = new Occupation("2", false, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
-    private final Notice notice = new Notice("1", true, now, now.plusDays(40), now, null, "1");
-    private final Notice noticeWithOccupationNotActive = new Notice("2", false, now, now.plusDays(40), now, null, "2");
+    private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "1");
+    private final Notice noticeWithOccupationNotActive = new Notice("2", Notice.Status.EXITED, now, now.plusDays(40), now, null, "2");
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
@@ -107,8 +107,8 @@ class NoticeServiceImplIntegrationTest {
     void update() {
         // given
         LocalDateTime now = LocalDateTime.now();
-        var dto = new UpdateNoticeDto(true, now, now.plusDays(35));
-        var noticeWithOccupationDoesNotExist = new Notice("3000", true, now, now.plusDays(40), now, null, "3000");
+        var dto = new UpdateNoticeDto(Notice.Status.AWAITING_EXIT, now, now.plusDays(35));
+        var noticeWithOccupationDoesNotExist = new Notice("3000", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "3000");
         // when
         Mono<Notice> updateNotice = occupationRepository.save(occupation)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
@@ -169,7 +169,7 @@ class NoticeServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(find)
-                .expectNextMatches(n -> n.getActive() && n.getId().equals("1"))
+                .expectNextMatches(n -> n.getStatus().equals(Notice.Status.AWAITING_EXIT) && n.getId().equals("1"))
                 .verifyComplete();
 
         // when

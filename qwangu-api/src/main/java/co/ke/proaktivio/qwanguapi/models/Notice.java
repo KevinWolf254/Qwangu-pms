@@ -17,10 +17,15 @@ import java.time.LocalDateTime;
 public class Notice {
     @Id
     private String id;
-    private Boolean active;
+    private Status status;
     private LocalDateTime notificationDate;
     private LocalDateTime vacatingDate;
     private LocalDateTime created;
     private LocalDateTime modified;
     private String occupationId;
+
+    public enum Status {
+        AWAITING_EXIT,
+        EXITED
+    }
 }

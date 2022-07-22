@@ -76,7 +76,7 @@ class NoticeConfigsTest {
         LocalDateTime now = LocalDateTime.now();
         var dto = new CreateNoticeDto(now, now.plusDays(30), "1");
         var dtoNotValid = new CreateNoticeDto(null ,null, null);
-        var notice = new Notice("1", true, now, now.plusDays(40), now, null, "1");
+        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "1");
         // when
         when(noticeService.create(dto)).thenReturn(Mono.just(notice));
         // then
@@ -142,9 +142,9 @@ class NoticeConfigsTest {
         // given
         var id = "1";
         LocalDateTime now = LocalDateTime.now();
-        var dto = new UpdateNoticeDto(true, now, now.plusDays(30));
+        var dto = new UpdateNoticeDto(Notice.Status.AWAITING_EXIT, now, now.plusDays(30));
         var dtoNotValid = new UpdateNoticeDto(null ,null, null);
-        var notice = new Notice("1", true, now, now.plusDays(40), now, now, "1");
+        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, now, "1");
 
         // when
         when(noticeService.update(id, dto)).thenReturn(Mono.just(notice));
@@ -224,7 +224,7 @@ class NoticeConfigsTest {
         var id = "1";
         var occupationId = "1";
         LocalDateTime now = LocalDateTime.now();
-        var notice = new Notice("1", true, now, now.plusDays(40), now, now, "1");
+        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, now, "1");
         String page = "1";
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");

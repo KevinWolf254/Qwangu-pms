@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,7 +40,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(dto.getOccupationId()))))
                 .filter(Occupation::getActive)
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not create notice of occupation that is not active!")))
-                .then(Mono.just(new Notice(null, true, dto.getNotificationDate(), dto.getVacatingDate(), LocalDateTime.now(), null, dto.getOccupationId())))
+                .then(Mono.just(new Notice(null, Notice.Status.AWAITING_EXIT, dto.getNotificationDate(), dto.getVacatingDate(), LocalDateTime.now(), null, dto.getOccupationId())))
                 .flatMap(noticeRepository::save);
     }
 
@@ -54,8 +55,8 @@ public class NoticeServiceImpl implements NoticeService {
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice of occupation that is not active!")))
                         .then(Mono.just(notice)))
                 .map(notice -> {
-                    if (dto.getActive() != null)
-                        notice.setActive(dto.getActive());
+                    if (dto.getStatus() != null)
+                        notice.setStatus(dto.getStatus());
                     if (dto.getNotificationDate() != null)
                         notice.setNotificationDate(dto.getNotificationDate());
                     if (dto.getVacatingDate() != null)
@@ -91,5 +92,10 @@ public class NoticeServiceImpl implements NoticeService {
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Notice with id %s does not exist!".formatted(id))))
                 .flatMap(template::remove)
                 .map(DeleteResult::wasAcknowledged);
+    }
+
+    @Scheduled(cron = "0 0/1 * * * ?")
+    protected void processNotices() {
+
     }
 }
