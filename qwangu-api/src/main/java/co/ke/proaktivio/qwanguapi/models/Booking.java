@@ -17,7 +17,8 @@ import java.time.LocalDateTime;
 public class Booking {
     @Id
     private String id;
-    private LocalDateTime in;
+    private Boolean active;
+    private LocalDateTime occupation;
     private LocalDateTime created;
     private LocalDateTime modified;
     private String paymentId;
