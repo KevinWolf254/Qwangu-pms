@@ -10,5 +10,5 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class BookingDto {
-    private LocalDateTime in;
+    private LocalDateTime occupation;
 }

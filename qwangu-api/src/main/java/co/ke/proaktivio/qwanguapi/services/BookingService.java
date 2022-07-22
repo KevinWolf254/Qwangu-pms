@@ -9,7 +9,10 @@ import java.util.Optional;
 
 public interface BookingService {
     Mono<Booking> create(CreateBookingDto dto);
+
     Mono<Booking> update(String id, UpdateBookingDto dto);
-    Flux<Booking> findPaginated(Optional<String> id, Optional<String> unitId, int page, int pageSize, OrderType order);
+
+    Flux<Booking> findPaginated(Optional<String> id, Optional<Booking.Status> status, Optional<String> unitId, int page, int pageSize, OrderType order);
+
     Mono<Boolean> deleteById(String id);
 }
