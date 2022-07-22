@@ -1,3 +1,6 @@
+server:
+  port: 3001
+
 jwt:
   secret: alksossowmdkdofnonoffkbffjwpnwjluopkhgyipkjhtrgfhipokhgrr
   expiration: 3600
@@ -48,6 +51,7 @@ ftl:
       path: src/main/resources/templates
       resources:
         - templates/images/resetPassword/password_reset.gif
+
 safaricom:
   whiteListedUrls:
     - 127.0.0.1
