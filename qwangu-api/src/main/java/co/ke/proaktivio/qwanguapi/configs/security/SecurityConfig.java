@@ -17,6 +17,8 @@ import org.springframework.security.web.server.authorization.AuthorizationContex
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
@@ -57,10 +59,16 @@ public class SecurityConfig {
     }
 
     private Mono<AuthorizationDecision> whiteListIp(Mono<Authentication> authentication, AuthorizationContext context) {
-        String ip = context.getExchange().getRequest().getRemoteAddress().getAddress().toString().replace("/", "");
-        return authentication.map((a) -> new AuthorizationDecision(a.isAuthenticated()))
-                .defaultIfEmpty(new AuthorizationDecision(
-                        (mpesaPropertiesConfig.getWhiteListedUrls().contains(ip)) ? true : false
-                ));
+        String ip = Objects.requireNonNull(context.getExchange().getRequest().getRemoteAddress()).getAddress().toString().replace("/", "");
+        boolean contains = mpesaPropertiesConfig.getWhiteListedUrls().contains(ip);
+        return Mono.just(new AuthorizationDecision(contains));
     }
+
+//    private Mono<AuthorizationDecision> whiteListIpOfAuthenticatedUsers(Mono<Authentication> authentication, AuthorizationContext context) {
+//        String ip = Objects.requireNonNull(context.getExchange().getRequest().getRemoteAddress()).getAddress().toString().replace("/", "");
+//        boolean contains = mpesaPropertiesConfig.getWhiteListedUrls().contains(ip);
+//        return authentication
+//                .map((a) -> new AuthorizationDecision(true))
+//                .defaultIfEmpty(new AuthorizationDecision(contains));
+//    }
 }

@@ -50,7 +50,7 @@ ftl:
         - templates/images/resetPassword/password_reset.gif
 safaricom:
   whiteListedUrls:
-    - http://127.0.0.1
+    - 127.0.0.1
   daraja:
     basicAuthentication:
       consumerKey:

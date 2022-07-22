@@ -62,10 +62,6 @@ class NoticeServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
                 .then(occupationRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all occupations!"))
-                .then(occupationRepository.save(occupation))
-                .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .then(occupationRepository.save(occupationNotActive))
-                .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .subscribe();
     }
 
@@ -77,7 +73,11 @@ class NoticeServiceImplIntegrationTest {
         var dtoOccupationDoesNotExist = new CreateNoticeDto(now, now.plusDays(30), "3000");
         var dtoOccupationNotActive = new CreateNoticeDto(now, now.plusDays(30), "2");
         // when
-        Mono<Notice> notice = noticeService.create(dto);
+        Mono<Notice> notice = occupationRepository.save(occupation)
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(occupationRepository.save(occupationNotActive))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(noticeService.create(dto));
         // then
         StepVerifier
                 .create(notice)
@@ -90,7 +90,7 @@ class NoticeServiceImplIntegrationTest {
         StepVerifier
                 .create(noticeThrowsCustomNotFoundException)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Occupation with id 30000 does not exist!"))
+                        e.getMessage().equals("Occupation with id 3000 does not exist!"))
                 .verify();
 
         // when
@@ -110,7 +110,11 @@ class NoticeServiceImplIntegrationTest {
         var dto = new UpdateNoticeDto(true, now, now.plusDays(35));
         var noticeWithOccupationDoesNotExist = new Notice("3000", true, now, now.plusDays(40), now, null, "3000");
         // when
-        Mono<Notice> updateNotice = noticeRepository.save(notice)
+        Mono<Notice> updateNotice = occupationRepository.save(occupation)
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(occupationRepository.save(occupationNotActive))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeService.update("1", dto));
         // then
@@ -125,7 +129,7 @@ class NoticeServiceImplIntegrationTest {
         StepVerifier
                 .create(updateThrowsCustomNotFoundException)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Notice with id 30000 does not exist!"))
+                        e.getMessage().equals("Notice with id 3000 does not exist!"))
                 .verify();
         // when
         Mono<Notice> updateNoticeWithOccupationDoesNotExist = noticeRepository.save(noticeWithOccupationDoesNotExist)
@@ -135,7 +139,7 @@ class NoticeServiceImplIntegrationTest {
         StepVerifier
                 .create(updateNoticeWithOccupationDoesNotExist)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Occupation with id 30000 does not exist!"))
+                        e.getMessage().equals("Occupation with id 3000 does not exist!"))
                 .verify();
 
         // when
@@ -146,7 +150,7 @@ class NoticeServiceImplIntegrationTest {
         StepVerifier
                 .create(updateNoticeWithOccupationNotActive)
                 .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
-                        e.getMessage().equals("Can not create notice of occupation that is not active!"))
+                        e.getMessage().equals("Can not update notice of occupation that is not active!"))
                 .verify();
     }
 
@@ -154,7 +158,11 @@ class NoticeServiceImplIntegrationTest {
     void findPaginated() {
         // given
         // when
-        Flux<Notice> find = noticeRepository.save(notice)
+        Flux<Notice> find = occupationRepository.save(occupation)
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(occupationRepository.save(occupationNotActive))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(noticeService.findPaginated(Optional.of("1"), Optional.of(true), Optional.of("1"),
                         1, 10, OrderType.ASC));
