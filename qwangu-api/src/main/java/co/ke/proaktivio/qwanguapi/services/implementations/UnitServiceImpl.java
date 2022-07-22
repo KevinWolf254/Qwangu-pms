@@ -43,7 +43,7 @@ public class UnitServiceImpl implements UnitService {
     private Mono<Unit> createNonApartmentUnit(UnitDto dto) {
         var accountNo = RandomStringUtils.randomAlphanumeric(4);
         return Mono.just(dto)
-                .map(d -> new Unit(null, true, accountNo, dto.getType(), null, null,
+                .map(d -> new Unit(null, Unit.Status.VACANT, accountNo, dto.getType(), null, null,
                         dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
                         dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
                         LocalDateTime.now(), null, null))
@@ -68,7 +68,7 @@ public class UnitServiceImpl implements UnitService {
                 .flatMap(r -> apartmentRepository.findById(apartmentId))
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(apartmentId))))
-                .map(aprt -> new Unit(null, true, accountNo, dto.getType(), dto.getIdentifier(), dto.getFloorNo(),
+                .map(aprt -> new Unit(null, Unit.Status.VACANT, accountNo, dto.getType(), dto.getIdentifier(), dto.getFloorNo(),
                         dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
                         dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
                         LocalDateTime.now(), null, aprt.getId()))
@@ -103,8 +103,8 @@ public class UnitServiceImpl implements UnitService {
                 })
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's Apartment!")))
                 .map(u -> {
-                    if(dto.getVacant() != null)
-                        u.setVacant(dto.getVacant());
+                    if(dto.getStatus() != null)
+                        u.setStatus(dto.getStatus());
                     if (dto.getNoOfBedrooms() != null)
                         u.setNoOfBedrooms(dto.getNoOfBedrooms());
                     if (dto.getNoOfBathrooms() != null)

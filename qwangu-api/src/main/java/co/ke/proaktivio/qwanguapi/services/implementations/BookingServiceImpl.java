@@ -5,6 +5,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Booking;
 import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
+import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.CreateBookingDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateBookingDto;
@@ -27,12 +28,20 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UnitRepository unitRepository;
     private final PaymentRepository paymentRepository;
     private final ReactiveMongoTemplate template;
+
+    public BookingServiceImpl(BookingRepository bookingRepository, UnitRepository unitRepository,
+                              PaymentRepository paymentRepository, ReactiveMongoTemplate template) {
+        this.bookingRepository = bookingRepository;
+        this.unitRepository = unitRepository;
+        this.paymentRepository = paymentRepository;
+        this.template = template;
+    }
 
     @Override
     public Mono<Booking> create(CreateBookingDto dto) {
@@ -51,11 +60,10 @@ public class BookingServiceImpl implements BookingService {
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(unitId))))
                 .flatMap(unit -> {
                     Booking booking = new Booking(null, Booking.Status.PENDING_OCCUPATION, dto.getOccupation(), LocalDateTime.now(), null, unitId, paymentId);
-                    if (unit.getVacant()) {
+                    if (unit.getStatus().equals(Unit.Status.VACANT)) {
                         return Mono.just(booking);
                     }
-                    return validate
-                            .apply(unit.getId(), dto.getOccupation())
+                    return validate(unit.getId(), dto.getOccupation())
                             .then(Mono.just(booking));
                 })
                 .flatMap(bookingRepository::save);
@@ -71,16 +79,16 @@ public class BookingServiceImpl implements BookingService {
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit does not exist!")))
                         .flatMap(unit -> {
                             booking.setOccupation(dto.getOccupation());
-                            if (unit.getVacant())
+                            if (unit.getStatus().equals(Unit.Status.VACANT))
                                 return Mono.just(booking);
-                            return validate
-                                    .apply(unit.getId(), dto.getOccupation())
+                            return validate(unit.getId(), dto.getOccupation())
                                     .then(Mono.just(booking));
                         }))
                 .flatMap(bookingRepository::save);
     }
 
-    private final BiFunction<String, LocalDateTime, Mono<Notice>> validate = (unitId, dto) -> Mono.just(new Query()
+    private Mono<Notice> validate (String unitId, LocalDateTime dto) {
+        return Mono.just(new Query()
                         .addCriteria(Criteria
                                 .where("unitId").is(unitId)
                                 .and("active").is(true)))
@@ -97,6 +105,7 @@ public class BookingServiceImpl implements BookingService {
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not occupy before current tenant's vacating date!")))
                 .filter(notice -> dto.minusDays(14).isEqual(notice.getVacatingDate()) || dto.minusDays(14).isBefore(notice.getVacatingDate()))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation date must be within 14 days after current tenant vacates!")));
+    }
 
     @Override
     public Flux<Booking> findPaginated(Optional<String> id, Optional<Booking.Status> status, Optional<String> unitId, int page, int pageSize, OrderType order) {

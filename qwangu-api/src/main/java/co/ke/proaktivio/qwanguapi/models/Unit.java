@@ -1,9 +1,6 @@
 package co.ke.proaktivio.qwanguapi.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -18,7 +15,7 @@ import java.time.LocalDateTime;
 public class Unit {
     @Id
     private String id;
-    private Boolean vacant;
+    private Status status;
     @Indexed(unique = true)
     private String accountNo;
     private Type type;
@@ -34,6 +31,19 @@ public class Unit {
     private LocalDateTime created;
     private LocalDateTime modified;
     private String apartmentId;
+
+    @Getter
+    public enum Status {
+        VACANT("VACANT"),
+        AWAITING_OCCUPATION("AWAITING_OCCUPATION"),
+        OCCUPIED("OCCUPIED");
+
+        private String state;
+
+        Status(String state) {
+            this.state = state;
+        }
+    }
 
     public enum Type{
         APARTMENT_UNIT,

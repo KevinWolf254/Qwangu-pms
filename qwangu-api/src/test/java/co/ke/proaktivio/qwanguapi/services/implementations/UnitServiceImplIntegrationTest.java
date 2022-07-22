@@ -59,11 +59,11 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var dto = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, id);
-        var dtoWithNonExistingApartment = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dtoWithNonExistingApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, "2");
-        var dtoNotApartmentUnit = new UnitDto(true, Unit.Type.MAISONETTES, null, null, 2, 1, 2, Unit.Currency.KES,
+        var dtoNotApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, null);
         // when
         Mono<Unit> createUnit = apartmentRepository.deleteAll()
@@ -117,21 +117,21 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var dto = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, id);
-        var dtoUpdate = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dtoUpdate = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 26000, 510, 510, "1");
-        var unit = new Unit("301", true, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+        var unit = new Unit("301", Unit.Status.VACANT, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var dtoThatChangesUnitType = new UnitDto(true, Unit.Type.MAISONETTES, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dtoThatChangesUnitType = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, "1");
-        var unit2 = new Unit("302", true, "TE35", Unit.Type.APARTMENT_UNIT, Unit.Identifier.C,
+        var unit2 = new Unit("302", Unit.Status.VACANT, "TE35", Unit.Type.APARTMENT_UNIT, Unit.Identifier.C,
                 3, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(true, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+        var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, "1");
-        var unitNotForApartment = new Unit("4444", true, "SE44", Unit.Type.MAISONETTES, null,
+        var unitNotForApartment = new Unit("4444", Unit.Status.VACANT, "SE44", Unit.Type.MAISONETTES, null,
                 null, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, null);
-        var dtoUpdateNotForApartment = new UnitDto(true, Unit.Type.MAISONETTES, null, null, 5, 3, 2, Unit.Currency.KES,
+        var dtoUpdateNotForApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null, 5, 3, 2, Unit.Currency.KES,
                 45000, 1510, 1510, null);
 
         // when
@@ -209,9 +209,9 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var unit = new Unit("301", true, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+        var unit = new Unit("301", Unit.Status.VACANT, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var unit2 = new Unit("303", true, "TE36", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
+        var unit2 = new Unit("303", Unit.Status.VACANT, "TE36", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
 
         // when
@@ -258,7 +258,7 @@ class UnitServiceImplIntegrationTest {
     @DisplayName("deleteById a unit that exists.")
     void deleteById() {
         // given
-        var unit = new Unit("9999", true, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+        var unit = new Unit("9999", Unit.Status.VACANT, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
 
         // when
