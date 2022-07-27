@@ -39,7 +39,7 @@ public class OccupationServiceImpl implements OccupationService {
         Query query = new Query()
                 .addCriteria(Criteria
                         .where("unitId").is(unitId)
-                        .and("active").is(true));
+                        .and("status").is(Occupation.Status.CURRENT));
         return template
                 .findById(unitId, Unit.class)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(unitId))))
@@ -63,7 +63,7 @@ public class OccupationServiceImpl implements OccupationService {
                             .map(unitId -> new Query()
                                     .addCriteria(Criteria
                                             .where("unitId").is(unitId)
-                                            .and("active").is(true)
+                                            .and("status").is(Occupation.Status.CURRENT)
                                             .and("id").nin(id)))
                             .flatMap(q -> template
                                     .exists(q, Occupation.class)
@@ -99,7 +99,7 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     @Override
-    public Flux<Occupation> findPaginated(Optional<String> id, Optional<Boolean> active, Optional<String> unitId,
+    public Flux<Occupation> findPaginated(Optional<String> id, Optional<Occupation.Status> status, Optional<String> unitId,
                                           Optional<String> tenantId, int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
@@ -107,7 +107,7 @@ public class OccupationServiceImpl implements OccupationService {
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
         id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
-        active.ifPresent(a -> query.addCriteria(Criteria.where("active").is(a)));
+        status.ifPresent(state -> query.addCriteria(Criteria.where("status").is(state)));
         unitId.ifPresent(uId -> query.addCriteria(Criteria.where("unitId").is(uId)));
         tenantId.ifPresent(tId -> query.addCriteria(Criteria.where("tenantId").is(tId)));
 

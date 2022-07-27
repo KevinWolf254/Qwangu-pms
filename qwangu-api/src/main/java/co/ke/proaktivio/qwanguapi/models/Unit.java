@@ -46,10 +46,16 @@ public class Unit {
     }
 
     public enum Type{
-        APARTMENT_UNIT,
-        TOWN_HOUSE,
-        MAISONETTES,
-        VILLA
+        APARTMENT_UNIT("APARTMENT_UNIT"),
+        TOWN_HOUSE("TOWN_HOUSE"),
+        MAISONETTES("MAISONETTES"),
+        VILLA("VILLA");
+
+        private String type;
+
+        Type(String type) {
+            this.type = type;
+        }
     }
 
     public enum Identifier {

@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -56,20 +57,19 @@ public class OccupationHandler {
 
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> id = request.queryParam("id");
-        Optional<String> isActive = request.queryParam("isActive");
+        Optional<String> status = request.queryParam("status");
         Optional<String> unitId = request.queryParam("unitId");
         Optional<String> tenantId = request.queryParam("tenantId");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
         try {
-            if(isActive.isPresent() && !isActive.get().equals("Y") && !isActive.get().equals("N"))
-                throw new CustomBadRequestException("Is active should be Y or N!");
-            Optional<Boolean> active = isActive.map(s -> s.equals("Y"));
+            if(status.isPresent() && !status.get().equals("CURRENT") && !status.get().equals("MOVED"))
+                throw new CustomBadRequestException("Status should be CURRENT or MOVED!");
 
             return occupationService.findPaginated(
                         id,
-                        active,
+                        status.map(Occupation.Status::valueOf),
                         unitId,
                         tenantId,
                         page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),

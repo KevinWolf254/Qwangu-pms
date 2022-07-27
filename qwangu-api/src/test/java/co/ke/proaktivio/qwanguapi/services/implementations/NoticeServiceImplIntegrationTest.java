@@ -9,7 +9,6 @@ import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateNoticeDto;
 import co.ke.proaktivio.qwanguapi.repositories.NoticeRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
@@ -43,23 +42,13 @@ class NoticeServiceImplIntegrationTest {
 
     private final LocalDateTime now = LocalDateTime.now();
     private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
-    private final Occupation occupationNotActive = new Occupation("2", Occupation.Status.MOVED, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
+    private final Occupation occupationMoved = new Occupation("2", Occupation.Status.MOVED, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
     private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "1");
-    private final Notice noticeWithOccupationNotActive = new Notice("2", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "2");
+    private final Notice noticeWithOccupationMoved = new Notice("2", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "2");
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
-    }
-
-    @BeforeEach
-    void resetDb() {
-        noticeRepository
-                .deleteAll()
-                .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
-                .then(occupationRepository.deleteAll())
-                .doOnSuccess(t -> System.out.println("---- Deleted all occupations!"))
-                .subscribe();
     }
 
     @Test
@@ -70,9 +59,14 @@ class NoticeServiceImplIntegrationTest {
         var dtoOccupationDoesNotExist = new CreateNoticeDto(now, now.plusDays(30), "3000");
         var dtoOccupationNotActive = new CreateNoticeDto(now, now.plusDays(30), "2");
         // when
-        Mono<Notice> notice = occupationRepository.save(occupation)
+        Mono<Notice> notice = noticeRepository
+                .deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all occupations!"))
+                .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .then(occupationRepository.save(occupationNotActive))
+                .then(occupationRepository.save(occupationMoved))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeService.create(dto));
         // then
@@ -107,9 +101,14 @@ class NoticeServiceImplIntegrationTest {
         var dto = new UpdateNoticeDto(Notice.Status.AWAITING_EXIT, now, now.plusDays(35));
         var noticeWithOccupationDoesNotExist = new Notice("3000", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "3000");
         // when
-        Mono<Notice> updateNotice = occupationRepository.save(occupation)
+        Mono<Notice> updateNotice = noticeRepository
+                .deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all occupations!"))
+                .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .then(occupationRepository.save(occupationNotActive))
+                .then(occupationRepository.save(occupationMoved))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
@@ -140,7 +139,7 @@ class NoticeServiceImplIntegrationTest {
                 .verify();
 //
         // when
-        Mono<Notice> updateNoticeWithOccupationNotActive = noticeRepository.save(noticeWithOccupationNotActive)
+        Mono<Notice> updateNoticeWithOccupationNotActive = noticeRepository.save(noticeWithOccupationMoved)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeService.update("2", dto));
         // then
@@ -155,9 +154,14 @@ class NoticeServiceImplIntegrationTest {
     void findPaginated() {
         // given
         // when
-        Flux<Notice> find = occupationRepository.save(occupation)
+        Flux<Notice> find = noticeRepository
+                .deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all occupations!"))
+                .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .then(occupationRepository.save(occupationNotActive))
+                .then(occupationRepository.save(occupationMoved))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
@@ -170,7 +174,7 @@ class NoticeServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Notice> findAll = noticeRepository.save(noticeWithOccupationNotActive)
+        Flux<Notice> findAll = noticeRepository.save(noticeWithOccupationMoved)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(noticeService.findPaginated(Optional.empty(), Optional.empty(), Optional.empty(),
                         1, 10, OrderType.DESC));
@@ -196,7 +200,12 @@ class NoticeServiceImplIntegrationTest {
     @Test
     void deleteById() {
         // then
-        Mono<Boolean> createThenDelete = noticeRepository.save(notice)
+        Mono<Boolean> createThenDelete = noticeRepository
+                .deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all occupations!"))
+                .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeService.deleteById("1"));
         // then

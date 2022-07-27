@@ -95,7 +95,7 @@ class OccupationConfigsTest {
                 .jsonPath("$.message").isEqualTo("Occupation created successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.active").isEqualTo(true)
+                .jsonPath("$.data.status").isEqualTo(Occupation.Status.CURRENT.getState())
                 .jsonPath("$.data.ended").isEmpty()
                 .jsonPath("$.data.tenantId").isEqualTo(tenantId)
                 .jsonPath("$.data.unitId").isEqualTo(unitId)
@@ -116,7 +116,7 @@ class OccupationConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Active is required. Started is required. Tenant id is required. Unit id is required.")
+                .jsonPath("$.data").isEqualTo("Started is required. Tenant id is required. Unit id is required.")
                 .consumeWith(System.out::println);
     }
 
@@ -163,7 +163,7 @@ class OccupationConfigsTest {
                 .jsonPath("$.message").isEqualTo("Occupation updated successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.active").isEqualTo(true)
+                .jsonPath("$.data.status").isEqualTo(Occupation.Status.CURRENT.getState())
                 .jsonPath("$.data.ended").isEmpty()
                 .jsonPath("$.data.tenantId").isEqualTo("1")
                 .jsonPath("$.data.unitId").isEqualTo("1")
@@ -186,9 +186,8 @@ class OccupationConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Active is required. Started is required.")
+                .jsonPath("$.data").isEqualTo("Status is required. Started is required.")
                 .consumeWith(System.out::println);
-
     }
 
     @Test
@@ -196,7 +195,6 @@ class OccupationConfigsTest {
     void find_returnsUnauthorized_status401() {
         // given
         var id = "1";
-        var isActive = true;
         String unitId = "1";
         String tenantId = "1";
 
@@ -204,7 +202,7 @@ class OccupationConfigsTest {
                 uriBuilder
                         .path("/v1/occupations")
                         .queryParam("id", id)
-                        .queryParam("isActive", isActive)
+                        .queryParam("status", "CURRENT")
                         .queryParam("unitId", unitId)
                         .queryParam("tenantId", tenantId)
                         .queryParam("page", 1)
@@ -240,7 +238,7 @@ class OccupationConfigsTest {
                 uriBuilder
                         .path("/v1/occupations")
                         .queryParam("id", id)
-                        .queryParam("isActive", "Y")
+                        .queryParam("status", "CURRENT")
                         .queryParam("unitId", unitId)
                         .queryParam("tenantId", tenantId)
                         .queryParam("page", page)
@@ -252,7 +250,7 @@ class OccupationConfigsTest {
                 uriBuilder
                         .path("/v1/occupations")
                         .queryParam("id", id)
-                        .queryParam("isActive", "NOT_TYPE")
+                        .queryParam("status", "NOT_TYPE")
                         .queryParam("unitId", unitId)
                         .queryParam("tenantId", tenantId)
                         .queryParam("page", page)
@@ -263,7 +261,7 @@ class OccupationConfigsTest {
         // when
         when(occupationService.findPaginated(
                 Optional.of(id),
-                Optional.of(true),
+                Optional.of(Occupation.Status.CURRENT),
                 Optional.of(unitId),
                 Optional.of(tenantId),
                 finalPage,
@@ -284,7 +282,7 @@ class OccupationConfigsTest {
                 .jsonPath("$.message").isEqualTo("Occupations found successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
-                .jsonPath("$.data.[0].active").isEqualTo(true)
+                .jsonPath("$.data.[0].status").isEqualTo(Occupation.Status.CURRENT.getState())
                 .jsonPath("$.data.[0].ended").isEmpty()
                 .jsonPath("$.data.[0].tenantId").isEqualTo("1")
                 .jsonPath("$.data.[0].unitId").isEqualTo("1")
@@ -304,9 +302,8 @@ class OccupationConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Is active should be Y or N!")
+                .jsonPath("$.data").isEqualTo("Status should be CURRENT or MOVED!")
                 .consumeWith(System.out::println);
-
     }
 
     @Test

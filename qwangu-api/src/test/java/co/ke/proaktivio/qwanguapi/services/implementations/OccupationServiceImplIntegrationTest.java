@@ -82,7 +82,7 @@ class OccupationServiceImplIntegrationTest {
         StepVerifier
                 .create(createOccupation)
                 .expectNextMatches(o -> !o.getId().isEmpty() && o.getTenantId().equals(tenantId) &&
-                        o.getUnitId().equals(unitId) && o.getStatus().equals(Occupation.Status.MOVED))
+                        o.getUnitId().equals(unitId) && o.getStatus().equals(Occupation.Status.CURRENT))
                 .verifyComplete();
 
         // when
@@ -104,7 +104,7 @@ class OccupationServiceImplIntegrationTest {
                 .verify();
 
         // when
-        Mono<Occupation> createAlreadyActive = tenantRepository
+        Mono<Occupation> occupationCurrentThrowsCustomAlreadyExistsException = tenantRepository
                 .save(tenantActive)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(occupationRepository.save(occupationActive))
@@ -112,7 +112,7 @@ class OccupationServiceImplIntegrationTest {
                 .then(occupationService.create(dto));
         // then
         StepVerifier
-                .create(createAlreadyActive)
+                .create(occupationCurrentThrowsCustomAlreadyExistsException)
                 .expectErrorMatches(e -> e instanceof CustomAlreadyExistsException &&
                         e.getMessage().equals("Occupation already exists!"))
                 .verify();
@@ -190,7 +190,7 @@ class OccupationServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(occupationService.findPaginated(Optional.of(id), Optional.of(true), Optional.of(unitId),
+                .thenMany(occupationService.findPaginated(Optional.of(id), Optional.of(Occupation.Status.CURRENT), Optional.of(unitId),
                         Optional.of(tenantId), 1, 10, OrderType.ASC));
         // then
         StepVerifier
@@ -199,7 +199,7 @@ class OccupationServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Occupation> findOccupationNotExist = occupationService.findPaginated(Optional.of("2000"), Optional.of(true), Optional.of(unitId),
+        Flux<Occupation> findOccupationNotExist = occupationService.findPaginated(Optional.of("2000"), Optional.of(Occupation.Status.CURRENT), Optional.of(unitId),
                 Optional.of(tenantId), 1, 10, OrderType.ASC);
         // then
         StepVerifier
@@ -253,5 +253,4 @@ class OccupationServiceImplIntegrationTest {
                         e.getMessage().equals("Occupation with id 3090 does not exist!"))
                 .verify();
     }
-
 }

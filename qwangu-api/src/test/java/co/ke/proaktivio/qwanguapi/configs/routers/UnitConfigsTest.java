@@ -310,7 +310,7 @@ public class UnitConfigsTest {
                 uriBuilder
                         .path("/v1/units")
                         .queryParam("id", id)
-                        .queryParam("isVacant", "Y")
+                        .queryParam("status", "VACANT")
                         .queryParam("accountNo", accountNo)
                         .queryParam("type", type.name())
                         .queryParam("identifier", identifier.name())
@@ -326,7 +326,7 @@ public class UnitConfigsTest {
         // when
         when(unitService.findPaginated(
                 Optional.of(id),
-                Optional.of(true),
+                Optional.of(Unit.Status.VACANT),
                 Optional.of(accountNo),
                 Optional.of(type),
                 Optional.of(identifier),
@@ -358,19 +358,14 @@ public class UnitConfigsTest {
         Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
                 uriBuilder
                         .path("/v1/units")
-                        .queryParam("id", id)
-                        .queryParam("accountNo", accountNo)
-                        .queryParam("type", "NOT_TYPE")
-                        .queryParam("identifier", identifier.name())
-                        .queryParam("floorNo", floorNo)
-                        .queryParam("noOfBedrooms", noOfBedrooms)
-                        .queryParam("noOfBathrooms", noOfBathrooms)
-                        .queryParam("apartmentId", apartmentId)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
-                        .queryParam("order", order)
+                        .queryParam("status", "NOT_TYPE")
                         .build();
 
+        Function<UriBuilder, URI> uriFunc3 = uriBuilder ->
+                uriBuilder
+                        .path("/v1/units")
+                        .queryParam("type", "NOT_TYPE")
+                        .build();
         // then
         client
                 .get()
@@ -383,7 +378,21 @@ public class UnitConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Not a valid Type!")
+                .jsonPath("$.data").isEqualTo("Status should be VACANT, AWAITING_OCCUPATION or OCCUPIED!")
+                .consumeWith(System.out::println);
+        // then
+        client
+                .get()
+                .uri(uriFunc3)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Bad request.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data").isEqualTo("Type should be APARTMENT_UNIT, TOWN_HOUSE, MAISONETTES or VILLA!")
                 .consumeWith(System.out::println);
     }
 

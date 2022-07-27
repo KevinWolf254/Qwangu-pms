@@ -223,7 +223,7 @@ class UnitServiceImplIntegrationTest {
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(unitRepository.save(unit))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.findPaginated(Optional.of("301"), Optional.of(true), Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT),
+                .thenMany(unitService.findPaginated(Optional.of("301"), Optional.of(Unit.Status.VACANT), Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT),
                         Optional.of(Unit.Identifier.B), Optional.of(2), Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.ASC));
         // then
         StepVerifier
@@ -232,7 +232,7 @@ class UnitServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Unit> findUnitNonExisting = unitService.findPaginated(Optional.of("302"), Optional.of(true), Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT),
+        Flux<Unit> findUnitNonExisting = unitService.findPaginated(Optional.of("302"), Optional.of(Unit.Status.VACANT), Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT),
                 Optional.of(Unit.Identifier.B), Optional.of(2), Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.ASC);
         // then
         StepVerifier
@@ -244,7 +244,7 @@ class UnitServiceImplIntegrationTest {
         // when
         Flux<Unit> createUnitAndFindAllOnSecondFloor = unitRepository.save(unit2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.findPaginated(Optional.empty(), Optional.of(true),Optional.empty(), Optional.of(Unit.Type.APARTMENT_UNIT),
+                .thenMany(unitService.findPaginated(Optional.empty(), Optional.empty(),Optional.empty(), Optional.of(Unit.Type.APARTMENT_UNIT),
                         Optional.empty(), Optional.of(2), Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.DESC));
         // then
         StepVerifier

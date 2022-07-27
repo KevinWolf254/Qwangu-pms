@@ -94,7 +94,7 @@ class NoticeConfigsTest {
                 .jsonPath("$.message").isEqualTo("Notice created successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.active").isEqualTo(true)
+                .jsonPath("$.data.status").isEqualTo(Notice.Status.AWAITING_EXIT.getState())
                 .jsonPath("$.data.notificationDate").isNotEmpty()
                 .jsonPath("$.data.vacatingDate").isNotEmpty()
                 .jsonPath("$.data.created").isNotEmpty()
@@ -163,7 +163,7 @@ class NoticeConfigsTest {
                 .jsonPath("$.message").isEqualTo("Notice updated successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.active").isEqualTo(true)
+                .jsonPath("$.data.status").isEqualTo(Notice.Status.AWAITING_EXIT.getState())
                 .jsonPath("$.data.notificationDate").isNotEmpty()
                 .jsonPath("$.data.vacatingDate").isNotEmpty()
                 .jsonPath("$.data.created").isNotEmpty()
@@ -185,7 +185,7 @@ class NoticeConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Active is required. Notification date required. Vacating date is required.")
+                .jsonPath("$.data").isEqualTo("Status is required. Notification date required. Vacating date is required.")
                 .consumeWith(System.out::println);
     }
 
@@ -245,12 +245,7 @@ class NoticeConfigsTest {
         Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
                 uriBuilder
                         .path("/v1/notices")
-                        .queryParam("id", id)
                         .queryParam("status", "NOT_VALID")
-                        .queryParam("occupationId", occupationId)
-                        .queryParam("page", 1)
-                        .queryParam("pageSize", 10)
-                        .queryParam("order", OrderType.ASC)
                         .build();
         // when
         when(noticeService.findPaginated(
@@ -274,12 +269,13 @@ class NoticeConfigsTest {
                 .jsonPath("$.message").isEqualTo("Notices found successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
-                .jsonPath("$.data.[0].active").isEqualTo(true)
+                .jsonPath("$.data.[0].status").isEqualTo(Notice.Status.AWAITING_EXIT.getState())
                 .jsonPath("$.data.[0].notificationDate").isNotEmpty()
                 .jsonPath("$.data.[0].vacatingDate").isNotEmpty()
                 .jsonPath("$.data.[0].created").isNotEmpty()
                 .jsonPath("$.data.[0].modified").isNotEmpty()
                 .consumeWith(System.out::println);
+
         // then
         client
                 .get()
@@ -294,7 +290,6 @@ class NoticeConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data").isEqualTo("Status should be AWAITING_EXIT or EXITED!")
                 .consumeWith(System.out::println);
-
     }
 
     @Test

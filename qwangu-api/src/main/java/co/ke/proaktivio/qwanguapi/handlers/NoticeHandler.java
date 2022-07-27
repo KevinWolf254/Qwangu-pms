@@ -2,6 +2,7 @@ package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Notice;
+import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.NoticeService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -63,13 +64,12 @@ public class NoticeHandler {
         Optional<String> order = request.queryParam("order");
 
         try {
-            if (status.isPresent() && !Arrays.stream(Notice.Status.values()).toList().contains(status.get()))
+            if (status.isPresent() && !status.get().equals("AWAITING_EXIT") && !status.get().equals("EXITED"))
                 throw new CustomBadRequestException("Status should be AWAITING_EXIT or EXITED!");
-            Optional<Notice.Status> s = Optional.of(Notice.Status.valueOf(status.get()));
 
             return noticeService.findPaginated(
                             id,
-                            s,
+                            status.map(Notice.Status::valueOf),
                             occupationId,
                             page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
                             pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),

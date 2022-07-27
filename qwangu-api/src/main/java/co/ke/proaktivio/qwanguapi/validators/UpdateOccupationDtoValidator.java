@@ -14,12 +14,12 @@ public class UpdateOccupationDtoValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        validateIsActive((UpdateOccupationDto) target, errors);
+        validateStatus((UpdateOccupationDto) target, errors);
         validateStarted((UpdateOccupationDto) target, errors);
     }
 
-    private void validateIsActive(UpdateOccupationDto request, Errors errors) {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "active", "field.required", "Active is required.");
+    private void validateStatus(UpdateOccupationDto request, Errors errors) {
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "status", "field.required", "Status is required.");
     }
 
     private void validateStarted(UpdateOccupationDto request, Errors errors) {

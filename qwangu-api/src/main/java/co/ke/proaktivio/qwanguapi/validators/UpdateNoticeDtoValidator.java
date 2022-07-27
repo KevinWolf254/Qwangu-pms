@@ -14,13 +14,13 @@ public class UpdateNoticeDtoValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        validateIsActive((UpdateNoticeDto) target, errors);
+        validateStatus((UpdateNoticeDto) target, errors);
         validateNotificationDate((UpdateNoticeDto) target, errors);
         validateVacatingDate((UpdateNoticeDto) target, errors);
     }
 
-    private void validateIsActive(UpdateNoticeDto request, Errors errors) {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "active", "field.required", "Active is required.");
+    private void validateStatus(UpdateNoticeDto request, Errors errors) {
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "status", "field.required", "Status is required.");
     }
 
     private void validateNotificationDate(UpdateNoticeDto request, Errors errors) {

@@ -8,13 +8,12 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class CreateOccupationDto extends OccupationDto{
+    private String tenantId;
+    private String unitId;
 
     public CreateOccupationDto(LocalDateTime started, LocalDateTime ended, String tenantId, String unitId) {
         super(started, ended);
         this.tenantId = tenantId;
         this.unitId = unitId;
     }
-
-    private String tenantId;
-    private String unitId;
 }

@@ -58,8 +58,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Notice with id %s does not exist!".formatted(id))))
                 .filter(notice -> notice.getStatus().equals(Notice.Status.AWAITING_EXIT))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice that is inactive!")))
-                .flatMap(notice -> occupationRepository
-                        .findById(notice.getOccupationId())
+                .flatMap(notice -> occupationRepository.findById(notice.getOccupationId())
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(notice.getOccupationId()))))
                         .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice of occupation that is not active!")))

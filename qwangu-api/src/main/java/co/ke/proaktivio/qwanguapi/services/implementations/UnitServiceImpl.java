@@ -126,7 +126,7 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public Flux<Unit> findPaginated(Optional<String> id, Optional<Boolean> vacant, Optional<String> accountNo, Optional<Unit.Type> type,
+    public Flux<Unit> findPaginated(Optional<String> id, Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.Type> type,
                                     Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
                                     Optional<Integer> bedrooms, Optional<Integer> bathrooms, Optional<String> apartmentId, int page, int pageSize,
                                     OrderType order) {
@@ -136,7 +136,7 @@ public class UnitServiceImpl implements UnitService {
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
         id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
-        vacant.ifPresent(i -> query.addCriteria(Criteria.where("vacant").is(i)));
+        status.ifPresent(i -> query.addCriteria(Criteria.where("status").is(i)));
         accountNo.ifPresent(acct -> query.addCriteria(Criteria.where("accountNo").is(acct)));
         type.ifPresent(t -> query.addCriteria(Criteria.where("type").is(t)));
         identifier.ifPresent(t -> query.addCriteria(Criteria.where("identifier").is(t)));

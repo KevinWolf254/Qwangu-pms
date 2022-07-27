@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
@@ -73,15 +74,15 @@ public class UnitHandler {
         throw new CustomBadRequestException("Not a valid Identifier!");
     }
 
-    private Optional<Unit.Type> convertToType(String param) {
-        if(EnumUtils.isValidEnumIgnoreCase(Unit.Type.class, param)){
-            return Optional.of(EnumUtils.getEnum(Unit.Type.class, param));
-        }
-        throw new CustomBadRequestException("Not a valid Type!");
-    }
+//    private Optional<Unit.Type> convertToType(String param) {
+//        if(EnumUtils.isValidEnumIgnoreCase(Unit.Type.class, param)){
+//            return Optional.of(EnumUtils.getEnum(Unit.Type.class, param));
+//        }
+//        throw new CustomBadRequestException("Not a valid Type!");
+//    }
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> id = request.queryParam("id");
-        Optional<String> isVacant = request.queryParam("isVacant");
+        Optional<String> status = request.queryParam("status");
         Optional<String> accountNo = request.queryParam("accountNo");
         Optional<String> type = request.queryParam("type");
         Optional<String> identifier = request.queryParam("identifier");
@@ -93,24 +94,27 @@ public class UnitHandler {
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
         try {
-            if(isVacant.isPresent() && !isVacant.get().equals("Y") && !isVacant.get().equals("N"))
-                throw new CustomBadRequestException("Is vacant should be Y or N!");
+            if (type.isPresent() && !type.get().equals("APARTMENT_UNIT") && !type.get().equals("TOWN_HOUSE") &&
+                    !type.get().equals("MAISONETTES") && !type.get().equals("VILLA"))
+                throw new CustomBadRequestException("Type should be APARTMENT_UNIT, TOWN_HOUSE, MAISONETTES or VILLA!");
+
+            if (status.isPresent() && !status.get().equals("VACANT") && !status.get().equals("AWAITING_OCCUPATION") &&
+                !status.get().equals("OCCUPIED" ))
+                throw new CustomBadRequestException("Status should be VACANT, AWAITING_OCCUPATION or OCCUPIED!");
 
             Optional<Integer> floorNoResult = convertToInteger(floorNo);
             Optional<Integer> noOfBedrooms = convertToInteger(bedrooms);
             Optional<Integer> noOfBathrooms = convertToInteger(bathrooms);
-            Optional<Unit.Type> finalType = type.flatMap(this::convertToType);
             Optional<Unit.Identifier> finalIdentifier = identifier.flatMap(this::convertToIdentifier);
             Integer finalPage = page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1);
             Integer finalPageSize = pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10);
             OrderType finalOrder = order.map(OrderType::valueOf).orElse(OrderType.DESC);
-            Optional<Boolean> vacant = isVacant.map(s -> s.equals("Y"));
 
             return unitService.findPaginated(
                             id,
-                            vacant,
+                            status.map(Unit.Status::valueOf),
                             accountNo,
-                            finalType,
+                            type.map(Unit.Type::valueOf),
                             finalIdentifier,
                             floorNoResult,
                             noOfBedrooms,

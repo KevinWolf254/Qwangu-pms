@@ -14,14 +14,9 @@ public class CreateOccupationDtoValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        validateIsActive((CreateOccupationDto) target, errors);
         validateStarted((CreateOccupationDto) target, errors);
         validateTenantId((CreateOccupationDto) target, errors);
         validateUnitId((CreateOccupationDto) target, errors);
-    }
-
-    private void validateIsActive(CreateOccupationDto request, Errors errors) {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "active", "field.required", "Active is required.");
     }
 
     private void validateStarted(CreateOccupationDto request, Errors errors) {
