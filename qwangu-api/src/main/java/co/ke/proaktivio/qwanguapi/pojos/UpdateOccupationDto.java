@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.pojos;
 
+import co.ke.proaktivio.qwanguapi.models.Occupation;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,7 +11,10 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class UpdateOccupationDto extends OccupationDto{
-    public UpdateOccupationDto(Boolean active, LocalDateTime started, LocalDateTime ended) {
-        super(active, started, ended);
+    private Occupation.Status status;
+
+    public UpdateOccupationDto(Occupation.Status status, LocalDateTime started, LocalDateTime ended) {
+        super(started, ended);
+        this.status = status;
     }
 }

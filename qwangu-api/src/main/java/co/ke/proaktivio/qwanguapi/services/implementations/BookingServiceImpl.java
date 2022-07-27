@@ -25,23 +25,15 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 @Service
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UnitRepository unitRepository;
     private final PaymentRepository paymentRepository;
+    private final OccupationRepository occupationRepository;
     private final ReactiveMongoTemplate template;
-
-    public BookingServiceImpl(BookingRepository bookingRepository, UnitRepository unitRepository,
-                              PaymentRepository paymentRepository, ReactiveMongoTemplate template) {
-        this.bookingRepository = bookingRepository;
-        this.unitRepository = unitRepository;
-        this.paymentRepository = paymentRepository;
-        this.template = template;
-    }
 
     @Override
     public Mono<Booking> create(CreateBookingDto dto) {
@@ -52,7 +44,7 @@ public class BookingServiceImpl implements BookingService {
                 .then(Mono.just(new Query()
                         .addCriteria(Criteria
                                 .where("unitId").is(unitId)
-                                .and("active").is(true))))
+                                .and("status").is(Booking.Status.PENDING_OCCUPATION))))
                 .flatMap(query -> template.exists(query, Booking.class))
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Unit has already been booked!")))
@@ -62,6 +54,9 @@ public class BookingServiceImpl implements BookingService {
                     Booking booking = new Booking(null, Booking.Status.PENDING_OCCUPATION, dto.getOccupation(), LocalDateTime.now(), null, unitId, paymentId);
                     if (unit.getStatus().equals(Unit.Status.VACANT)) {
                         return Mono.just(booking);
+                    }
+                    if(unit.getStatus().equals(Unit.Status.AWAITING_OCCUPATION)) {
+                        return Mono.error(new CustomBadRequestException("Unit already has been booked!"));
                     }
                     return validate(unit.getId(), dto.getOccupation())
                             .then(Mono.just(booking));
@@ -87,11 +82,11 @@ public class BookingServiceImpl implements BookingService {
                 .flatMap(bookingRepository::save);
     }
 
-    private Mono<Notice> validate (String unitId, LocalDateTime dto) {
+    private Mono<Notice> validate(String unitId, LocalDateTime occupationDate) {
         return Mono.just(new Query()
                         .addCriteria(Criteria
                                 .where("unitId").is(unitId)
-                                .and("active").is(true)))
+                                .and("status").is(Occupation.Status.CURRENT)))
                 .flatMap(query -> template.findOne(query, Occupation.class))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation does not exist!")))
                 .map(occupation -> new Query()
@@ -101,9 +96,9 @@ public class BookingServiceImpl implements BookingService {
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not book a unitId that is already occupied and not notice given!")))
                 .filter(notice -> notice.getStatus().equals(Notice.Status.AWAITING_EXIT))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not book a unitId that is already occupied and exit notice is pending!")))
-                .filter(notice -> dto.isAfter(notice.getVacatingDate()))
+                .filter(notice -> occupationDate.isAfter(notice.getVacatingDate()))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not occupy before current tenant's vacating date!")))
-                .filter(notice -> dto.minusDays(14).isEqual(notice.getVacatingDate()) || dto.minusDays(14).isBefore(notice.getVacatingDate()))
+                .filter(notice -> occupationDate.minusDays(14).isEqual(notice.getVacatingDate()) || occupationDate.minusDays(14).isBefore(notice.getVacatingDate()))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation date must be within 14 days after current tenant vacates!")));
     }
 

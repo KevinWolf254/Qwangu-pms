@@ -48,14 +48,14 @@ public class OccupationServiceImpl implements OccupationService {
                 .then(template.exists(query, Occupation.class))
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Occupation already exists!")))
-                .then(Mono.just(new Occupation(null, dto.getActive(), dto.getStarted(), dto.getEnded(), dto.getTenantId(),
+                .then(Mono.just(new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(), dto.getEnded(), dto.getTenantId(),
                         dto.getUnitId(), LocalDateTime.now(), null)))
                 .flatMap(occupationRepository::save);
     }
 
     @Override
     public Mono<Occupation> update(String id, UpdateOccupationDto dto) {
-        if (dto.getActive()) {
+        if (dto.getStatus().equals(Occupation.Status.CURRENT)) {
             return occupationRepository
                     .findById(id)
                     .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))))
@@ -71,8 +71,8 @@ public class OccupationServiceImpl implements OccupationService {
                                     .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not activate while other occupation is active!")))
                                     .map(t -> o)))
                     .map(o -> {
-                        if (dto.getActive() != null)
-                            o.setActive(dto.getActive());
+                        if (dto.getStatus() != null)
+                            o.setStatus(dto.getStatus());
                         if ((dto.getStarted() != null))
                             o.setStarted(dto.getStarted());
                         if (dto.getEnded() != null)
@@ -86,8 +86,8 @@ public class OccupationServiceImpl implements OccupationService {
                 .findById(id)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))))
                 .map(o -> {
-                    if (dto.getActive() != null)
-                        o.setActive(dto.getActive());
+                    if (dto.getStatus() != null)
+                        o.setStatus(dto.getStatus());
                     if ((dto.getStarted() != null))
                         o.setStarted(dto.getStarted());
                     if (dto.getEnded() != null)

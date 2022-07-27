@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CreateOccupationDto extends OccupationDto{
 
-    public CreateOccupationDto(Boolean active, LocalDateTime started, LocalDateTime ended, String tenantId, String unitId) {
-        super(active, started, ended);
+    public CreateOccupationDto(LocalDateTime started, LocalDateTime ended, String tenantId, String unitId) {
+        super(started, ended);
         this.tenantId = tenantId;
         this.unitId = unitId;
     }

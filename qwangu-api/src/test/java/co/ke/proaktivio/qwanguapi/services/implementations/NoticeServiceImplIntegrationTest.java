@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -38,17 +37,15 @@ class NoticeServiceImplIntegrationTest {
     @Autowired
     private OccupationRepository occupationRepository;
     @Autowired
-    private ReactiveMongoTemplate template;
-    @Autowired
     private NoticeServiceImpl noticeService;
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
 
     private final LocalDateTime now = LocalDateTime.now();
-    private final Occupation occupation = new Occupation("1", true, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
-    private final Occupation occupationNotActive = new Occupation("2", false, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
+    private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
+    private final Occupation occupationNotActive = new Occupation("2", Occupation.Status.MOVED, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
     private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "1");
-    private final Notice noticeWithOccupationNotActive = new Notice("2", Notice.Status.EXITED, now, now.plusDays(40), now, null, "2");
+    private final Notice noticeWithOccupationNotActive = new Notice("2", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "2");
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
@@ -141,7 +138,7 @@ class NoticeServiceImplIntegrationTest {
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
                         e.getMessage().equals("Occupation with id 3000 does not exist!"))
                 .verify();
-
+//
         // when
         Mono<Notice> updateNoticeWithOccupationNotActive = noticeRepository.save(noticeWithOccupationNotActive)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
@@ -164,7 +161,7 @@ class NoticeServiceImplIntegrationTest {
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(noticeService.findPaginated(Optional.of("1"), Optional.of(true), Optional.of("1"),
+                .thenMany(noticeService.findPaginated(Optional.of("1"), Optional.empty(), Optional.empty(),
                         1, 10, OrderType.ASC));
         // then
         StepVerifier
@@ -185,7 +182,7 @@ class NoticeServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Notice> findThrowsCustomNotFoundException = noticeService.findPaginated(Optional.of("3000"), Optional.of(true), Optional.of("1"),
+        Flux<Notice> findThrowsCustomNotFoundException = noticeService.findPaginated(Optional.of("3000"), Optional.empty(), Optional.of("1"),
                 1, 10, OrderType.ASC);
         // then
         StepVerifier

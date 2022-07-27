@@ -1,9 +1,6 @@
 package co.ke.proaktivio.qwanguapi.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -17,11 +14,23 @@ import java.time.LocalDateTime;
 public class Occupation {
     @Id
     private String id;
-    private Boolean active;
+    private Status status;
     private LocalDateTime started;
     private LocalDateTime ended;
     private String tenantId;
     private String unitId;
     private LocalDateTime created;
     private LocalDateTime modified;
+
+    @Getter
+    public enum Status {
+        CURRENT("CURRENT"),
+        MOVED("MOVED");
+
+        private String state;
+
+        Status(String state) {
+            this.state = state;
+        }
+    }
 }

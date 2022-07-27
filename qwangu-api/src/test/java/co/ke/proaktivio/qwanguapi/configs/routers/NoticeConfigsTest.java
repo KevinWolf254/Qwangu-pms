@@ -235,7 +235,7 @@ class NoticeConfigsTest {
                 uriBuilder
                         .path("/v1/notices")
                         .queryParam("id", id)
-                        .queryParam("isActive", "Y")
+                        .queryParam("status", "AWAITING_EXIT")
                         .queryParam("occupationId", occupationId)
                         .queryParam("page", 1)
                         .queryParam("pageSize", 10)
@@ -246,7 +246,7 @@ class NoticeConfigsTest {
                 uriBuilder
                         .path("/v1/notices")
                         .queryParam("id", id)
-                        .queryParam("isActive", "NOT_VALID")
+                        .queryParam("status", "NOT_VALID")
                         .queryParam("occupationId", occupationId)
                         .queryParam("page", 1)
                         .queryParam("pageSize", 10)
@@ -255,7 +255,7 @@ class NoticeConfigsTest {
         // when
         when(noticeService.findPaginated(
                 Optional.of(id),
-                Optional.of(true),
+                Optional.of(Notice.Status.AWAITING_EXIT),
                 Optional.of(occupationId),
                 finalPage,
                 finalPageSize,
@@ -292,7 +292,7 @@ class NoticeConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Is active should be Y or N!")
+                .jsonPath("$.data").isEqualTo("Status should be AWAITING_EXIT or EXITED!")
                 .consumeWith(System.out::println);
 
     }

@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class OccupationDto {
-    private Boolean active;
     private LocalDateTime started;
     private LocalDateTime ended;
 }

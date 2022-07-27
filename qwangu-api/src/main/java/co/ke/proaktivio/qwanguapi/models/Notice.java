@@ -1,9 +1,6 @@
 package co.ke.proaktivio.qwanguapi.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,8 +21,12 @@ public class Notice {
     private LocalDateTime modified;
     private String occupationId;
 
+    @Getter
+    @RequiredArgsConstructor
     public enum Status {
-        AWAITING_EXIT,
-        EXITED
+        AWAITING_EXIT("AWAITING_EXIT"),
+        EXITED("EXITED");
+
+        private final String state;
     }
 }

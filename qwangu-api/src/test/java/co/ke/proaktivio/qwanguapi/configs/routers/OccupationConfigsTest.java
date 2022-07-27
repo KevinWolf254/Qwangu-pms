@@ -73,9 +73,9 @@ class OccupationConfigsTest {
         // given
         String tenantId = "1";
         String unitId = "1";
-        var dto = new CreateOccupationDto(true, LocalDateTime.now(), null, tenantId, unitId);
-        var occupation = new Occupation("1", true, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
-        var dtoNotValid = new CreateOccupationDto(null, null, null, null, null);
+        var dto = new CreateOccupationDto(LocalDateTime.now(), null, tenantId, unitId);
+        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
+        var dtoNotValid = new CreateOccupationDto(null, null, null, null);
 
         // when
         when(occupationService.create(dto)).thenReturn(Mono.just(occupation));
@@ -141,8 +141,8 @@ class OccupationConfigsTest {
     void update() {
         // given
         var id = "1";
-        var dto = new UpdateOccupationDto(true, LocalDateTime.now(), null);
-        var occupation = new Occupation("1", true, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
+        var dto = new UpdateOccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null);
+        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
         var dtoNotValid = new UpdateOccupationDto(null, null, null);
 
         // when
@@ -234,7 +234,7 @@ class OccupationConfigsTest {
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
-        var occupation = new Occupation("1", true, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
+        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
 
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder

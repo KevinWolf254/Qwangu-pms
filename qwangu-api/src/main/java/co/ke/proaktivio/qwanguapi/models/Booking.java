@@ -24,7 +24,7 @@ public class Booking {
     @Getter
     public enum Status {
         PENDING_OCCUPATION("PENDING_OCCUPATION"),
-        OCCUPIED("OCCUPIED");
+        FULFILLED("FULFILLED");
 
         private String state;
 

@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.NoticeService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -17,6 +18,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,20 +56,20 @@ public class NoticeHandler {
 
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> id = request.queryParam("id");
-        Optional<String> isActive = request.queryParam("isActive");
+        Optional<String> status = request.queryParam("status");
         Optional<String> occupationId = request.queryParam("occupationId");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
 
         try {
-            if (isActive.isPresent() && !isActive.get().equals("Y") && !isActive.get().equals("N"))
-                throw new CustomBadRequestException("Is active should be Y or N!");
-            Optional<Boolean> active = isActive.map(s -> s.equals("Y"));
+            if (status.isPresent() && !Arrays.stream(Notice.Status.values()).toList().contains(status.get()))
+                throw new CustomBadRequestException("Status should be AWAITING_EXIT or EXITED!");
+            Optional<Notice.Status> s = Optional.of(Notice.Status.valueOf(status.get()));
 
             return noticeService.findPaginated(
                             id,
-                            active,
+                            s,
                             occupationId,
                             page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
                             pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),

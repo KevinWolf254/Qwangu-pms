@@ -12,6 +12,6 @@ import java.util.Optional;
 public interface NoticeService {
     Mono<Notice> create(CreateNoticeDto dto);
     Mono<Notice> update(String id, UpdateNoticeDto dto);
-    Flux<Notice> findPaginated(Optional<String> id, Optional<Boolean> active, Optional<String> occupationId, int page, int pageSize, OrderType order);
+    Flux<Notice> findPaginated(Optional<String> id, Optional<Notice.Status> status, Optional<String> occupationId, int page, int pageSize, OrderType order);
     Mono<Boolean> deleteById(String id);
 }

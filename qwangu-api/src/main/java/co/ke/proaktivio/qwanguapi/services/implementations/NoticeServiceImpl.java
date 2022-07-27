@@ -46,7 +46,7 @@ public class NoticeServiceImpl implements NoticeService {
         return Mono.just(dto)
                 .flatMap(d -> occupationRepository.findById(d.getOccupationId()))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(dto.getOccupationId()))))
-                .filter(Occupation::getActive)
+                .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not create notice of occupation that is not active!")))
                 .then(Mono.just(new Notice(null, Notice.Status.AWAITING_EXIT, dto.getNotificationDate(), dto.getVacatingDate(), LocalDateTime.now(), null, dto.getOccupationId())))
                 .flatMap(noticeRepository::save);
@@ -61,7 +61,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .flatMap(notice -> occupationRepository
                         .findById(notice.getOccupationId())
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(notice.getOccupationId()))))
-                        .filter(Occupation::getActive)
+                        .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice of occupation that is not active!")))
                         .then(Mono.just(notice)))
                 .map(notice -> {
@@ -78,7 +78,7 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public Flux<Notice> findPaginated(Optional<String> id, Optional<Boolean> active, Optional<String> occupationId,
+    public Flux<Notice> findPaginated(Optional<String> id, Optional<Notice.Status> status, Optional<String> occupationId,
                                       int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
@@ -86,7 +86,7 @@ public class NoticeServiceImpl implements NoticeService {
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
         id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
-        active.ifPresent(isActive -> query.addCriteria(Criteria.where("active").is(isActive)));
+        status.ifPresent(s -> query.addCriteria(Criteria.where("status").is(s)));
         occupationId.ifPresent(i -> query.addCriteria(Criteria.where("occupationId").is(i)));
         query.with(pageable)
                 .with(sort);
@@ -114,7 +114,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .flatMapMany(query -> template.find(query, Notice.class))
                 .flatMap(notice -> occupationRepository.findById(notice.getOccupationId())
                         .filter(Objects::nonNull)
-                        .filter(Occupation::getActive)
+                        .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
                         .flatMap(occupation -> unitRepository.findById(occupation.getUnitId())
                                 .filter(Objects::nonNull)
                                 .filter(unit -> unit.getStatus().equals(Unit.Status.OCCUPIED))
@@ -125,7 +125,7 @@ public class NoticeServiceImpl implements NoticeService {
                                         .flatMap(query -> template.findOne(query, Booking.class))
                                         .filter(Objects::nonNull)
                                         .map(booking -> {
-                                            booking.setStatus(Booking.Status.OCCUPIED);
+                                            booking.setStatus(Booking.Status.FULFILLED);
                                             booking.setModified(LocalDateTime.now());
                                             return booking;
                                         })
@@ -138,7 +138,7 @@ public class NoticeServiceImpl implements NoticeService {
                                 .flatMap(unitRepository::save)
                                 .then(Mono.just(occupation)))
                         .map(o -> {
-                            o.setActive(false);
+                            o.setStatus(Occupation.Status.MOVED);
                             return o;
                         })
                         .flatMap(occupationRepository::save)

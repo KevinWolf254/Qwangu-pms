@@ -58,14 +58,14 @@ class OccupationServiceImplIntegrationTest {
         // given
         String unitId = "12";
         String tenantId = "13";
-        var dto = new CreateOccupationDto(false, LocalDateTime.now(), null, tenantId, unitId);
-        var dtoUnitIdNotExist = new CreateOccupationDto(false, LocalDateTime.now(), null, tenantId, "5");
-        var dtoTenantIdNotExist = new CreateOccupationDto(false, LocalDateTime.now(), null, "6", unitId);
+        var dto = new CreateOccupationDto(LocalDateTime.now(), null, tenantId, unitId);
+        var dtoUnitIdNotExist = new CreateOccupationDto(LocalDateTime.now(), null, tenantId, "5");
+        var dtoTenantIdNotExist = new CreateOccupationDto(LocalDateTime.now(), null, "6", unitId);
         var tenant = new Tenant(tenantId, "John", "middle", "Doe", "0700000000", "person@gmail.com", LocalDateTime.now(), null);
         var tenantActive = new Tenant("1", "John", "middle", "Doe", "0700000000", "person@gmail.com", LocalDateTime.now(), null);
         var unit = new Unit(unitId, Unit.Status.VACANT, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var occupationActive = new Occupation(null, true, LocalDateTime.now(), null, "1", unitId, LocalDateTime.now(), null);
+        var occupationActive = new Occupation(null, Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", unitId, LocalDateTime.now(), null);
         // when
         Mono<Occupation> createOccupation = unitRepository
                 .deleteAll()
@@ -82,7 +82,7 @@ class OccupationServiceImplIntegrationTest {
         StepVerifier
                 .create(createOccupation)
                 .expectNextMatches(o -> !o.getId().isEmpty() && o.getTenantId().equals(tenantId) &&
-                        o.getUnitId().equals(unitId) && !o.getActive())
+                        o.getUnitId().equals(unitId) && o.getStatus().equals(Occupation.Status.MOVED))
                 .verifyComplete();
 
         // when
@@ -124,13 +124,13 @@ class OccupationServiceImplIntegrationTest {
         String id = "1";
         String unitId = "12";
         String tenantId = "13";
-        var dto = new UpdateOccupationDto(true, LocalDateTime.now(), null);
-        var occupation = new Occupation(id, true, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
-        var occupationThatIsActive = new Occupation("2", true, LocalDateTime.now(), null, "14", unitId, LocalDateTime.now(), null);
+        var dto = new UpdateOccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null);
+        var occupation = new Occupation(id, Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
+        var occupationThatIsActive = new Occupation("2", Occupation.Status.CURRENT, LocalDateTime.now(), null, "14", unitId, LocalDateTime.now(), null);
         var tenant = new Tenant(tenantId, "John", "middle", "Doe", "0700000000", "person@gmail.com", LocalDateTime.now(), null);
         var unit = new Unit(unitId, Unit.Status.VACANT, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var dtoToDiActivate = new UpdateOccupationDto(false, LocalDateTime.now(), null);
+        var dtoToDiActivate = new UpdateOccupationDto(Occupation.Status.MOVED, LocalDateTime.now(), null);
 
         //when
         Mono<Occupation> updateOccupation = unitRepository
@@ -179,11 +179,10 @@ class OccupationServiceImplIntegrationTest {
     void findPaginated() {
         // given
         String id = "1";
-        boolean active = true;
         String unitId = "1";
         String tenantId= "1";
-        var occupation = new Occupation(id, active, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
-        var occupation2 = new Occupation("2", active, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
+        var occupation = new Occupation(id, Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
+        var occupation2 = new Occupation("2", Occupation.Status.CURRENT, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
 
         //when
         Flux<Occupation> findOccupation = occupationRepository
@@ -191,16 +190,16 @@ class OccupationServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(occupationService.findPaginated(Optional.of(id), Optional.of(active), Optional.of(unitId),
+                .thenMany(occupationService.findPaginated(Optional.of(id), Optional.of(true), Optional.of(unitId),
                         Optional.of(tenantId), 1, 10, OrderType.ASC));
         // then
         StepVerifier
                 .create(findOccupation)
-                .expectNextMatches(o -> o.getActive() &&o.getId().equals(id))
+                .expectNextMatches(o -> o.getStatus().equals(Occupation.Status.CURRENT) &&o.getId().equals(id))
                 .verifyComplete();
 
         // when
-        Flux<Occupation> findOccupationNotExist = occupationService.findPaginated(Optional.of("2000"), Optional.of(active), Optional.of(unitId),
+        Flux<Occupation> findOccupationNotExist = occupationService.findPaginated(Optional.of("2000"), Optional.of(true), Optional.of(unitId),
                 Optional.of(tenantId), 1, 10, OrderType.ASC);
         // then
         StepVerifier
@@ -229,7 +228,7 @@ class OccupationServiceImplIntegrationTest {
         boolean active = true;
         String unitId = "1";
         String tenantId= "1";
-        var occupation = new Occupation(id, active, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
+        var occupation = new Occupation(id, Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
 
         // then
         Mono<Boolean> createThenDelete = occupationRepository
