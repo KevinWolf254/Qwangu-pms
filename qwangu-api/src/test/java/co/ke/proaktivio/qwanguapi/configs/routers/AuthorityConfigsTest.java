@@ -73,7 +73,7 @@ class AuthorityConfigsTest {
                         .queryParam("order", OrderType.ASC)
                         .build();
         client
-                .put()
+                .get()
                 .uri(uriFunc)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
