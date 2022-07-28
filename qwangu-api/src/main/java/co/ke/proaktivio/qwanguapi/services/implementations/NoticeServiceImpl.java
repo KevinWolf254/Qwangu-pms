@@ -37,9 +37,7 @@ import java.util.Optional;
 public class NoticeServiceImpl implements NoticeService {
     private final NoticeRepository noticeRepository;
     private final OccupationRepository occupationRepository;
-    private final UnitRepository unitRepository;
     private final ReactiveMongoTemplate template;
-    private final BookingRepository bookingRepository;
 
     @Override
     public Mono<Notice> create(CreateNoticeDto dto) {
@@ -102,114 +100,4 @@ public class NoticeServiceImpl implements NoticeService {
                 .flatMap(template::remove)
                 .map(DeleteResult::wasAcknowledged);
     }
-
-    @Scheduled(cron = "0 0/1 * * * ?")
-    protected void processNotices() {
-
-        Mono.just(new Query()
-                        .addCriteria(Criteria
-                                .where("status").is(Notice.Status.AWAITING_EXIT)
-                                .and("vacatingDate").is(LocalDate.now().minusDays(1))))
-                .flatMapMany(query -> template.find(query, Notice.class))
-                .flatMap(notice -> occupationRepository.findById(notice.getOccupationId())
-                        .filter(Objects::nonNull)
-                        .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
-                        .flatMap(occupation -> unitRepository.findById(occupation.getUnitId())
-                                .filter(Objects::nonNull)
-                                .filter(unit -> unit.getStatus().equals(Unit.Status.OCCUPIED))
-                                .flatMap(unit -> Mono.just(new Query()
-                                                .addCriteria(Criteria
-                                                        .where("status").is(Booking.Status.PENDING_OCCUPATION)
-                                                        .and("unitId").is(unit.getId())))
-                                        .flatMap(query -> template.findOne(query, Booking.class))
-                                        .filter(Objects::nonNull)
-                                        .map(booking -> {
-                                            booking.setStatus(Booking.Status.FULFILLED);
-                                            booking.setModified(LocalDateTime.now());
-                                            return booking;
-                                        })
-                                        .flatMap(bookingRepository::save)
-                                        .then(Mono.just(unit)))
-                                .map(u -> {
-                                    u.setStatus(Unit.Status.AWAITING_OCCUPATION);
-                                    return u;
-                                })
-                                .flatMap(unitRepository::save)
-                                .then(Mono.just(occupation)))
-                        .map(o -> {
-                            o.setStatus(Occupation.Status.MOVED);
-                            return o;
-                        })
-                        .flatMap(occupationRepository::save)
-                        .then(Mono.just(notice)))
-                .map(n -> {
-                    n.setStatus(Notice.Status.EXITED);
-                    return n;
-                })
-                .flatMap(noticeRepository::save)
-                .subscribe();
-
-    }
 }
-
-
-//        Mono.just(new Query()
-//                        .addCriteria(Criteria
-//                                .where("status").is(Notice.Status.AWAITING_EXIT)
-//                                .and("vacatingDate").is(LocalDate.now().minusDays(1))))
-//                .flatMap(query -> template.find(query, Notice.class).collectList())
-//                .flatMap(notices -> {
-//                    notices.stream().flatMap(notice -> {
-//                        return occupationRepository.findById(notice.getOccupationId())
-//                                .filter(Objects::nonNull)
-//                                .filter(Occupation::getActive)
-//                                .flatMap(occupation -> unitRepository.findById(occupation.getUnitId())
-//                                        .filter(Objects::nonNull)
-//                                        .filter(unit -> unit.getStatus().equals(Unit.Status.OCCUPIED))
-//                                        .flatMap(unit -> Mono.just(new Query()
-//                                                        .addCriteria(Criteria
-//                                                                .where("status").is(Booking.Status.PENDING_OCCUPATION)
-//                                                                .and("unitId").is(unit.getId())))
-//                                                .flatMap(query -> template.findOne(query, Booking.class))
-//                                                .filter(Objects::nonNull)
-//                                                .map(booking -> {
-//                                                    booking.setStatus(Booking.Status.OCCUPIED);
-//                                                    booking.setModified(LocalDateTime.now());
-//                                                    return booking;
-//                                                }).flatMap(bookingRepository::save)
-//                                                .map($ -> {
-//                                                    unit.setStatus(Unit.Status.AWAITING_OCCUPATION);
-//                                                    return unit;
-//                                                })
-//                                                .flatMap(unitRepository::save))
-//                                        .map($ -> {
-//                                            occupation.setActive(false);
-//                                            return occupation;
-//                                        })
-//                                        .flatMap(occupationRepository::save))
-//                                .map($ -> {
-//                                    notice.setStatus(Notice.Status.EXITED);
-//                                    return notice;
-//                                }));
-//                    }));
-//
-//                });
-
-
-//                    template.find(query, Notice.class)
-//                            .flatMap(notice -> occupationRepository.findById(notice.getOccupationId())
-//                                    .flatMap(occupation -> unitRepository.findById(occupation.getUnitId())
-//                                            .flatMap(unit -> {
-//                                                Query queryBookingPendingOccupation = new Query()
-//                                                        .addCriteria(Criteria
-//                                                                .where("status").is(Booking.Status.PENDING_OCCUPATION)
-//                                                                .and("unitId").is(unit.getId()));
-//                                                return template.findOne(queryBookingPendingOccupation, Booking.class)
-//                                                        .map(booking -> {
-//                                                            if (booking != null) {
-//                                                                booking.setStatus(Booking.Status.OCCUPIED);
-//                                                                return bookingRepository.save(booking);
-//                                                            }
-//                                                        })
-//                                            }))
-//                }

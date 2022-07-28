@@ -1,6 +1,8 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.*;
+import co.ke.proaktivio.qwanguapi.pojos.UpdateBookingDto;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.pojos.CreateBookingDto;
 import org.junit.Before;
@@ -21,6 +23,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Testcontainers
@@ -51,6 +54,7 @@ class BookingServiceImplIntegrationTest {
     }
 
     private final LocalDateTime now = LocalDateTime.now();
+    private final LocalDate today = LocalDate.now();
     private final Payment payment;
 
     {
@@ -63,14 +67,25 @@ class BookingServiceImplIntegrationTest {
     private final Unit unit = new Unit("1", Unit.Status.OCCUPIED, "T903", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
             1, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, now, null, "1");
     private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, now, null, "1", "1", now, null);
-    private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(15), now, null, "1");
+    private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(15), now, null, "1");
+    private final Booking booking = new Booking("1", Booking.Status.BOOKED, today, now, null, "1", "1");
 
     @Test
     void create() {
         // given
-        var dto = new CreateBookingDto(now.plusDays(16), "1", "1");
+        var dto = new CreateBookingDto(today.plusDays(16), "1", "1");
         // when
-        Mono<Booking> booking = paymentRepository.save(payment)
+        Mono<Booking> booking = bookingRepository.deleteAll()
+                .doOnSuccess($ -> System.out.println("Deleted bookings!"))
+                .then(paymentRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("Deleted payments!"))
+                .then(unitRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("Deleted units!"))
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("Deleted occupations!"))
+                .then(noticeRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("Deleted notices!"))
+                .then(paymentRepository.save(payment))
                 .doOnSuccess(p -> System.out.println("---- Saved " + p))
                 .then(unitRepository.save(unit))
                 .doOnSuccess(u -> System.out.println("---- Saved " + u))
@@ -88,6 +103,36 @@ class BookingServiceImplIntegrationTest {
 
     @Test
     void update() {
+        // given
+        var dto = new UpdateBookingDto(today.plusDays(16));
+        // when
+        Mono<Booking> update = bookingRepository.deleteAll()
+                .doOnSuccess($ -> System.out.println("Deleted bookings!"))
+                .then(paymentRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("Deleted payments!"))
+                .then(unitRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("Deleted units!"))
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("Deleted occupations!"))
+                .then(noticeRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("Deleted notices!"))
+                .then(paymentRepository.save(payment))
+                .doOnSuccess(p -> System.out.println("---- Saved " + p))
+                .then(unitRepository.save(unit))
+                .doOnSuccess(u -> System.out.println("---- Saved " + u))
+                .then(occupationRepository.save(occupation))
+                .doOnSuccess(o -> System.out.println("---- Saved " + o))
+                .then(noticeRepository.save(notice))
+                .doOnSuccess(n -> System.out.println("---- Saved " + n))
+                .then(bookingRepository.save(booking))
+                .doOnSuccess(p -> System.out.println("---- Saved " + p))
+                .then(bookingService.update("1", dto));
+        // then
+        StepVerifier
+                .create(update)
+                .expectNextMatches(b -> b.getOccupation().isEqual(today.plusDays(16)))
+                .verifyComplete();
+
     }
 
     @Test
@@ -96,5 +141,26 @@ class BookingServiceImplIntegrationTest {
 
     @Test
     void deleteById() {
+        // given
+        // when
+        Mono<Boolean> createUnitThenDelete = bookingRepository.deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all Bookings!"))
+                .then(bookingRepository.save(booking))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(bookingService.deleteById("1"));
+        // then
+        StepVerifier
+                .create(createUnitThenDelete)
+                .expectNext(true)
+                .verifyComplete();
+
+        // when
+        Mono<Boolean> deleteUnitThatDoesNotExist = bookingService.deleteById("3090");
+        // then
+        StepVerifier
+                .create(deleteUnitThatDoesNotExist)
+                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                        e.getMessage().equals("Booking with id 3090 does not exist!"))
+                .verify();
     }
 }

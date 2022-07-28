@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
@@ -8,6 +9,7 @@ import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.CreateOccupationDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.UpdateOccupationDtoValidator;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -21,6 +23,7 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
@@ -64,8 +67,11 @@ public class OccupationHandler {
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
         try {
-            if(status.isPresent() && !status.get().equals("CURRENT") && !status.get().equals("MOVED"))
-                throw new CustomBadRequestException("Status should be CURRENT or MOVED!");
+            if (status.isPresent() &&  !EnumUtils.isValidEnum(Occupation.Status.class, status.get())) {
+                String[] arrayOfState = Stream.of(Occupation.Status.values()).map(Occupation.Status::getState).toArray(String[]::new);
+                String states = String.join(" or ", arrayOfState);
+                throw new CustomBadRequestException("Status should be " + states + "!");
+            }
 
             return occupationService.findPaginated(
                         id,

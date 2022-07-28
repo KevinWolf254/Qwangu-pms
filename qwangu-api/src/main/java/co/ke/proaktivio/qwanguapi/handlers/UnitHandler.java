@@ -2,6 +2,7 @@ package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Notice;
+import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
@@ -23,6 +24,7 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
@@ -94,13 +96,17 @@ public class UnitHandler {
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
         try {
-            if (type.isPresent() && !type.get().equals("APARTMENT_UNIT") && !type.get().equals("TOWN_HOUSE") &&
-                    !type.get().equals("MAISONETTES") && !type.get().equals("VILLA"))
-                throw new CustomBadRequestException("Type should be APARTMENT_UNIT, TOWN_HOUSE, MAISONETTES or VILLA!");
+            if (type.isPresent() &&  !EnumUtils.isValidEnum(Unit.Type.class, type.get())) {
+                String[] arrayOfState = Stream.of(Unit.Type.values()).map(Unit.Type::getType).toArray(String[]::new);
+                String states = String.join(" or ", arrayOfState);
+                throw new CustomBadRequestException("Type should be " + states + "!");
+            }
 
-            if (status.isPresent() && !status.get().equals("VACANT") && !status.get().equals("AWAITING_OCCUPATION") &&
-                !status.get().equals("OCCUPIED" ))
-                throw new CustomBadRequestException("Status should be VACANT, AWAITING_OCCUPATION or OCCUPIED!");
+            if (status.isPresent() &&  !EnumUtils.isValidEnum(Unit.Status.class, status.get())) {
+                String[] arrayOfState = Stream.of(Unit.Status.values()).map(Unit.Status::getState).toArray(String[]::new);
+                String states = String.join(" or ", arrayOfState);
+                throw new CustomBadRequestException("Status should be " + states + "!");
+            }
 
             Optional<Integer> floorNoResult = convertToInteger(floorNo);
             Optional<Integer> noOfBedrooms = convertToInteger(bedrooms);

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -11,5 +12,5 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public abstract class NoticeDto {
     private LocalDateTime notificationDate;
-    private LocalDateTime vacatingDate;
+    private LocalDate vacatingDate;
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 public class UpdateNoticeDto extends NoticeDto {
     private Notice.Status status;
 
-    public UpdateNoticeDto(Notice.Status status, LocalDateTime notificationDate, LocalDateTime vacatingDate) {
+    public UpdateNoticeDto(Notice.Status status, LocalDateTime notificationDate, LocalDate vacatingDate) {
         super(notificationDate, vacatingDate);
         this.status = status;
     }

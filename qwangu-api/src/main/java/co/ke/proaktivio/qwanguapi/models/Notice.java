@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Document(value = "NOTICE")
@@ -16,7 +17,7 @@ public class Notice {
     private String id;
     private Status status;
     private LocalDateTime notificationDate;
-    private LocalDateTime vacatingDate;
+    private LocalDate vacatingDate;
     private LocalDateTime created;
     private LocalDateTime modified;
     private String occupationId;

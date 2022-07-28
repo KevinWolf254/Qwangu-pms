@@ -24,12 +24,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Testcontainers
-@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
 @ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
+@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
 class NoticeServiceImplIntegrationTest {
     @Autowired
     private NoticeRepository noticeRepository;
@@ -41,10 +42,11 @@ class NoticeServiceImplIntegrationTest {
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
 
     private final LocalDateTime now = LocalDateTime.now();
+    private final LocalDate today = LocalDate.now();
     private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
     private final Occupation occupationMoved = new Occupation("2", Occupation.Status.MOVED, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
-    private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "1");
-    private final Notice noticeWithOccupationMoved = new Notice("2", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "2");
+    private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, null, "1");
+    private final Notice noticeWithOccupationMoved = new Notice("2", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, null, "2");
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
@@ -55,9 +57,9 @@ class NoticeServiceImplIntegrationTest {
     void create() {
         // given
         LocalDateTime now = LocalDateTime.now();
-        var dto = new CreateNoticeDto(now, now.plusDays(30), "1");
-        var dtoOccupationDoesNotExist = new CreateNoticeDto(now, now.plusDays(30), "3000");
-        var dtoOccupationNotActive = new CreateNoticeDto(now, now.plusDays(30), "2");
+        var dto = new CreateNoticeDto(now, today.plusDays(30), "1");
+        var dtoOccupationDoesNotExist = new CreateNoticeDto(now, today.plusDays(30), "3000");
+        var dtoOccupationNotActive = new CreateNoticeDto(now, today.plusDays(30), "2");
         // when
         Mono<Notice> notice = noticeRepository
                 .deleteAll()
@@ -98,8 +100,8 @@ class NoticeServiceImplIntegrationTest {
     void update() {
         // given
         LocalDateTime now = LocalDateTime.now();
-        var dto = new UpdateNoticeDto(Notice.Status.AWAITING_EXIT, now, now.plusDays(35));
-        var noticeWithOccupationDoesNotExist = new Notice("3000", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "3000");
+        var dto = new UpdateNoticeDto(Notice.Status.AWAITING_EXIT, now, today.plusDays(35));
+        var noticeWithOccupationDoesNotExist = new Notice("3000", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, null, "3000");
         // when
         Mono<Notice> updateNotice = noticeRepository
                 .deleteAll()
@@ -137,7 +139,7 @@ class NoticeServiceImplIntegrationTest {
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
                         e.getMessage().equals("Occupation with id 3000 does not exist!"))
                 .verify();
-//
+
         // when
         Mono<Notice> updateNoticeWithOccupationNotActive = noticeRepository.save(noticeWithOccupationMoved)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))

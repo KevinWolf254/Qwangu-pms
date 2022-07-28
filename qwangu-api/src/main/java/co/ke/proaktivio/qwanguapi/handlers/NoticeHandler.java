@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.models.Booking;
 import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
@@ -9,6 +10,7 @@ import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.CreateNoticeDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.UpdateNoticeDtoValidator;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -23,6 +25,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
@@ -64,8 +67,11 @@ public class NoticeHandler {
         Optional<String> order = request.queryParam("order");
 
         try {
-            if (status.isPresent() && !status.get().equals("AWAITING_EXIT") && !status.get().equals("EXITED"))
-                throw new CustomBadRequestException("Status should be AWAITING_EXIT or EXITED!");
+            if (status.isPresent() &&  !EnumUtils.isValidEnum(Notice.Status.class, status.get())) {
+                String[] arrayOfState = Stream.of(Notice.Status.values()).map(Notice.Status::getState).toArray(String[]::new);
+                String states = String.join(" or ", arrayOfState);
+                throw new CustomBadRequestException("Status should be " + states + "!");
+            }
 
             return noticeService.findPaginated(
                             id,

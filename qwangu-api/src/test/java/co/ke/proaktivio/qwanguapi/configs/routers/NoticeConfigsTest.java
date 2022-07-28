@@ -28,6 +28,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
@@ -49,6 +50,8 @@ class NoticeConfigsTest {
     private ReactiveAuthenticationManager authenticationManager;
     @MockBean
     private ServerSecurityContextRepository contextRepository;
+    private final LocalDate today = LocalDate.now();
+    private final LocalDateTime now = LocalDateTime.now();
 
     @Before
     public void setUp() {
@@ -73,10 +76,9 @@ class NoticeConfigsTest {
     @WithMockUser
     void create() {
         // given
-        LocalDateTime now = LocalDateTime.now();
-        var dto = new CreateNoticeDto(now, now.plusDays(30), "1");
+        var dto = new CreateNoticeDto(now, today.plusDays(30), "1");
         var dtoNotValid = new CreateNoticeDto(null ,null, null);
-        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, null, "1");
+        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, null, "1");
         // when
         when(noticeService.create(dto)).thenReturn(Mono.just(notice));
         // then
@@ -141,10 +143,9 @@ class NoticeConfigsTest {
     void update() {
         // given
         var id = "1";
-        LocalDateTime now = LocalDateTime.now();
-        var dto = new UpdateNoticeDto(Notice.Status.AWAITING_EXIT, now, now.plusDays(30));
+        var dto = new UpdateNoticeDto(Notice.Status.AWAITING_EXIT, now, today.plusDays(30));
         var dtoNotValid = new UpdateNoticeDto(null ,null, null);
-        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, now, "1");
+        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, now, "1");
 
         // when
         when(noticeService.update(id, dto)).thenReturn(Mono.just(notice));
@@ -223,8 +224,7 @@ class NoticeConfigsTest {
         // given
         var id = "1";
         var occupationId = "1";
-        LocalDateTime now = LocalDateTime.now();
-        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, now.plusDays(40), now, now, "1");
+        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, now, "1");
         String page = "1";
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");

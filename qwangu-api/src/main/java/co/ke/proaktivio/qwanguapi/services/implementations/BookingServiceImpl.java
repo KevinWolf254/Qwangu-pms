@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
@@ -48,14 +49,14 @@ public class BookingServiceImpl implements BookingService {
                 .then(Mono.just(new Query()
                         .addCriteria(Criteria
                                 .where("unitId").is(unitId)
-                                .and("status").is(Booking.Status.PENDING_OCCUPATION))))
+                                .and("status").is(Booking.Status.BOOKED))))
                 .flatMap(query -> template.exists(query, Booking.class))
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Unit has already been booked!")))
                 .then(unitRepository.findById(unitId))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(unitId))))
                 .flatMap(unit -> {
-                    Booking booking = new Booking(null, Booking.Status.PENDING_OCCUPATION, dto.getOccupation(), LocalDateTime.now(), null, unitId, paymentId);
+                    Booking booking = new Booking(null, Booking.Status.BOOKED, dto.getOccupation(), LocalDateTime.now(), null, unitId, paymentId);
                     if (unit.getStatus().equals(Unit.Status.VACANT)) {
                         return Mono.just(booking);
                     }
@@ -73,7 +74,7 @@ public class BookingServiceImpl implements BookingService {
     public Mono<Booking> update(String id, UpdateBookingDto dto) {
         return bookingRepository.findById(id)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Booking with id %s does not exist!".formatted(id))))
-                .filter(booking -> booking.getStatus().equals(Booking.Status.PENDING_OCCUPATION))
+                .filter(booking -> booking.getStatus().equals(Booking.Status.BOOKED) || booking.getStatus().equals(Booking.Status.PENDING_OCCUPATION))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update an already expired booking")))
                 .flatMap(booking -> unitRepository.findById(booking.getUnitId())
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit does not exist!")))
@@ -92,7 +93,7 @@ public class BookingServiceImpl implements BookingService {
     @AllArgsConstructor
     private class Search {
         private String unitId;
-        private LocalDateTime occupationDate;
+        private LocalDate occupationDate;
         private ReactiveMongoTemplate template;
     }
 

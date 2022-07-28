@@ -27,6 +27,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
@@ -50,6 +51,9 @@ class BookingConfigsTest {
     @MockBean
     private ServerSecurityContextRepository contextRepository;
 
+    private final LocalDate today = LocalDate.now();
+    private final LocalDateTime now = LocalDateTime.now();
+
     @Before
     public void setUp() {client = WebTestClient.bindToApplicationContext(context).build();}
 
@@ -70,9 +74,8 @@ class BookingConfigsTest {
     @WithMockUser
     void create() {
         // given
-        var now = LocalDateTime.now();
-        var dto = new CreateBookingDto(now, "1", "1");
-        var booking = new Booking("1", Booking.Status.PENDING_OCCUPATION, now, now, null, "1", "1");
+        var dto = new CreateBookingDto(today, "1", "1");
+        var booking = new Booking("1", Booking.Status.BOOKED, today, now, null, "1", "1");
         var dtoNotValid = new CreateBookingDto(null, null, null);
         //when
         when(bookingService.create(dto)).thenReturn(Mono.just(booking));
@@ -92,7 +95,7 @@ class BookingConfigsTest {
                 .jsonPath("$.message").isEqualTo("Booking created successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.status").isEqualTo(Booking.Status.PENDING_OCCUPATION.getState())
+                .jsonPath("$.data.status").isEqualTo(Booking.Status.BOOKED.getState())
                 .jsonPath("$.data.unitId").isEqualTo("1")
                 .jsonPath("$.data.paymentId").isEqualTo("1")
                 .jsonPath("$.data.created").isNotEmpty()
@@ -134,10 +137,9 @@ class BookingConfigsTest {
     void update() {
         // given
         var id = "1";
-        LocalDateTime now = LocalDateTime.now();
-        var dto = new UpdateBookingDto(now);
+        var dto = new UpdateBookingDto(today);
         var dtoNotValid = new UpdateBookingDto();
-        var booking = new Booking("1", Booking.Status.PENDING_OCCUPATION, now, now, null, "1", "1");
+        var booking = new Booking("1", Booking.Status.BOOKED, today, now, null, "1", "1");
         // when
         when(bookingService.update(id, dto)).thenReturn(Mono.just(booking));
         // then
@@ -155,7 +157,7 @@ class BookingConfigsTest {
                 .jsonPath("$.message").isEqualTo("Booking updated successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.status").isEqualTo(Booking.Status.PENDING_OCCUPATION.getState())
+                .jsonPath("$.data.status").isEqualTo(Booking.Status.BOOKED.getState())
                 .jsonPath("$.data.unitId").isEqualTo("1")
                 .jsonPath("$.data.paymentId").isEqualTo("1")
                 .jsonPath("$.data.created").isNotEmpty()
@@ -202,7 +204,7 @@ class BookingConfigsTest {
     void find() {
         // given
         var id ="1";
-        var status = "PENDING_OCCUPATION";
+        var status = "BOOKED";
         var statusNotValid = "NOT_VALID_STATUS";
         var unitId = "1";
         var page = "1";
@@ -210,7 +212,7 @@ class BookingConfigsTest {
         var asc = "ASC";
         OrderType order = OrderType.valueOf(asc);
         var now = LocalDateTime.now();
-        var booking = new Booking("1", Booking.Status.PENDING_OCCUPATION, now, now, null, "1", "1");
+        var booking = new Booking("1", Booking.Status.BOOKED, today, now, null, "1", "1");
 
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
@@ -231,7 +233,7 @@ class BookingConfigsTest {
         // when
         when(bookingService.findPaginated(
                 Optional.of(id),
-                Optional.of(Booking.Status.PENDING_OCCUPATION),
+                Optional.of(Booking.Status.BOOKED),
                 Optional.of(unitId),
                 1,
                 10,
@@ -250,7 +252,7 @@ class BookingConfigsTest {
                 .jsonPath("$.message").isEqualTo("Bookings found successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
-                .jsonPath("$.data.[0].status").isEqualTo(Booking.Status.PENDING_OCCUPATION.getState())
+                .jsonPath("$.data.[0].status").isEqualTo(Booking.Status.BOOKED.getState())
                 .jsonPath("$.data.[0].unitId").isEqualTo("1")
                 .jsonPath("$.data.[0].paymentId").isEqualTo("1")
                 .jsonPath("$.data.[0].created").isNotEmpty()
@@ -268,7 +270,7 @@ class BookingConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Status should be PENDING_OCCUPATION or FULFILLED!")
+                .jsonPath("$.data").isEqualTo("Status should be BOOKED or PENDING_OCCUPATION or OCCUPIED or CANCELLED!")
                 .consumeWith(System.out::println);
     }
 

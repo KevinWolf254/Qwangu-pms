@@ -45,6 +45,8 @@ public class Unit {
         }
     }
 
+    @Getter
+    @AllArgsConstructor
     public enum Type{
         APARTMENT_UNIT("APARTMENT_UNIT"),
         TOWN_HOUSE("TOWN_HOUSE"),
@@ -52,10 +54,6 @@ public class Unit {
         VILLA("VILLA");
 
         private String type;
-
-        Type(String type) {
-            this.type = type;
-        }
     }
 
     public enum Identifier {

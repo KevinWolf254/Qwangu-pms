@@ -312,7 +312,7 @@ public class UnitConfigsTest {
                         .queryParam("id", id)
                         .queryParam("status", "VACANT")
                         .queryParam("accountNo", accountNo)
-                        .queryParam("type", type.name())
+                        .queryParam("type", "APARTMENT_UNIT")
                         .queryParam("identifier", identifier.name())
                         .queryParam("floorNo", floorNo)
                         .queryParam("noOfBedrooms", noOfBedrooms)
@@ -378,7 +378,7 @@ public class UnitConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Status should be VACANT, AWAITING_OCCUPATION or OCCUPIED!")
+                .jsonPath("$.data").isEqualTo("Status should be VACANT or AWAITING_OCCUPATION or OCCUPIED!")
                 .consumeWith(System.out::println);
         // then
         client
@@ -392,7 +392,7 @@ public class UnitConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Type should be APARTMENT_UNIT, TOWN_HOUSE, MAISONETTES or VILLA!")
+                .jsonPath("$.data").isEqualTo("Type should be APARTMENT_UNIT or TOWN_HOUSE or MAISONETTES or VILLA!")
                 .consumeWith(System.out::println);
     }
 
