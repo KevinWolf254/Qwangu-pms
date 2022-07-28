@@ -21,9 +21,11 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
@@ -65,8 +67,11 @@ public class BookingHandler {
         Optional<String> order = request.queryParam("order");
 
         try {
-            if (status.isPresent() &&  !EnumUtils.isValidEnum(Booking.Status.class, status.get()))
-                throw new CustomBadRequestException("Status is not valid!");
+            if (status.isPresent() &&  !EnumUtils.isValidEnum(Booking.Status.class, status.get())) {
+                String[] arrayOfState = Stream.of(Booking.Status.values()).map(Booking.Status::getState).toArray(String[]::new);
+                String states = String.join(" or ", arrayOfState);
+                throw new CustomBadRequestException("Status should be " + states + "!");
+            }
 
             return bookingService.findPaginated(
                             id,

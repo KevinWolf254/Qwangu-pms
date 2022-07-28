@@ -12,7 +12,10 @@ import co.ke.proaktivio.qwanguapi.pojos.UpdateBookingDto;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.services.BookingService;
 import com.mongodb.client.result.DeleteResult;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,6 +28,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +62,8 @@ public class BookingServiceImpl implements BookingService {
                     if(unit.getStatus().equals(Unit.Status.AWAITING_OCCUPATION)) {
                         return Mono.error(new CustomBadRequestException("Unit already has been booked!"));
                     }
-                    return validate(unit.getId(), dto.getOccupation())
+//                    return validate(unit.getId(), dto.getOccupation())
+                    return validateFunc.apply(new Search(unit.getId(), dto.getOccupation(), this.template))
                             .then(Mono.just(booking));
                 })
                 .flatMap(bookingRepository::save);
@@ -76,31 +81,38 @@ public class BookingServiceImpl implements BookingService {
                             booking.setOccupation(dto.getOccupation());
                             if (unit.getStatus().equals(Unit.Status.VACANT))
                                 return Mono.just(booking);
-                            return validate(unit.getId(), dto.getOccupation())
+                            return validateFunc.apply(new Search(unit.getId(), dto.getOccupation(), this.template))
                                     .then(Mono.just(booking));
                         }))
                 .flatMap(bookingRepository::save);
     }
 
-    private Mono<Notice> validate(String unitId, LocalDateTime occupationDate) {
-        return Mono.just(new Query()
-                        .addCriteria(Criteria
-                                .where("unitId").is(unitId)
-                                .and("status").is(Occupation.Status.CURRENT)))
-                .flatMap(query -> template.findOne(query, Occupation.class))
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation does not exist!")))
-                .map(occupation -> new Query()
-                        .addCriteria(Criteria
-                                .where("occupationId").is(occupation.getId())))
-                .flatMap(query -> template.findOne(query, Notice.class))
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not book a unitId that is already occupied and not notice given!")))
-                .filter(notice -> notice.getStatus().equals(Notice.Status.AWAITING_EXIT))
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not book a unitId that is already occupied and exit notice is pending!")))
-                .filter(notice -> occupationDate.isAfter(notice.getVacatingDate()))
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not occupy before current tenant's vacating date!")))
-                .filter(notice -> occupationDate.minusDays(14).isEqual(notice.getVacatingDate()) || occupationDate.minusDays(14).isBefore(notice.getVacatingDate()))
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation date must be within 14 days after current tenant vacates!")));
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    private class Search {
+        private String unitId;
+        private LocalDateTime occupationDate;
+        private ReactiveMongoTemplate template;
     }
+
+    private Function<Search, Mono<Notice>> validateFunc = (params) -> Mono.just(new Query()
+                    .addCriteria(Criteria
+                            .where("unitId").is(params.getUnitId())
+                            .and("status").is(Occupation.Status.CURRENT)))
+            .flatMap(query -> params.getTemplate().findOne(query, Occupation.class))
+            .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation does not exist!")))
+            .map(occupation -> new Query()
+                    .addCriteria(Criteria
+                            .where("occupationId").is(occupation.getId())))
+            .flatMap(query -> params.getTemplate().findOne(query, Notice.class))
+            .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not book a unitId that is already occupied and not notice given!")))
+            .filter(notice -> notice.getStatus().equals(Notice.Status.AWAITING_EXIT))
+            .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not book a unitId that is already occupied and exit notice is pending!")))
+            .filter(notice -> params.getOccupationDate().isAfter(notice.getVacatingDate()))
+            .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not occupy before current tenant's vacating date!")))
+            .filter(notice -> params.getOccupationDate().minusDays(14).isEqual(notice.getVacatingDate()) || params.getOccupationDate().minusDays(14).isBefore(notice.getVacatingDate()))
+            .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation date must be within 14 days after current tenant vacates!")));
 
     @Override
     public Flux<Booking> findPaginated(Optional<String> id, Optional<Booking.Status> status, Optional<String> unitId, int page, int pageSize, OrderType order) {
