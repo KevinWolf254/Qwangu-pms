@@ -33,16 +33,13 @@ public class Unit {
     private String apartmentId;
 
     @Getter
+    @RequiredArgsConstructor
     public enum Status {
         VACANT("VACANT"),
         AWAITING_OCCUPATION("AWAITING_OCCUPATION"),
         OCCUPIED("OCCUPIED");
 
-        private String state;
-
-        Status(String state) {
-            this.state = state;
-        }
+        private final String state;
     }
 
     @Getter

@@ -2,10 +2,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Booking;
-import co.ke.proaktivio.qwanguapi.models.Notice;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Unit;
+import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.CreateBookingDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateBookingDto;
@@ -26,9 +23,11 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @Service
@@ -37,8 +36,10 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UnitRepository unitRepository;
     private final PaymentRepository paymentRepository;
-    private final OccupationRepository occupationRepository;
+    private final RefundRepository refundRepository;
     private final ReactiveMongoTemplate template;
+    private static final Double REFUND_PERCENTAGE = 20.5;
+    private static final int DAYS_BEFORE_REFUND_CHARGE = 5;
 
     @Override
     public Mono<Booking> create(CreateBookingDto dto) {
@@ -60,10 +61,9 @@ public class BookingServiceImpl implements BookingService {
                     if (unit.getStatus().equals(Unit.Status.VACANT)) {
                         return Mono.just(booking);
                     }
-                    if(unit.getStatus().equals(Unit.Status.AWAITING_OCCUPATION)) {
+                    if (unit.getStatus().equals(Unit.Status.AWAITING_OCCUPATION)) {
                         return Mono.error(new CustomBadRequestException("Unit already has been booked!"));
                     }
-//                    return validate(unit.getId(), dto.getOccupation())
                     return validateFunc.apply(new Search(unit.getId(), dto.getOccupation(), this.template))
                             .then(Mono.just(booking));
                 })
@@ -79,6 +79,12 @@ public class BookingServiceImpl implements BookingService {
                 .flatMap(booking -> unitRepository.findById(booking.getUnitId())
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit does not exist!")))
                         .flatMap(unit -> {
+                            if (dto.getStatus().equals(Booking.Status.CANCELLED)) {
+                                if (booking.getStatus().equals(Booking.Status.OCCUPIED))
+                                    return Mono.error(new CustomBadRequestException("Can update only if booking is " +
+                                            "BOOKED or PENDING_OCCUPATION!"));
+                                return cancelBooking.apply(booking, unit);
+                            }
                             booking.setOccupation(dto.getOccupation());
                             if (unit.getStatus().equals(Unit.Status.VACANT))
                                 return Mono.just(booking);
@@ -88,16 +94,56 @@ public class BookingServiceImpl implements BookingService {
                 .flatMap(bookingRepository::save);
     }
 
+    private final BiFunction<Booking, Unit, Mono<Booking>> cancelBooking = (booking, unit) -> {
+        unit.setStatus(Unit.Status.VACANT);
+        unitRepository.save(unit)
+                .then(Mono.just(new Refund(null, Refund.Status.PENDING_PAYMENT, Refund.Type.BOOKING, null,
+                        null, booking.getId(), null, LocalDateTime.now(), null)))
+                .flatMap(refund -> {
+                    LocalDate daysBeforeCharges = LocalDate.now().plusDays(DAYS_BEFORE_REFUND_CHARGE);
+                    if (daysBeforeCharges.isEqual(booking.getOccupation()) || daysBeforeCharges.isBefore(booking.getOccupation())) {
+                        // they will be given a full refund
+                        return paymentRepository.findById(booking.getPaymentId())
+                                .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment was not made to book!")))
+                                .map(Payment::getAmount)
+                                .map(amount -> {
+                                    refund.setPaymentType(Refund.PaymentType.FULL_PAYMENT);
+                                    refund.setAmount(amount);
+                                    return refund;
+                                }).flatMap(refundRepository::save)
+                                .map(r -> {
+                                    booking.setStatus(Booking.Status.CANCELLED);
+                                    return booking;
+                                });
+                    }
+                    // they will be refunded a partial amount
+                    return paymentRepository.findById(booking.getPaymentId())
+                            .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment was not made to book!")))
+                            .map(Payment::getAmount)
+                            .map(amount -> {
+                                refund.setPaymentType(Refund.PaymentType.PARTIAL_PAYMENT);
+                                // TODO - CALCULATE AMOUNT TO BE REFUNDED AFTER PERCENTAGE HAS BEEN REMOVED
+                                refund.setAmount(amount);
+                                return refund;
+                            }).flatMap(refundRepository::save)
+                            .map(r -> {
+                                booking.setStatus(Booking.Status.CANCELLED);
+                                return booking;
+                            });
+                });
+        return null;
+    };
+
     @Getter
     @Setter
     @AllArgsConstructor
-    private class Search {
+    private static class Search {
         private String unitId;
         private LocalDate occupationDate;
         private ReactiveMongoTemplate template;
     }
 
-    private Function<Search, Mono<Notice>> validateFunc = (params) -> Mono.just(new Query()
+    private final Function<Search, Mono<Notice>> validateFunc = (params) -> Mono.just(new Query()
                     .addCriteria(Criteria
                             .where("unitId").is(params.getUnitId())
                             .and("status").is(Occupation.Status.CURRENT)))
@@ -112,11 +158,13 @@ public class BookingServiceImpl implements BookingService {
             .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not book a unitId that is already occupied and exit notice is pending!")))
             .filter(notice -> params.getOccupationDate().isAfter(notice.getVacatingDate()))
             .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not occupy before current tenant's vacating date!")))
-            .filter(notice -> params.getOccupationDate().minusDays(14).isEqual(notice.getVacatingDate()) || params.getOccupationDate().minusDays(14).isBefore(notice.getVacatingDate()))
+            .filter(notice -> params.getOccupationDate().minusDays(14).isEqual(notice.getVacatingDate()) ||
+                    params.getOccupationDate().minusDays(14).isBefore(notice.getVacatingDate()))
             .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation date must be within 14 days after current tenant vacates!")));
 
     @Override
-    public Flux<Booking> findPaginated(Optional<String> id, Optional<Booking.Status> status, Optional<String> unitId, int page, int pageSize, OrderType order) {
+    public Flux<Booking> findPaginated(Optional<String> id, Optional<Booking.Status> status, Optional<String> unitId,
+                                       int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :

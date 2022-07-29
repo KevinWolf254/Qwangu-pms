@@ -137,7 +137,7 @@ class BookingConfigsTest {
     void update() {
         // given
         var id = "1";
-        var dto = new UpdateBookingDto(today);
+        var dto = new UpdateBookingDto(Booking.Status.BOOKED, today);
         var dtoNotValid = new UpdateBookingDto();
         var booking = new Booking("1", Booking.Status.BOOKED, today, now, null, "1", "1");
         // when

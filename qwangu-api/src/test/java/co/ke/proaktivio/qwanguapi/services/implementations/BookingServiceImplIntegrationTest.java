@@ -2,11 +2,10 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.*;
+import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateBookingDto;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.pojos.CreateBookingDto;
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
@@ -19,12 +18,15 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @Testcontainers
 @ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
@@ -70,27 +72,31 @@ class BookingServiceImplIntegrationTest {
     private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(15), now, null, "1");
     private final Booking booking = new Booking("1", Booking.Status.BOOKED, today, now, null, "1", "1");
 
+    Supplier<Mono<Notice>> setUp = () -> bookingRepository.deleteAll()
+            .doOnSuccess($ -> System.out.println("---- Deleted bookings!"))
+            .then(paymentRepository.deleteAll())
+            .doOnSuccess($ -> System.out.println("---- Deleted payments!"))
+            .then(unitRepository.deleteAll())
+            .doOnSuccess($ -> System.out.println("---- Deleted units!"))
+            .then(occupationRepository.deleteAll())
+            .doOnSuccess($ -> System.out.println("---- Deleted occupations!"))
+            .then(noticeRepository.deleteAll())
+            .doOnSuccess($ -> System.out.println("---- Deleted notices!"))
+            .then(paymentRepository.save(payment))
+            .doOnSuccess(p -> System.out.println("---- Saved " + p))
+            .then(unitRepository.save(unit))
+            .doOnSuccess(u -> System.out.println("---- Saved " + u))
+            .then(occupationRepository.save(occupation))
+            .doOnSuccess(o -> System.out.println("---- Saved " + o))
+            .then(noticeRepository.save(notice))
+            .doOnSuccess(n -> System.out.println("---- Saved " + n));
+
     @Test
     void create() {
         // given
         var dto = new CreateBookingDto(today.plusDays(16), "1", "1");
         // when
-        Mono<Booking> booking = bookingRepository.deleteAll()
-                .doOnSuccess($ -> System.out.println("Deleted bookings!"))
-                .then(paymentRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("Deleted payments!"))
-                .then(unitRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("Deleted units!"))
-                .then(occupationRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("Deleted occupations!"))
-                .then(noticeRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("Deleted notices!"))
-                .then(paymentRepository.save(payment))
-                .doOnSuccess(p -> System.out.println("---- Saved " + p))
-                .then(unitRepository.save(unit))
-                .doOnSuccess(u -> System.out.println("---- Saved " + u))
-                .then(occupationRepository.save(occupation))
-                .doOnSuccess(o -> System.out.println("---- Saved " + o))
+        Mono<Booking> booking = setUp.get()
                 .then(noticeRepository.save(notice))
                 .doOnSuccess(n -> System.out.println("---- Saved " + n))
                 .then(bookingService.create(dto));
@@ -104,26 +110,10 @@ class BookingServiceImplIntegrationTest {
     @Test
     void update() {
         // given
-        var dto = new UpdateBookingDto(today.plusDays(16));
+        var dto = new UpdateBookingDto(Booking.Status.BOOKED, today.plusDays(16));
         // when
-        Mono<Booking> update = bookingRepository.deleteAll()
-                .doOnSuccess($ -> System.out.println("Deleted bookings!"))
-                .then(paymentRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("Deleted payments!"))
-                .then(unitRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("Deleted units!"))
-                .then(occupationRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("Deleted occupations!"))
-                .then(noticeRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("Deleted notices!"))
-                .then(paymentRepository.save(payment))
-                .doOnSuccess(p -> System.out.println("---- Saved " + p))
-                .then(unitRepository.save(unit))
-                .doOnSuccess(u -> System.out.println("---- Saved " + u))
-                .then(occupationRepository.save(occupation))
-                .doOnSuccess(o -> System.out.println("---- Saved " + o))
-                .then(noticeRepository.save(notice))
-                .doOnSuccess(n -> System.out.println("---- Saved " + n))
+
+        Mono<Booking> update = setUp.get()
                 .then(bookingRepository.save(booking))
                 .doOnSuccess(p -> System.out.println("---- Saved " + p))
                 .then(bookingService.update("1", dto));
@@ -132,11 +122,28 @@ class BookingServiceImplIntegrationTest {
                 .create(update)
                 .expectNextMatches(b -> b.getOccupation().isEqual(today.plusDays(16)))
                 .verifyComplete();
-
     }
 
     @Test
     void findPaginated() {
+        // when
+        Flux<Booking> find = setUp.get()
+                .then(bookingRepository.save(booking))
+                .doOnSuccess(p -> System.out.println("---- Saved " + p))
+                .thenMany(bookingService.findPaginated(Optional.of("1"), Optional.empty(), Optional.empty(),
+                        1, 10, OrderType.ASC));
+        // then
+        StepVerifier
+                .create(find)
+                .expectNextCount(1)
+                .verifyComplete();
+        // then
+        StepVerifier
+                .create(bookingService.findPaginated(Optional.of("14030"), Optional.empty(), Optional.empty(),
+                        1, 10, OrderType.ASC))
+                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                        e.getMessage().equals("Bookings were not found!"))
+                .verify();
     }
 
     @Test
