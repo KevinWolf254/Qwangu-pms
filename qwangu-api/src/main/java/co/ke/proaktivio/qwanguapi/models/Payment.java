@@ -33,8 +33,8 @@ public class Payment {
     private String firstName;
     private String middleName;
     private String lastName;
-    private LocalDateTime created;
-    private LocalDateTime modified;
+    private LocalDateTime createdOn;
+    private LocalDateTime modifiedOn;
 
     public enum Type{
         MPESA_PAY_BILL,

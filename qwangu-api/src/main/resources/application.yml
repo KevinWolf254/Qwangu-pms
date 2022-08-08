@@ -72,3 +72,7 @@ safaricom:
     urls:
       - https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
 
+rent:
+  cronToCreateInvoice: '0 0/1 * * * ?'
+  dueDatePerMonth: 5
+  penaltyPercentageOfRent: 20

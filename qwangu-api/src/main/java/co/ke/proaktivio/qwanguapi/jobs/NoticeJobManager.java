@@ -12,9 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,6 +31,7 @@ public class NoticeJobManager {
     private final ReactiveMongoTemplate template;
     private final BookingRepository bookingRepository;
 
+    // TODO - UNCOMMENT
 //    @Scheduled(cron = "0 0/1 * * * ?")
 //    void processNotices() {
 //        vacate()

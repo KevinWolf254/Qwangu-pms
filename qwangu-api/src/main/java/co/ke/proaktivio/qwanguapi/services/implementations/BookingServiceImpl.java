@@ -23,11 +23,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @Service
@@ -83,7 +81,46 @@ public class BookingServiceImpl implements BookingService {
                                 if (booking.getStatus().equals(Booking.Status.OCCUPIED))
                                     return Mono.error(new CustomBadRequestException("Can update only if booking is " +
                                             "BOOKED or PENDING_OCCUPATION!"));
-                                return cancelBooking.apply(booking, unit);
+                                return Mono.just(unit)
+                                        .map(u -> {
+                                            u.setStatus(Unit.Status.VACANT);
+                                            return u;
+                                        })
+                                        .flatMap(unitRepository::save)
+                                        .then(Mono.just(new Refund(null, Refund.Status.PENDING_PAYMENT, Refund.Type.BOOKING, null,
+                                                null, booking.getId(), null, LocalDateTime.now(), null)))
+                                        .flatMap(refund -> {
+                                            LocalDate daysBeforeCharges = LocalDate.now().plusDays(DAYS_BEFORE_REFUND_CHARGE);
+                                            if (daysBeforeCharges.isEqual(booking.getOccupation()) || daysBeforeCharges.isBefore(booking.getOccupation())) {
+                                                // they will be given a full refund
+                                                return paymentRepository.findById(booking.getPaymentId())
+                                                        .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment was not made to book!")))
+                                                        .map(Payment::getAmount)
+                                                        .map(amount -> {
+                                                            refund.setPaymentType(Refund.PaymentType.FULL_PAYMENT);
+                                                            refund.setAmount(amount);
+                                                            return refund;
+                                                        }).flatMap(refundRepository::save)
+                                                        .map(r -> {
+                                                            booking.setStatus(Booking.Status.CANCELLED);
+                                                            return booking;
+                                                        });
+                                            }
+                                            // they will be refunded a partial amount
+                                            return paymentRepository.findById(booking.getPaymentId())
+                                                    .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment was not made to book!")))
+                                                    .map(Payment::getAmount)
+                                                    .map(amount -> {
+                                                        refund.setPaymentType(Refund.PaymentType.PARTIAL_PAYMENT);
+                                                        // TODO - CALCULATE AMOUNT TO BE REFUNDED AFTER PERCENTAGE HAS BEEN REMOVED
+                                                        refund.setAmount(amount);
+                                                        return refund;
+                                                    }).flatMap(refundRepository::save)
+                                                    .map(r -> {
+                                                        booking.setStatus(Booking.Status.CANCELLED);
+                                                        return booking;
+                                                    });
+                                        });
                             }
                             booking.setOccupation(dto.getOccupation());
                             if (unit.getStatus().equals(Unit.Status.VACANT))
@@ -93,46 +130,6 @@ public class BookingServiceImpl implements BookingService {
                         }))
                 .flatMap(bookingRepository::save);
     }
-
-    private final BiFunction<Booking, Unit, Mono<Booking>> cancelBooking = (booking, unit) -> {
-        unit.setStatus(Unit.Status.VACANT);
-        unitRepository.save(unit)
-                .then(Mono.just(new Refund(null, Refund.Status.PENDING_PAYMENT, Refund.Type.BOOKING, null,
-                        null, booking.getId(), null, LocalDateTime.now(), null)))
-                .flatMap(refund -> {
-                    LocalDate daysBeforeCharges = LocalDate.now().plusDays(DAYS_BEFORE_REFUND_CHARGE);
-                    if (daysBeforeCharges.isEqual(booking.getOccupation()) || daysBeforeCharges.isBefore(booking.getOccupation())) {
-                        // they will be given a full refund
-                        return paymentRepository.findById(booking.getPaymentId())
-                                .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment was not made to book!")))
-                                .map(Payment::getAmount)
-                                .map(amount -> {
-                                    refund.setPaymentType(Refund.PaymentType.FULL_PAYMENT);
-                                    refund.setAmount(amount);
-                                    return refund;
-                                }).flatMap(refundRepository::save)
-                                .map(r -> {
-                                    booking.setStatus(Booking.Status.CANCELLED);
-                                    return booking;
-                                });
-                    }
-                    // they will be refunded a partial amount
-                    return paymentRepository.findById(booking.getPaymentId())
-                            .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment was not made to book!")))
-                            .map(Payment::getAmount)
-                            .map(amount -> {
-                                refund.setPaymentType(Refund.PaymentType.PARTIAL_PAYMENT);
-                                // TODO - CALCULATE AMOUNT TO BE REFUNDED AFTER PERCENTAGE HAS BEEN REMOVED
-                                refund.setAmount(amount);
-                                return refund;
-                            }).flatMap(refundRepository::save)
-                            .map(r -> {
-                                booking.setStatus(Booking.Status.CANCELLED);
-                                return booking;
-                            });
-                });
-        return null;
-    };
 
     @Getter
     @Setter
