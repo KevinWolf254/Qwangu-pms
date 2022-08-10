@@ -3,9 +3,11 @@ package co.ke.proaktivio.qwanguapi.services;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
+import co.ke.proaktivio.qwanguapi.pojos.UnitsWithNoticeDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UnitService {
@@ -18,6 +20,8 @@ public interface UnitService {
                              Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
                              Optional<Integer> bedrooms, Optional<Integer> bathrooms, Optional<String> apartmentId, int page, int pageSize,
                              OrderType order);
+
+    Flux<Unit> findUnitsByOccupationIds(List<String> occupationIds);
 
     Mono<Boolean> deleteById(String id);
 

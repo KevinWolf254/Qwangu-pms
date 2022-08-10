@@ -16,6 +16,7 @@ public class UnitConfigs {
         return route()
                 .path("v1/units", builder -> builder
                         .GET(handler::find)
+                        .GET("/notice", handler::findUnitsWithNotice)
                         .POST(handler::create)
                         .PUT("/{id}", handler::update)
                         .DELETE("/{id}", handler::delete)

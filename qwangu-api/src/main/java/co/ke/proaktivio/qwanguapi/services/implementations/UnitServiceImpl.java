@@ -6,7 +6,9 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
+import co.ke.proaktivio.qwanguapi.pojos.UnitsWithNoticeDto;
 import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
+import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
 import com.mongodb.client.result.DeleteResult;
@@ -23,6 +25,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -32,6 +35,7 @@ public class UnitServiceImpl implements UnitService {
     private final ApartmentRepository apartmentRepository;
     private final UnitRepository unitRepository;
     private final ReactiveMongoTemplate template;
+    private final OccupationRepository occupationRepository;
 
     @Override
     public Mono<Unit> create(UnitDto dto) {
@@ -149,6 +153,14 @@ public class UnitServiceImpl implements UnitService {
         return template
                 .find(query, Unit.class)
                 .switchIfEmpty(Flux.error(new CustomNotFoundException("Units were not found!")));
+    }
+
+    @Override
+    public Flux<Unit> findUnitsByOccupationIds(List<String> occupationIds) {
+        return occupationRepository.findAllById(occupationIds)
+                .filter(occupation -> occupation.getUnitId() != null && !occupation.getUnitId().isEmpty() &&
+                        !occupation.getUnitId().isBlank())
+                .flatMap(occupation -> unitRepository.findById(occupation.getUnitId()));
     }
 
     @Override

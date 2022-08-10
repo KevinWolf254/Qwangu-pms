@@ -1,8 +1,6 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.models.Notice;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
@@ -139,6 +137,20 @@ public class UnitHandler {
         } catch (Exception e) {
             return handleExceptions(e);
         }
+    }
+
+    public Mono<ServerResponse> findUnitsWithNotice(ServerRequest request) {
+        return request.bodyToMono(UnitsWithNoticeDto.class)
+                .filter(dto -> dto.getOccupationIds() != null && !dto.getOccupationIds().isEmpty())
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation ids must not be null!")))
+                .flatMap(dto -> unitService.findUnitsByOccupationIds(dto.getOccupationIds()).collectList())
+                .flatMap(units ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new SuccessResponse<>(true, "Units found successfully.",
+                                        units)), SuccessResponse.class)
+                                .log())
+                .onErrorResume(handleExceptions());
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
