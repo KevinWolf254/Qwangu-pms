@@ -6,11 +6,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
-@Document(value = "OCCUPATION")
 @Data
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(value = "OCCUPATION")
 public class Occupation {
     @Id
     private String id;
@@ -19,18 +19,16 @@ public class Occupation {
     private LocalDateTime ended;
     private String tenantId;
     private String unitId;
-    private LocalDateTime created;
-    private LocalDateTime modified;
+    private LocalDateTime createdOn;
+    private LocalDateTime modifiedOn;
 
     @Getter
+    @RequiredArgsConstructor
     public enum Status {
+        BOOKED("BOOKED"),
         CURRENT("CURRENT"),
-        MOVED("MOVED");
+        PREVIOUS("PREVIOUS");
 
-        private String state;
-
-        Status(String state) {
-            this.state = state;
-        }
+        private final String state;
     }
 }

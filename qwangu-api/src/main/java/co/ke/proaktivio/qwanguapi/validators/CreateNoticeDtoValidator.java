@@ -20,11 +20,11 @@ public class CreateNoticeDtoValidator implements Validator {
     }
 
     private void validateNotificationDate(CreateNoticeDto request, Errors errors) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "notificationDate", "field.required", "Notification date required.");
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "notifiedOn", "field.required", "Notification date required.");
     }
 
     private void validateVacatingDate(CreateNoticeDto request, Errors errors) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "vacatingDate", "field.required", "Vacating date is required.");
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "vacatingOn", "field.required", "Vacating date is required.");
     }
 
     private void validateOccupationId(CreateNoticeDto request, Errors errors) {

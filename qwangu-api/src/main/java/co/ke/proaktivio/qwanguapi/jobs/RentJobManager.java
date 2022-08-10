@@ -35,22 +35,23 @@ public class RentJobManager {
 
 
     public Flux<RentInvoice> create() {
-        return template.find(new Query()
-                        .addCriteria(Criteria.where("status").is(Occupation.Status.CURRENT)), Occupation.class)
-                .flatMap(o -> unitRepository.findById(o.getUnitId())
-                        .flatMap(u -> template
-                                .findOne(new Query()
-                                        .addCriteria(Criteria.where("occupationId").is(o.getId()))
-                                        .with(Sort.by(Sort.Direction.DESC, "id")), RentInvoice.class)
-                                .switchIfEmpty(Mono.just(new RentInvoice(null, null, BigDecimal.valueOf(u.getRentPerMonth()),
-                                        BigDecimal.valueOf(u.getSecurityPerMonth()), BigDecimal.valueOf(u.getGarbagePerMonth()),
-                                        BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                                        BigDecimal.ZERO, LocalDateTime.now(), null, o.getId(), null)))
-                                .map(r -> new RentInvoice(null, RentInvoice.Type.DEBIT, BigDecimal.valueOf(u.getRentPerMonth()),
-                                        BigDecimal.valueOf(u.getSecurityPerMonth()), BigDecimal.valueOf(u.getGarbagePerMonth()),
-                                        r.getRentAmountCarriedForward(), r.getSecurityAmountCarriedForward(),
-                                        r.getGarbageAmountCarriedForward(), r.getPenaltyAmount(),
-                                        r.getPenaltyAmountCarriedForward(), LocalDateTime.now(), null, o.getId(), null))))
-                .flatMap(rentTransactionRepository::save);
+//        return template.find(new Query()
+//                        .addCriteria(Criteria.where("status").is(Occupation.Status.CURRENT)), Occupation.class)
+//                .flatMap(o -> unitRepository.findById(o.getUnitId())
+//                        .flatMap(u -> template
+//                                .findOne(new Query()
+//                                        .addCriteria(Criteria.where("occupationId").is(o.getId()))
+//                                        .with(Sort.by(Sort.Direction.DESC, "id")), RentInvoice.class)
+//                                .switchIfEmpty(Mono.just(new RentInvoice(null, null, BigDecimal.valueOf(u.getRentPerMonth()),
+//                                        BigDecimal.valueOf(u.getSecurityPerMonth()), BigDecimal.valueOf(u.getGarbagePerMonth()),
+//                                        BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+//                                        BigDecimal.ZERO, LocalDateTime.now(), null, o.getId(), null)))
+//                                .map(r -> new RentInvoice(null, RentInvoice.Type.DEBIT, BigDecimal.valueOf(u.getRentPerMonth()),
+//                                        BigDecimal.valueOf(u.getSecurityPerMonth()), BigDecimal.valueOf(u.getGarbagePerMonth()),
+//                                        r.getRentAmountCarriedForward(), r.getSecurityAmountCarriedForward(),
+//                                        r.getGarbageAmountCarriedForward(), r.getPenaltyAmount(),
+//                                        r.getPenaltyAmountCarriedForward(), LocalDateTime.now(), null, o.getId(), null))))
+//                .flatMap(rentTransactionRepository::save);
+        return null;
     }
 }

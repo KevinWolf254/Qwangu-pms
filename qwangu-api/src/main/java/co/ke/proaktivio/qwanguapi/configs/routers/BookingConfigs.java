@@ -11,14 +11,14 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Configuration
 public class BookingConfigs {
 
-    @Bean
-    RouterFunction<ServerResponse> bookingRoute(BookingHandler handler) {
-        return route()
-                .path("v1/bookings", builder -> builder
-                        .GET(handler::find)
-                        .POST(handler::create)
-                        .PUT("/{id}", handler::update)
-                        .DELETE("/{id}", handler::delete)
-                ).build();
-    }
+//    @Bean
+//    RouterFunction<ServerResponse> bookingRoute(BookingHandler handler) {
+//        return route()
+//                .path("v1/bookings", builder -> builder
+//                        .GET(handler::find)
+//                        .POST(handler::create)
+//                        .PUT("/{id}", handler::update)
+//                        .DELETE("/{id}", handler::delete)
+//                ).build();
+//    }
 }

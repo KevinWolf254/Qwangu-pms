@@ -11,6 +11,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class NoticeDto {
-    private LocalDateTime notificationDate;
-    private LocalDate vacatingDate;
+    private LocalDateTime notifiedOn;
+    private LocalDate vacatingOn;
 }

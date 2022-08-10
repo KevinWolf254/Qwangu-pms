@@ -29,8 +29,6 @@ import reactor.test.StepVerifier;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
 @ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
@@ -121,15 +119,15 @@ class UnitServiceImplIntegrationTest {
                 25000, 500, 500, id);
         var dtoUpdate = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 26000, 510, 510, "1");
-        var unit = new Unit("301", Unit.Status.VACANT, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+        var unit = new Unit("301", Unit.Status.VACANT, false, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
         var dtoThatChangesUnitType = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, "1");
-        var unit2 = new Unit("302", Unit.Status.VACANT, "TE35", Unit.Type.APARTMENT_UNIT, Unit.Identifier.C,
+        var unit2 = new Unit("302", Unit.Status.VACANT, false, "TE35", Unit.Type.APARTMENT_UNIT, Unit.Identifier.C,
                 3, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
         var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 25000, 500, 500, "1");
-        var unitNotForApartment = new Unit("4444", Unit.Status.VACANT, "SE44", Unit.Type.MAISONETTES, null,
+        var unitNotForApartment = new Unit("4444", Unit.Status.VACANT, false, "SE44", Unit.Type.MAISONETTES, null,
                 null, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, null);
         var dtoUpdateNotForApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null, 5, 3, 2, Unit.Currency.KES,
                 45000, 1510, 1510, null);
@@ -152,7 +150,7 @@ class UnitServiceImplIntegrationTest {
                         u.getRentPerMonth() == 26000 &&
                                 u.getSecurityPerMonth() == 510 &&
                                 u.getGarbagePerMonth() == 510 &&
-                                u.getModified() != null)
+                                u.getModifiedOn() != null)
                 .verifyComplete();
 
         // when
@@ -165,7 +163,7 @@ class UnitServiceImplIntegrationTest {
                 .expectNextMatches(u -> u.getIdentifier() == null &&
                         u.getFloorNo() == null && u.getApartmentId() == null &&
                         u.getId().equals("4444") &&
-                        u.getModified() != null &&
+                        u.getModifiedOn() != null &&
                         u.getRentPerMonth() == 45000 &&
                         u.getSecurityPerMonth() == 1510 &&
                         u.getGarbagePerMonth() == 1510)
@@ -209,9 +207,9 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var unit = new Unit("301", Unit.Status.VACANT, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+        var unit = new Unit("301", Unit.Status.VACANT, false,"TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var unit2 = new Unit("303", Unit.Status.VACANT, "TE36", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
+        var unit2 = new Unit("303", Unit.Status.VACANT, false, "TE36", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
 
         // when
@@ -258,7 +256,7 @@ class UnitServiceImplIntegrationTest {
     @DisplayName("deleteById a unit that exists.")
     void deleteById() {
         // given
-        var unit = new Unit("9999", Unit.Status.VACANT, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+        var unit = new Unit("9999", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
 
         // when

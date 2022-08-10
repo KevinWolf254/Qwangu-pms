@@ -99,8 +99,8 @@ class OccupationConfigsTest {
                 .jsonPath("$.data.ended").isEmpty()
                 .jsonPath("$.data.tenantId").isEqualTo(tenantId)
                 .jsonPath("$.data.unitId").isEqualTo(unitId)
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
 
         // then
@@ -167,8 +167,8 @@ class OccupationConfigsTest {
                 .jsonPath("$.data.ended").isEmpty()
                 .jsonPath("$.data.tenantId").isEqualTo("1")
                 .jsonPath("$.data.unitId").isEqualTo("1")
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
 
         // when
@@ -286,8 +286,8 @@ class OccupationConfigsTest {
                 .jsonPath("$.data.[0].ended").isEmpty()
                 .jsonPath("$.data.[0].tenantId").isEqualTo("1")
                 .jsonPath("$.data.[0].unitId").isEqualTo("1")
-                .jsonPath("$.data.[0].created").isNotEmpty()
-                .jsonPath("$.data.[0].modified").isEmpty()
+                .jsonPath("$.data.[0].createdOn").isNotEmpty()
+                .jsonPath("$.data.[0].modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
 
         // then
@@ -302,7 +302,7 @@ class OccupationConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Status should be CURRENT or MOVED!")
+                .jsonPath("$.data").isEqualTo("Status should be BOOKED or CURRENT or PREVIOUS!")
                 .consumeWith(System.out::println);
     }
 

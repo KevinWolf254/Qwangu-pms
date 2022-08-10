@@ -2,17 +2,13 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Booking;
 import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.CreateNoticeDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateNoticeDto;
-import co.ke.proaktivio.qwanguapi.repositories.BookingRepository;
 import co.ke.proaktivio.qwanguapi.repositories.NoticeRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
-import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import co.ke.proaktivio.qwanguapi.services.NoticeService;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
@@ -22,14 +18,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -46,7 +39,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(dto.getOccupationId()))))
                 .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not create notice of occupation that is not active!")))
-                .then(Mono.just(new Notice(null, Notice.Status.AWAITING_EXIT, dto.getNotificationDate(), dto.getVacatingDate(), LocalDateTime.now(), null, dto.getOccupationId())))
+                .then(Mono.just(new Notice(null, true, dto.getNotifiedOn(), dto.getVacatingOn(), LocalDateTime.now(), null, dto.getOccupationId())))
                 .flatMap(noticeRepository::save);
     }
 
@@ -54,7 +47,7 @@ public class NoticeServiceImpl implements NoticeService {
     public Mono<Notice> update(String id, UpdateNoticeDto dto) {
         return noticeRepository.findById(id)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Notice with id %s does not exist!".formatted(id))))
-                .filter(notice -> notice.getStatus().equals(Notice.Status.AWAITING_EXIT))
+                .filter(Notice::getIsActive)
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice that is inactive!")))
                 .flatMap(notice -> occupationRepository.findById(notice.getOccupationId())
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(notice.getOccupationId()))))
@@ -62,20 +55,20 @@ public class NoticeServiceImpl implements NoticeService {
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice of occupation that is not active!")))
                         .then(Mono.just(notice)))
                 .map(notice -> {
-                    if (dto.getStatus() != null)
-                        notice.setStatus(dto.getStatus());
-                    if (dto.getNotificationDate() != null)
-                        notice.setNotificationDate(dto.getNotificationDate());
-                    if (dto.getVacatingDate() != null)
-                        notice.setVacatingDate(dto.getVacatingDate());
-                    notice.setModified(LocalDateTime.now());
+                    if (dto.getIsActive() != null)
+                        notice.setIsActive(dto.getIsActive());
+                    if (dto.getNotifiedOn() != null)
+                        notice.setNotifiedOn(dto.getNotifiedOn());
+                    if (dto.getVacatingOn() != null)
+                        notice.setVacatingOn(dto.getVacatingOn());
+                    notice.setModifiedOn(LocalDateTime.now());
                     return notice;
                 })
                 .flatMap(noticeRepository::save);
     }
 
     @Override
-    public Flux<Notice> findPaginated(Optional<String> id, Optional<Notice.Status> status, Optional<String> occupationId,
+    public Flux<Notice> findPaginated(Optional<String> id, Optional<Boolean> isActive, Optional<String> occupationId,
                                       int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
@@ -83,7 +76,7 @@ public class NoticeServiceImpl implements NoticeService {
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
         id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
-        status.ifPresent(s -> query.addCriteria(Criteria.where("status").is(s)));
+        isActive.ifPresent(s -> query.addCriteria(Criteria.where("isActive").is(s)));
         occupationId.ifPresent(i -> query.addCriteria(Criteria.where("occupationId").is(i)));
         query.with(pageable)
                 .with(sort);

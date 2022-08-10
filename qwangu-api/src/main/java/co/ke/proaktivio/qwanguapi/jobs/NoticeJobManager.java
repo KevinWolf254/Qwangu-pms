@@ -12,11 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,49 +40,35 @@ public class NoticeJobManager {
     public Flux<Notice> vacate() {
         return Mono.just(new Query()
                         .addCriteria(Criteria
-                                .where("status").is(Notice.Status.AWAITING_EXIT)
-                                .and("vacatingDate").is(LocalDate.now().minusDays(1))))
+                                .where("isActive").is(true)
+                                .and("vacatingOn").is(LocalDate.now().minusDays(1))))
                 .flatMapMany(query -> template.find(query, Notice.class))
                 .doOnNext(n -> System.out.println("---- Found: " +n))
                 .flatMap(notice -> occupationRepository.findById(notice.getOccupationId())
-                        .doOnSuccess(o -> System.out.println("---- Found:" + o))
                         .filter(Objects::nonNull)
+                        .doOnSuccess(occupation -> System.out.println("---- Found:" + occupation))
                         .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
                         .flatMap(occupation -> unitRepository.findById(occupation.getUnitId())
                                 .filter(Objects::nonNull)
+                                .doOnSuccess(unit -> System.out.println("---- Found:" + unit))
                                 .filter(unit -> unit.getStatus().equals(Unit.Status.OCCUPIED))
-                                .flatMap(unit -> Mono.just(new Query()
-                                                .addCriteria(Criteria
-                                                        .where("status").is(Booking.Status.BOOKED)
-                                                        .and("unitId").is(unit.getId())))
-                                        .flatMap(query -> template.findOne(query, Booking.class))
-                                        .filter(booking -> booking.getPaymentId() != null)
-                                        .filter(Objects::nonNull)
-                                        .map(booking -> {
-                                            booking.setStatus(Booking.Status.PENDING_OCCUPATION);
-                                            booking.setModified(LocalDateTime.now());
-                                            return booking;
-                                        })
-                                        .flatMap(bookingRepository::save)
-                                        .doOnNext(b -> System.out.println("---- Saved: " +b))
-                                        .then(Mono.just(unit)))
-                                .map(u -> {
-                                    u.setStatus(Unit.Status.AWAITING_OCCUPATION);
-                                    return u;
+                                .map(unit -> {
+                                    unit.setStatus(Unit.Status.VACANT);
+                                    return unit;
                                 })
                                 .flatMap(unitRepository::save)
                                 .doOnNext(u -> System.out.println("---- Saved: " +u))
                                 .then(Mono.just(occupation)))
-                        .map(o -> {
-                            o.setStatus(Occupation.Status.MOVED);
-                            return o;
+                        .map(occupation -> {
+                            occupation.setStatus(Occupation.Status.PREVIOUS);
+                            return occupation;
                         })
                         .flatMap(occupationRepository::save)
-                        .doOnNext(o -> System.out.println("---- Saved: " +o))
+                        .doOnNext(occupation -> System.out.println("---- Saved: " +occupation))
                         .then(Mono.just(notice)))
-                .map(n -> {
-                    n.setStatus(Notice.Status.EXITED);
-                    return n;
+                .map(notice -> {
+                    notice.setIsActive(false);
+                    return notice;
                 })
                 .flatMap(noticeRepository::save)
                 .doOnNext(n -> System.out.println("---- Saved: " +n));

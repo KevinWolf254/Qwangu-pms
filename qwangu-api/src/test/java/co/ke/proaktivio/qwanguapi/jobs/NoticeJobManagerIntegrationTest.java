@@ -48,12 +48,11 @@ class NoticeJobManagerIntegrationTest {
     }
     private final LocalDateTime now = LocalDateTime.now();
     private final LocalDate today = LocalDate.now();
-    private final Unit unit = new Unit("1", Unit.Status.OCCUPIED, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
+    private final Unit unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
             2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, now, null, "1");
     private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", now, null);
     private final Tenant tenant = new Tenant("1", "John", "middle", "Doe", "0700000000", "person@gmail.com", now, null);
-    private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now.minusDays(30), today.minusDays(1), now, null, "1");
-    private final Booking booking = new Booking("1", Booking.Status.BOOKED, today, now.minusDays(5), null, "1", "1");
+    private final Notice notice = new Notice("1", true, now.minusDays(30), today.minusDays(1), now, null, "1");
 
     @Test
     void vacate() {
@@ -66,13 +65,11 @@ class NoticeJobManagerIntegrationTest {
                 .doOnSuccess(o -> System.out.println("---- Saved: " +o))
                 .then(noticeRepository.save(notice))
                 .doOnSuccess(n -> System.out.println("---- Saved: " +n))
-                .then(bookingRepository.save(booking))
-                .doOnSuccess(b -> System.out.println("---- Saved: " +b))
                 .thenMany(noticeJobManager.vacate());
         //then
         StepVerifier
                 .create(vacate)
-                .expectNextMatches(n -> n.getStatus().equals(Notice.Status.EXITED))
+                .expectNextMatches(n -> !n.getIsActive())
                 .verifyComplete();
     }
 }

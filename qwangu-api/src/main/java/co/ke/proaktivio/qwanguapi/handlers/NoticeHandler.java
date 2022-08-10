@@ -1,16 +1,12 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.models.Booking;
-import co.ke.proaktivio.qwanguapi.models.Notice;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.NoticeService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.CreateNoticeDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.UpdateNoticeDtoValidator;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.EnumUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -21,11 +17,9 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
@@ -60,22 +54,21 @@ public class NoticeHandler {
 
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> id = request.queryParam("id");
-        Optional<String> status = request.queryParam("status");
+        Optional<String> isActive = request.queryParam("isActive");
         Optional<String> occupationId = request.queryParam("occupationId");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
 
         try {
-            if (status.isPresent() &&  !EnumUtils.isValidEnum(Notice.Status.class, status.get())) {
-                String[] arrayOfState = Stream.of(Notice.Status.values()).map(Notice.Status::getState).toArray(String[]::new);
-                String states = String.join(" or ", arrayOfState);
-                throw new CustomBadRequestException("Status should be " + states + "!");
+            if (isActive.isPresent() && (!"true".equalsIgnoreCase(isActive.get()) &&
+            !"false".equalsIgnoreCase(isActive.get()))) {
+                throw new CustomBadRequestException("isActive should be a true or false!");
             }
 
             return noticeService.findPaginated(
                             id,
-                            status.map(Notice.Status::valueOf),
+                            isActive.map(r -> r.equalsIgnoreCase("true")),
                             occupationId,
                             page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
                             pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),

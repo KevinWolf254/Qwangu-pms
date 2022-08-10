@@ -44,9 +44,9 @@ class NoticeServiceImplIntegrationTest {
     private final LocalDateTime now = LocalDateTime.now();
     private final LocalDate today = LocalDate.now();
     private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
-    private final Occupation occupationMoved = new Occupation("2", Occupation.Status.MOVED, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
-    private final Notice notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, null, "1");
-    private final Notice noticeWithOccupationMoved = new Notice("2", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, null, "2");
+    private final Occupation occupationMoved = new Occupation("2", Occupation.Status.PREVIOUS, LocalDateTime.now(), null, "2", "2", LocalDateTime.now(), null);
+    private final Notice notice = new Notice("1", true, now, today.plusDays(40), now, null, "1");
+    private final Notice noticeWithOccupationMoved = new Notice("2", true, now, today.plusDays(40), now, null, "2");
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
@@ -100,8 +100,8 @@ class NoticeServiceImplIntegrationTest {
     void update() {
         // given
         LocalDateTime now = LocalDateTime.now();
-        var dto = new UpdateNoticeDto(Notice.Status.AWAITING_EXIT, now, today.plusDays(35));
-        var noticeWithOccupationDoesNotExist = new Notice("3000", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, null, "3000");
+        var dto = new UpdateNoticeDto(true, now, today.plusDays(35));
+        var noticeWithOccupationDoesNotExist = new Notice("3000", true, now, today.plusDays(40), now, null, "3000");
         // when
         Mono<Notice> updateNotice = noticeRepository
                 .deleteAll()
@@ -118,7 +118,7 @@ class NoticeServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(updateNotice)
-                .expectNextMatches(n -> n.getModified() != null)
+                .expectNextMatches(n -> n.getModifiedOn() != null)
                 .verifyComplete();
 
         // when
@@ -172,7 +172,7 @@ class NoticeServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(find)
-                .expectNextMatches(n -> n.getStatus().equals(Notice.Status.AWAITING_EXIT) && n.getId().equals("1"))
+                .expectNextMatches(n -> n.getIsActive() && n.getId().equals("1"))
                 .verifyComplete();
 
         // when

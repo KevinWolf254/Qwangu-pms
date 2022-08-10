@@ -7,14 +7,14 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
-@NoArgsConstructor
+//@Getter
+//@Setter
+//@NoArgsConstructor
 public class UpdateBookingDto extends BookingDto {
-    private Booking.Status status;
-
-    public UpdateBookingDto(Booking.Status status, LocalDate occupation) {
-        super(occupation);
-        this.status = status;
-    }
+//    private Booking.Status status;
+//
+//    public UpdateBookingDto(Booking.Status status, LocalDate occupation) {
+//        super(occupation);
+//        this.status = status;
+//    }
 }

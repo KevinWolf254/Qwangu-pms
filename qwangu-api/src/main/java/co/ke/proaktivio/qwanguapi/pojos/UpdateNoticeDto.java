@@ -1,6 +1,5 @@
 package co.ke.proaktivio.qwanguapi.pojos;
 
-import co.ke.proaktivio.qwanguapi.models.Notice;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,10 +11,10 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class UpdateNoticeDto extends NoticeDto {
-    private Notice.Status status;
+    private Boolean isActive;
 
-    public UpdateNoticeDto(Notice.Status status, LocalDateTime notificationDate, LocalDate vacatingDate) {
-        super(notificationDate, vacatingDate);
-        this.status = status;
+    public UpdateNoticeDto(Boolean isActive, LocalDateTime notifiedOn, LocalDate vacatingOn) {
+        super(notifiedOn, vacatingOn);
+        this.isActive = isActive;
     }
 }

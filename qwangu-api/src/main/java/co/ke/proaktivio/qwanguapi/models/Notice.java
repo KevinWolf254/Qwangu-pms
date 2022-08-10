@@ -7,27 +7,18 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Document(value = "NOTICE")
 @Data
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(value = "NOTICE")
 public class Notice {
     @Id
     private String id;
-    private Status status;
-    private LocalDateTime notificationDate;
-    private LocalDate vacatingDate;
-    private LocalDateTime created;
-    private LocalDateTime modified;
+    private Boolean isActive;
+    private LocalDateTime notifiedOn;
+    private LocalDate vacatingOn;
+    private LocalDateTime createdOn;
+    private LocalDateTime modifiedOn;
     private String occupationId;
-
-    @Getter
-    @RequiredArgsConstructor
-    public enum Status {
-        AWAITING_EXIT("AWAITING_EXIT"),
-        EXITED("EXITED");
-
-        private final String state;
-    }
 }

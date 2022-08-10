@@ -85,7 +85,7 @@ public class TenantServiceImpl implements TenantService {
                     if(tenant.getMobileNumber() !=null && !tenant.getMobileNumber().trim().isEmpty() &&
                             !tenant.getMobileNumber().trim().isBlank())
                         tenant.setMobileNumber(dto.getMobileNumber());
-                    tenant.setModified(LocalDateTime.now());
+                    tenant.setModifiedOn(LocalDateTime.now());
                     return tenant;
                 })
                 .flatMap(tenantRepository::save);

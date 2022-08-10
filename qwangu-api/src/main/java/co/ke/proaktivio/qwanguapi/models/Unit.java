@@ -7,15 +7,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
-@Document(value = "UNIT")
 @Data
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(value = "UNIT")
 public class Unit {
     @Id
     private String id;
     private Status status;
+    private Boolean isBooked;
     @Indexed(unique = true)
     private String accountNo;
     private Type type;
@@ -28,29 +29,28 @@ public class Unit {
     private Integer rentPerMonth;
     private Integer securityPerMonth;
     private Integer garbagePerMonth;
-    private LocalDateTime created;
-    private LocalDateTime modified;
+    private LocalDateTime createdOn;
+    private LocalDateTime modifiedOn;
     private String apartmentId;
 
     @Getter
     @RequiredArgsConstructor
     public enum Status {
         VACANT("VACANT"),
-        AWAITING_OCCUPATION("AWAITING_OCCUPATION"),
         OCCUPIED("OCCUPIED");
 
         private final String state;
     }
 
     @Getter
-    @AllArgsConstructor
+    @RequiredArgsConstructor
     public enum Type{
         APARTMENT_UNIT("APARTMENT_UNIT"),
         TOWN_HOUSE("TOWN_HOUSE"),
         MAISONETTES("MAISONETTES"),
         VILLA("VILLA");
 
-        private String type;
+        private final String type;
     }
 
     public enum Identifier {

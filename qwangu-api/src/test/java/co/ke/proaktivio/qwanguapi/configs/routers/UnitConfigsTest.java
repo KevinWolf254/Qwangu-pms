@@ -72,12 +72,12 @@ public class UnitConfigsTest {
         // given
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2, 2,
                 2, Unit.Currency.KES, 25000, 500, 300, "1");
-        var unit = new Unit("1", Unit.Status.VACANT, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
+        var unit = new Unit("1", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
                 0, 2, 1, 2, Unit.Currency.KES, 25000, 500,
                 300, LocalDateTime.now(), null, "1");
         var dtoNonApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null, 2, 2,
                 2, Unit.Currency.KES, 25000, 500, 300, null);
-        var unitNonApartment = new Unit("2", Unit.Status.VACANT, "TE99", Unit.Type.MAISONETTES, null,
+        var unitNonApartment = new Unit("2", Unit.Status.VACANT, false, "TE99", Unit.Type.MAISONETTES, null,
                 0, 2, 1, 2, Unit.Currency.KES, 25000, 500,
                 300, LocalDateTime.now(), null, null);
         var dtoFailsValidation = new UnitDto(null, null, null, null, null, null,
@@ -106,8 +106,8 @@ public class UnitConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.accountNo").isEqualTo("TE99")
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
 
         // when
@@ -129,8 +129,8 @@ public class UnitConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("2")
                 .jsonPath("$.data.accountNo").isEqualTo("TE99")
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
 
         // when
@@ -218,7 +218,7 @@ public class UnitConfigsTest {
         var id = "1";
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2, 2,
                 2, Unit.Currency.KES, 25000, 500, 300, "1");
-        var unit = new Unit(id, Unit.Status.VACANT, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
+        var unit = new Unit(id, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
                 0, 2, 1, 2, Unit.Currency.KES, 25000, 500,
                 300, LocalDateTime.now(), null, "1");
 
@@ -241,8 +241,8 @@ public class UnitConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.accountNo").isEqualTo("TE99")
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -302,7 +302,7 @@ public class UnitConfigsTest {
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
-        var unit = new Unit(id, Unit.Status.VACANT, accountNo, type, identifier,
+        var unit = new Unit(id, Unit.Status.VACANT, false, accountNo, type, identifier,
                 floorNo, noOfBedrooms, noOfBathrooms, 2, Unit.Currency.KES, 25000, 500,
                 300, LocalDateTime.now(), null, apartmentId);
 
@@ -378,7 +378,7 @@ public class UnitConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Status should be VACANT or AWAITING_OCCUPATION or OCCUPIED!")
+                .jsonPath("$.data").isEqualTo("Status should be VACANT or OCCUPIED!")
                 .consumeWith(System.out::println);
         // then
         client

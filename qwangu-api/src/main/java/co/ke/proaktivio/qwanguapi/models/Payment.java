@@ -10,16 +10,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Document(value = "PAYMENT")
 @Data
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(value = "PAYMENT")
 public class Payment {
     @Id
     private String id;
     private Type type;
-    private Status status;
     private String transactionId;
     private String transactionType;
     private LocalDateTime transactionTime;
@@ -40,11 +39,5 @@ public class Payment {
         MPESA_PAY_BILL,
         MPESA_TILL,
         PAYPAL
-    }
-    public enum Status {
-        BOOKING_NEW,
-        RENT_NEW,
-        PROCESSED_SUCCESSFULLY,
-        PROCESSED_FAILED
     }
 }

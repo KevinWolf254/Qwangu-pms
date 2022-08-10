@@ -108,8 +108,8 @@ class TenantConfigsTest {
                 .jsonPath("$.data.surname").isEqualTo("Doe")
                 .jsonPath("$.data.mobileNumber").isEqualTo(mobileNumber)
                 .jsonPath("$.data.emailAddress").isEqualTo(emailAddress)
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
         // then
         client
@@ -176,8 +176,8 @@ class TenantConfigsTest {
                 .jsonPath("$.data.surname").isEqualTo("Doe")
                 .jsonPath("$.data.mobileNumber").isEqualTo(mobileNumber)
                 .jsonPath("$.data.emailAddress").isEqualTo(emailAddress)
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
 
         // then
@@ -277,8 +277,8 @@ class TenantConfigsTest {
                 .jsonPath("$.data.[0].surname").isEqualTo("Doe")
                 .jsonPath("$.data.[0].mobileNumber").isEqualTo(mobileNumber)
                 .jsonPath("$.data.[0].emailAddress").isEqualTo(emailAddress)
-                .jsonPath("$.data.[0].created").isNotEmpty()
-                .jsonPath("$.data.[0].modified").isEmpty()
+                .jsonPath("$.data.[0].createdOn").isNotEmpty()
+                .jsonPath("$.data.[0].modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
     }
 

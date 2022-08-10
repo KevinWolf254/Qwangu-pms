@@ -27,14 +27,14 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
 
     @Override
     public Mono<DarajaCustomerToBusinessResponse> confirm(DarajaCustomerToBusinessDto dto) {
-        String bookingRegEx = "^(BOOK|book)";
+//        String bookingRegEx = "^(BOOK|book)";
         return Mono.just(dto)
                 .map(r -> {
-                    Payment.Status status = r.getReferenceNumber() != null && !r.getReferenceNumber().trim().isEmpty() && !r.getReferenceNumber().trim().isBlank() ?
-                            r.getReferenceNumber().startsWith(bookingRegEx) ? Payment.Status.BOOKING_NEW : Payment.Status.RENT_NEW : Payment.Status.RENT_NEW;
+//                    Payment.Status status = r.getReferenceNumber() != null && !r.getReferenceNumber().trim().isEmpty() && !r.getReferenceNumber().trim().isBlank() ?
+//                            r.getReferenceNumber().startsWith(bookingRegEx) ? Payment.Status.BOOKING_NEW : Payment.Status.RENT_NEW : Payment.Status.RENT_NEW;
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ENGLISH);
                     LocalDateTime transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter).atZone(ZoneId.of("Africa/Nairobi")).toLocalDateTime();
-                    return new Payment(null, dto.getTransactionType().equals("Pay Bill") ? Payment.Type.MPESA_PAY_BILL : Payment.Type.MPESA_TILL, status, r.getTransactionId(), r.getTransactionType(), transactionTime,
+                    return new Payment(null, dto.getTransactionType().equals("Pay Bill") ? Payment.Type.MPESA_PAY_BILL : Payment.Type.MPESA_TILL, r.getTransactionId(), r.getTransactionType(), transactionTime,
                             BigDecimal.valueOf(Double.parseDouble(r.getAmount())), r.getShortCode(), r.getReferenceNumber(), r.getInvoiceNo(), r.getAccountBalance(),
                                 r.getThirdPartyId(), r.getMobileNumber(), r.getFirstName(), r.getMiddleName(), r.getLastName(),
                                 LocalDateTime.now(), null);

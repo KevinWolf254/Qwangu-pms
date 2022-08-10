@@ -4,8 +4,6 @@ import co.ke.proaktivio.qwanguapi.configs.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.handlers.NoticeHandler;
 import co.ke.proaktivio.qwanguapi.models.Notice;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.NoticeService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -78,7 +76,7 @@ class NoticeConfigsTest {
         // given
         var dto = new CreateNoticeDto(now, today.plusDays(30), "1");
         var dtoNotValid = new CreateNoticeDto(null ,null, null);
-        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, null, "1");
+        var notice = new Notice("1", true, now, today.plusDays(40), now, null, "1");
         // when
         when(noticeService.create(dto)).thenReturn(Mono.just(notice));
         // then
@@ -96,11 +94,11 @@ class NoticeConfigsTest {
                 .jsonPath("$.message").isEqualTo("Notice created successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.status").isEqualTo(Notice.Status.AWAITING_EXIT.getState())
-                .jsonPath("$.data.notificationDate").isNotEmpty()
-                .jsonPath("$.data.vacatingDate").isNotEmpty()
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.isActive").isEqualTo(true)
+                .jsonPath("$.data.notifiedOn").isNotEmpty()
+                .jsonPath("$.data.vacatingOn").isNotEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
 
         // when
@@ -143,9 +141,9 @@ class NoticeConfigsTest {
     void update() {
         // given
         var id = "1";
-        var dto = new UpdateNoticeDto(Notice.Status.AWAITING_EXIT, now, today.plusDays(30));
+        var dto = new UpdateNoticeDto(true, now, today.plusDays(30));
         var dtoNotValid = new UpdateNoticeDto(null ,null, null);
-        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, now, "1");
+        var notice = new Notice("1", true, now, today.plusDays(40), now, now, "1");
 
         // when
         when(noticeService.update(id, dto)).thenReturn(Mono.just(notice));
@@ -164,11 +162,11 @@ class NoticeConfigsTest {
                 .jsonPath("$.message").isEqualTo("Notice updated successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.status").isEqualTo(Notice.Status.AWAITING_EXIT.getState())
-                .jsonPath("$.data.notificationDate").isNotEmpty()
-                .jsonPath("$.data.vacatingDate").isNotEmpty()
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isNotEmpty()
+                .jsonPath("$.data.isActive").isEqualTo(true)
+                .jsonPath("$.data.notifiedOn").isNotEmpty()
+                .jsonPath("$.data.vacatingOn").isNotEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isNotEmpty()
                 .consumeWith(System.out::println);
 
         // when
@@ -186,7 +184,7 @@ class NoticeConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Status is required. Notification date required. Vacating date is required.")
+                .jsonPath("$.data").isEqualTo("IsActive is required. Notification date required. Vacating date is required.")
                 .consumeWith(System.out::println);
     }
 
@@ -224,7 +222,7 @@ class NoticeConfigsTest {
         // given
         var id = "1";
         var occupationId = "1";
-        var notice = new Notice("1", Notice.Status.AWAITING_EXIT, now, today.plusDays(40), now, now, "1");
+        var notice = new Notice("1", true, now, today.plusDays(40), now, now, "1");
         String page = "1";
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
@@ -235,7 +233,7 @@ class NoticeConfigsTest {
                 uriBuilder
                         .path("/v1/notices")
                         .queryParam("id", id)
-                        .queryParam("status", "AWAITING_EXIT")
+                        .queryParam("isActive", "true")
                         .queryParam("occupationId", occupationId)
                         .queryParam("page", 1)
                         .queryParam("pageSize", 10)
@@ -245,12 +243,12 @@ class NoticeConfigsTest {
         Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
                 uriBuilder
                         .path("/v1/notices")
-                        .queryParam("status", "NOT_VALID")
+                        .queryParam("isActive", "NOT_VALID")
                         .build();
         // when
         when(noticeService.findPaginated(
                 Optional.of(id),
-                Optional.of(Notice.Status.AWAITING_EXIT),
+                Optional.of(true),
                 Optional.of(occupationId),
                 finalPage,
                 finalPageSize,
@@ -269,11 +267,11 @@ class NoticeConfigsTest {
                 .jsonPath("$.message").isEqualTo("Notices found successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
-                .jsonPath("$.data.[0].status").isEqualTo(Notice.Status.AWAITING_EXIT.getState())
-                .jsonPath("$.data.[0].notificationDate").isNotEmpty()
-                .jsonPath("$.data.[0].vacatingDate").isNotEmpty()
-                .jsonPath("$.data.[0].created").isNotEmpty()
-                .jsonPath("$.data.[0].modified").isNotEmpty()
+                .jsonPath("$.data.[0].isActive").isEqualTo(true)
+                .jsonPath("$.data.[0].notifiedOn").isNotEmpty()
+                .jsonPath("$.data.[0].vacatingOn").isNotEmpty()
+                .jsonPath("$.data.[0].createdOn").isNotEmpty()
+                .jsonPath("$.data.[0].modifiedOn").isNotEmpty()
                 .consumeWith(System.out::println);
 
         // then
@@ -288,7 +286,7 @@ class NoticeConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
                 .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Status should be AWAITING_EXIT or EXITED!")
+                .jsonPath("$.data").isEqualTo("isActive should be a true or false!")
                 .consumeWith(System.out::println);
     }
 

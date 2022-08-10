@@ -77,7 +77,7 @@ public class OccupationServiceImpl implements OccupationService {
                             o.setStarted(dto.getStarted());
                         if (dto.getEnded() != null)
                             o.setEnded(dto.getEnded());
-                        o.setModified(LocalDateTime.now());
+                        o.setModifiedOn(LocalDateTime.now());
                         return o;
                     })
                     .flatMap(occupationRepository::save);
@@ -92,7 +92,7 @@ public class OccupationServiceImpl implements OccupationService {
                         o.setStarted(dto.getStarted());
                     if (dto.getEnded() != null)
                         o.setEnded(dto.getEnded());
-                    o.setModified(LocalDateTime.now());
+                    o.setModifiedOn(LocalDateTime.now());
                     return o;
                 })
                 .flatMap(occupationRepository::save);

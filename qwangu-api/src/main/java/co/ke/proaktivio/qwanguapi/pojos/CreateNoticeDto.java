@@ -10,11 +10,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class CreateNoticeDto extends NoticeDto{
+public class CreateNoticeDto extends NoticeDto {
         private String occupationId;
 
-        public CreateNoticeDto(LocalDateTime notificationDate, LocalDate vacatingDate, String occupationId) {
-                super(notificationDate, vacatingDate);
+        public CreateNoticeDto(LocalDateTime notifiedOn, LocalDate vacatingOn, String occupationId) {
+                super(notifiedOn, vacatingOn);
                 this.occupationId = occupationId;
         }
 }
