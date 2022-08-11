@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 //@NoArgsConstructor
 //@AllArgsConstructor
 //@Document(value = "RENT_INVOICE_TRANSACTION")
-public class RentInvoice {
+//public class RentInvoice {
 //    @Id
 //    private String id;
 //    private Type type;
@@ -37,4 +37,4 @@ public class RentInvoice {
 //
 //        private final String type;
 //    }
-}
+//}

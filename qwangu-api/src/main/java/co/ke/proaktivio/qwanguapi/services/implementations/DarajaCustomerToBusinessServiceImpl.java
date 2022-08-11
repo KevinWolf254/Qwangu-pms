@@ -1,13 +1,9 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
-import co.ke.proaktivio.qwanguapi.models.Notice;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Payment;
-import co.ke.proaktivio.qwanguapi.models.Unit;
+import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessResponse;
-import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
-import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
+import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.services.DarajaCustomerToBusinessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -17,15 +13,24 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusinessService {
     private final PaymentRepository paymentRepository;
+    private final TenantRepository tenantRepository;
+    private final OccupationRepository occupationRepository;
+    private final UnitRepository unitRepository;
+    private final ReceivableRepository receivableRepository;
+    private final OccupationTransactionRepository occupationTransactionRepository;
     private final ReactiveMongoTemplate template;
 
     @Override
@@ -45,35 +50,53 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
                             r.getThirdPartyId(), r.getMobileNumber(), r.getFirstName(), r.getMiddleName(), r.getLastName(),
                             LocalDateTime.now(), null);
                 })
-                .map(payment -> {
-                    if (payment.getReferenceNo() != null && !payment.getReferenceNo().trim().isEmpty() && !payment.getReferenceNo().trim().isBlank() && payment.getReferenceNo().startsWith(bookingRegEx)) {
-                        return paymentRepository.save(payment)
-                                .flatMap(p -> {
-                                    return template.findOne(new Query()
-                                            .addCriteria(Criteria
-                                                    .where("accountNo").is(payment.getReferenceNo().substring(3))), Unit.class);
-                                })
-                                .filter(unit -> !unit.getIsBooked())
-                                .flatMap(unit -> {
-                                    return template
-                                            .findOne(new Query()
-                                                    .addCriteria(Criteria
-                                                            .where("unitId").is(unit.getId())
-                                                            .and("status").is(Occupation.Status.CURRENT)
-                                                            .orOperator(new Criteria()
-                                                                    .and("status").is(Occupation.Status.PREVIOUS))), Occupation.class)
-                                            .flatMap(occupation -> {
-                                                return template.findOne(new Query()
+                .map(p -> {
+                    if (p.getReferenceNo() != null && !p.getReferenceNo().trim().isEmpty() && !p.getReferenceNo().trim().isBlank() && p.getReferenceNo().startsWith(bookingRegEx)) {
+                        return paymentRepository.save(p)
+                                .flatMap(payment -> template.findOne(new Query()
+                                                .addCriteria(Criteria
+                                                        .where("accountNo").is(payment.getReferenceNo().substring(3))), Unit.class)
+                                        .filter(unit -> !unit.getIsBooked())
+                                        .flatMap(unit -> template.findOne(new Query()
                                                         .addCriteria(Criteria
-                                                                .where("occupationId").is(occupation.getId())), Notice.class);
-                                            })
-                                            .flatMap(notice -> {
-                                                return null;
-                                            });
-                                })
-                                .then(Mono.just(payment));
+                                                                .where("unitId").is(unit.getId())
+                                                                .and("status").is(Occupation.Status.CURRENT)
+                                                                .orOperator(new Criteria()
+                                                                        .and("status").is(Occupation.Status.PREVIOUS))), Occupation.class)
+                                                .flatMap(occupation -> template.findOne(new Query()
+                                                                .addCriteria(Criteria
+                                                                        .where("occupationId").is(occupation.getId())), Notice.class)
+                                                        .filter(Notice::getIsActive)
+                                                        .filter(notice -> notice.getVacatingOn().isAfter(LocalDate.now()) || notice.getVacatingOn().isEqual(LocalDate.now()))
+                                                        .flatMap(notice -> template.findOne(new Query()
+                                                                        .addCriteria(Criteria
+                                                                                .where("mobileNumber").is(payment.getMobileNumber())), Tenant.class)
+                                                                .filter(Objects::nonNull)
+                                                                .switchIfEmpty(Mono.just(new Tenant(null, payment.getFirstName(), payment.getMiddleName(), payment.getLastName(),
+                                                                        payment.getMobileNumber(), null, LocalDateTime.now(), null)))
+                                                                .flatMap(tenantRepository::save)
+                                                                .map(tenant -> new Occupation(null, Occupation.Status.BOOKED, null, null, tenant.getId(), unit.getId(), LocalDateTime.now(), null))
+                                                                .flatMap(newOccupation -> occupationRepository.save(newOccupation)
+                                                                        .map(o -> {
+                                                                            unit.setIsBooked(true);
+                                                                            return unit;
+                                                                        })
+                                                                        .flatMap(unitRepository::save)
+                                                                        .map($ -> {
+                                                                            Map<String, BigDecimal> otherAmounts = new HashMap<>();
+                                                                            otherAmounts.put("Booking", BigDecimal.valueOf(Long.getLong(dto.getAmount())));
+                                                                            return new Receivable(null, Receivable.Type.BOOKING, null, null, null, null, otherAmounts, LocalDateTime.now(), null);
+                                                                        })
+                                                                        .flatMap(receivable -> receivableRepository.save(receivable)
+                                                                                .map(savedReceivable -> new OccupationTransaction(null, BigDecimal.ZERO, receivable.getOtherAmounts().get("Booking"), BigDecimal.ZERO, newOccupation.getId(), receivable.getId(), payment.getId(), LocalDateTime.now())))
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
+                                .then(Mono.just(p));
                     }
-                    return paymentRepository.save(payment);
+                    return paymentRepository.save(p);
                 })
                 .then(Mono.just(new DarajaCustomerToBusinessResponse<Integer>(0, "ACCEPTED")));
     }
