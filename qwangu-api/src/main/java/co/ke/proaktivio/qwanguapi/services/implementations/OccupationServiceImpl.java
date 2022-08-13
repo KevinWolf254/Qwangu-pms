@@ -99,6 +99,16 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     @Override
+    public Mono<Occupation> findOccupationWithStatusCurrentAndPreviousByUnitId(String unitId) {
+        return template.findOne(new Query()
+                .addCriteria(Criteria
+                        .where("unitId").is(unitId)
+                        .and("status").is(Occupation.Status.CURRENT)
+                        .orOperator(new Criteria()
+                                .and("status").is(Occupation.Status.PREVIOUS))), Occupation.class);
+    }
+
+    @Override
     public Flux<Occupation> findPaginated(Optional<String> id, Optional<Occupation.Status> status, Optional<String> unitId,
                                           Optional<String> tenantId, int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);

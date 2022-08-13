@@ -14,6 +14,8 @@ public interface TenantService {
 
     Mono<Tenant> update(String id, TenantDto dto);
 
+    Mono<Tenant> findTenantByMobileNumber(String mobileNumber);
+
     Flux<Tenant> findPaginated(Optional<String> id, Optional<String> mobileNumber, Optional<String> emailAddress,
                              int page, int pageSize, OrderType order);
 

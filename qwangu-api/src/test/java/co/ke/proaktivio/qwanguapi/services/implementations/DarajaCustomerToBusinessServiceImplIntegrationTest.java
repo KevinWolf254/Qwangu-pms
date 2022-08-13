@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.models.Payment;
+import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessResponse;
 import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
@@ -21,6 +22,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,6 +39,12 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
 
     private final DarajaCustomerToBusinessDto dto = new DarajaCustomerToBusinessDto("RKTQDM7W6S", "Pay Bill", "20191122063845", "10", "600638",
             "T903", "", "49197.00", "", "254708374149", "John", "", "Doe");
+
+    private final DarajaCustomerToBusinessDto dtoBooking = new DarajaCustomerToBusinessDto("RKTQDM7W67", "Pay Bill", "20191122063845", "10", "600638",
+            "BOOKT903", "", "49197.00", "", "254708374147", "John", "", "Doe");
+
+    private final Unit unit = new Unit("9999", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
+            2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {

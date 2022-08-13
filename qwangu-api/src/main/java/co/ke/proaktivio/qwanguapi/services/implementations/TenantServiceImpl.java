@@ -92,6 +92,13 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
+    public Mono<Tenant> findTenantByMobileNumber(String mobileNumber) {
+        return template.findOne(new Query()
+                .addCriteria(Criteria
+                        .where("mobileNumber").is(mobileNumber)), Tenant.class);
+    }
+
+    @Override
     public Flux<Tenant> findPaginated(Optional<String> id, Optional<String> mobileNumber, Optional<String> emailAddress,
                                       int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
