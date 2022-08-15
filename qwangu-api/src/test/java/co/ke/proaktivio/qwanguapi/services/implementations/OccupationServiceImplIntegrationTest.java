@@ -6,12 +6,12 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.models.Unit;
-import co.ke.proaktivio.qwanguapi.pojos.CreateOccupationDto;
+import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.pojos.UpdateOccupationDto;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.TenantRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
+import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
@@ -40,7 +40,7 @@ class OccupationServiceImplIntegrationTest {
     @Autowired
     private ReactiveMongoTemplate template;
     @Autowired
-    private OccupationServiceImpl occupationService;
+    private OccupationService occupationService;
     @Autowired
     private UnitRepository unitRepository;
     @Autowired
@@ -58,9 +58,9 @@ class OccupationServiceImplIntegrationTest {
         // given
         String unitId = "12";
         String tenantId = "13";
-        var dto = new CreateOccupationDto(LocalDateTime.now(), null, tenantId, unitId);
-        var dtoUnitIdNotExist = new CreateOccupationDto(LocalDateTime.now(), null, tenantId, "5");
-        var dtoTenantIdNotExist = new CreateOccupationDto(LocalDateTime.now(), null, "6", unitId);
+        var dto = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId);
+        var dtoUnitIdNotExist = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, "5");
+        var dtoTenantIdNotExist = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null, "6", unitId);
         var tenant = new Tenant(tenantId, "John", "middle", "Doe", "0700000000", "person@gmail.com", LocalDateTime.now(), null);
         var tenantActive = new Tenant("1", "John", "middle", "Doe", "0700000000", "person@gmail.com", LocalDateTime.now(), null);
         var unit = new Unit(unitId, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
@@ -124,13 +124,13 @@ class OccupationServiceImplIntegrationTest {
         String id = "1";
         String unitId = "12";
         String tenantId = "13";
-        var dto = new UpdateOccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null);
+        var dto = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId);
         var occupation = new Occupation(id, Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
         var occupationThatIsActive = new Occupation("2", Occupation.Status.CURRENT, LocalDateTime.now(), null, "14", unitId, LocalDateTime.now(), null);
         var tenant = new Tenant(tenantId, "John", "middle", "Doe", "0700000000", "person@gmail.com", LocalDateTime.now(), null);
         var unit = new Unit(unitId, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
                 2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var dtoToDiActivate = new UpdateOccupationDto(Occupation.Status.PREVIOUS, LocalDateTime.now(), null);
+        var dtoToDiActivate = new OccupationDto(Occupation.Status.PREVIOUS, LocalDateTime.now(), null, tenantId, unitId);
 
         //when
         Mono<Occupation> updateOccupation = unitRepository

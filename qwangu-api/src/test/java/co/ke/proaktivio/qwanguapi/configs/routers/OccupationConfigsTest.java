@@ -73,9 +73,10 @@ class OccupationConfigsTest {
         // given
         String tenantId = "1";
         String unitId = "1";
-        var dto = new CreateOccupationDto(LocalDateTime.now(), null, tenantId, unitId);
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId, LocalDateTime.now(), null);
-        var dtoNotValid = new CreateOccupationDto(null, null, null, null);
+        LocalDateTime now = LocalDateTime.now();
+        var dto = new OccupationDto(Occupation.Status.CURRENT, now, null, tenantId, unitId);
+        var occupation = new Occupation("1", Occupation.Status.CURRENT, now, null, tenantId, unitId, now, null);
+        var dtoNotValid = new OccupationDto(null, null, null, null, null);
 
         // when
         when(occupationService.create(dto)).thenReturn(Mono.just(occupation));
@@ -85,7 +86,7 @@ class OccupationConfigsTest {
                 .post()
                 .uri("/v1/occupations")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), CreateOccupationDto.class)
+                .body(Mono.just(dto), OccupationDto.class)
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentType("application/json")
@@ -108,7 +109,7 @@ class OccupationConfigsTest {
                 .post()
                 .uri("/v1/occupations")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dtoNotValid), CreateOccupationDto.class)
+                .body(Mono.just(dtoNotValid), OccupationDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType("application/json")
@@ -116,7 +117,7 @@ class OccupationConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Started is required. Tenant id is required. Unit id is required.")
+                .jsonPath("$.data").isEqualTo("Status is required. Started is required. Tenant id is required. Unit id is required.")
                 .consumeWith(System.out::println);
     }
 
@@ -141,9 +142,9 @@ class OccupationConfigsTest {
     void update() {
         // given
         var id = "1";
-        var dto = new UpdateOccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null);
+        var dto = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1");
         var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
-        var dtoNotValid = new UpdateOccupationDto(null, null, null);
+        var dtoNotValid = new OccupationDto(null, null, null, null, null);
 
         // when
         when(occupationService.update(id, dto)).thenReturn(Mono.just(occupation));
@@ -153,7 +154,7 @@ class OccupationConfigsTest {
                 .put()
                 .uri("/v1/occupations/{id}", id)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), CreateOccupationDto.class)
+                .body(Mono.just(dto), OccupationDto.class)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")
@@ -178,7 +179,7 @@ class OccupationConfigsTest {
                 .put()
                 .uri("/v1/occupations/{id}", id)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dtoNotValid), CreateOccupationDto.class)
+                .body(Mono.just(dtoNotValid), OccupationDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType("application/json")
@@ -186,7 +187,7 @@ class OccupationConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Status is required. Started is required.")
+                .jsonPath("$.data").isEqualTo("Status is required. Started is required. Tenant id is required. Unit id is required.")
                 .consumeWith(System.out::println);
     }
 

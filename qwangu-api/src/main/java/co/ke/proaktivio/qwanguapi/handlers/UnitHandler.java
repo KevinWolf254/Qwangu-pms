@@ -143,7 +143,7 @@ public class UnitHandler {
         return request.bodyToMono(UnitsWithNoticeDto.class)
                 .filter(dto -> dto.getOccupationIds() != null && !dto.getOccupationIds().isEmpty())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation ids must not be null!")))
-                .flatMap(dto -> unitService.findUnitsByOccupationIds(dto.getOccupationIds()).collectList())
+                .flatMap(dto -> unitService.findByOccupationIds(dto.getOccupationIds()).collectList())
                 .flatMap(units ->
                         ServerResponse
                                 .ok()

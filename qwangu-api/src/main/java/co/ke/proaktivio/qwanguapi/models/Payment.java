@@ -1,9 +1,6 @@
 package co.ke.proaktivio.qwanguapi.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -18,6 +15,7 @@ import java.time.LocalDateTime;
 public class Payment {
     @Id
     private String id;
+    private Status status;
     private Type type;
     private String transactionId;
     private String transactionType;
@@ -39,5 +37,13 @@ public class Payment {
         MPESA_PAY_BILL,
         MPESA_TILL,
         PAYPAL
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    public enum Status{
+        NEW("NEW"),
+        PROCESSED("PROCESSED");
+        private final String state;
     }
 }

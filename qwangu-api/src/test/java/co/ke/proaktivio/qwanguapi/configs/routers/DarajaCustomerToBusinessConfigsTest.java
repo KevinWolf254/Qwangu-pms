@@ -6,6 +6,7 @@ import co.ke.proaktivio.qwanguapi.handlers.DarajaCustomerToBusinessHandler;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessResponse;
 import co.ke.proaktivio.qwanguapi.services.DarajaCustomerToBusinessService;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -47,7 +48,7 @@ class DarajaCustomerToBusinessConfigsTest {
 
     private final DarajaCustomerToBusinessDto dto = new DarajaCustomerToBusinessDto("RKTQDM7W6S", "Pay Bill", "20191122063845", "10", "600638",
             "T903", "", "49197.00", "", "254708374149", "John", "", "Doe");
-    private final DarajaCustomerToBusinessResponse response = new DarajaCustomerToBusinessResponse(0, "ACCEPTED");
+    private final DarajaCustomerToBusinessResponse<?> response = new DarajaCustomerToBusinessResponse<>(0, "ACCEPTED");
 
     @Test
     void validate() {
@@ -133,14 +134,14 @@ class DarajaCustomerToBusinessConfigsTest {
 
 class SetRemoteAddressWebFilter implements WebFilter {
 
-    private String host;
+    private final String host;
 
     public SetRemoteAddressWebFilter(String host) {
         this.host = host;
     }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+    public @NotNull Mono<Void> filter(@NotNull ServerWebExchange exchange, WebFilterChain chain) {
         return chain.filter(decorate(exchange));
     }
 
@@ -154,7 +155,7 @@ class SetRemoteAddressWebFilter implements WebFilter {
 
         return new ServerWebExchangeDecorator(exchange) {
             @Override
-            public ServerHttpRequest getRequest() {
+            public @NotNull ServerHttpRequest getRequest() {
                 return decorated;
             }
         };

@@ -76,3 +76,6 @@ rent:
   cronToCreateInvoice: '0 0/1 * * * ?'
   dueDatePerMonth: 5
   penaltyPercentageOfRent: 20
+
+booking:
+  percentage: 20.5

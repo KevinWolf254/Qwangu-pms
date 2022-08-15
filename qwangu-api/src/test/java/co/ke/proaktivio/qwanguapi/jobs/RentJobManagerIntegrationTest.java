@@ -1,10 +1,8 @@
 package co.ke.proaktivio.qwanguapi.jobs;
 
 import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.RentInvoice;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
-import co.ke.proaktivio.qwanguapi.repositories.RentTransactionRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +28,7 @@ import java.time.LocalDateTime;
 //@Testcontainers
 //@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
 //@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
-class RentJobManagerIntegrationTest {
+//class RentJobManagerIntegrationTest {
 //    @Autowired
 //    private RentTransactionRepository rentTransactionRepository;
 //    @Autowired
@@ -122,4 +120,4 @@ class RentJobManagerIntegrationTest {
 //                .thenMany(manager.create())
 //                .doOnNext(r -> System.out.println("---- Created " + r));
 //    }
-}
+//}

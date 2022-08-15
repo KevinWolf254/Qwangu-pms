@@ -6,10 +6,10 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.models.Unit;
-import co.ke.proaktivio.qwanguapi.pojos.CreateOccupationDto;
+import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.pojos.UpdateOccupationDto;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
+import co.ke.proaktivio.qwanguapi.services.NoticeService;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
@@ -30,13 +30,35 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OccupationServiceImpl implements OccupationService {
     private final OccupationRepository occupationRepository;
+    private final NoticeService noticeService;
     private final ReactiveMongoTemplate template;
 
+//    @Override
+//    public Mono<Occupation> create(CreateOccupationDto dto) {
+//        String unitId = dto.getUnitId();
+//        String tenantId = dto.getTenantId();
+//        Query query = new Query()
+//                .addCriteria(Criteria
+//                        .where("unitId").is(unitId)
+//                        .and("status").is(Occupation.Status.CURRENT));
+//        return template
+//                .findById(unitId, Unit.class)
+//                .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(unitId))))
+//                .then(template.findById(tenantId, Tenant.class))
+//                .switchIfEmpty(Mono.error(new CustomNotFoundException("Tenant with id %s does not exist!".formatted(tenantId))))
+//                .then(template.exists(query, Occupation.class))
+//                .filter(exists -> !exists)
+//                .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Occupation already exists!")))
+//                .then(Mono.just(new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(), dto.getEnded(), dto.getTenantId(),
+//                        dto.getUnitId(), LocalDateTime.now(), null)))
+//                .flatMap(occupationRepository::save);
+//    }
+
     @Override
-    public Mono<Occupation> create(CreateOccupationDto dto) {
+    public Mono<Occupation> create(OccupationDto dto) {
         String unitId = dto.getUnitId();
         String tenantId = dto.getTenantId();
-        Query query = new Query()
+        Query occupationUnAvailable = new Query()
                 .addCriteria(Criteria
                         .where("unitId").is(unitId)
                         .and("status").is(Occupation.Status.CURRENT));
@@ -45,16 +67,29 @@ public class OccupationServiceImpl implements OccupationService {
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(unitId))))
                 .then(template.findById(tenantId, Tenant.class))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Tenant with id %s does not exist!".formatted(tenantId))))
-                .then(template.exists(query, Occupation.class))
-                .filter(exists -> !exists)
-                .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Occupation already exists!")))
-                .then(Mono.just(new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(), dto.getEnded(), dto.getTenantId(),
-                        dto.getUnitId(), LocalDateTime.now(), null)))
+                .flatMap($ -> {
+                    if (dto.getStatus().equals(Occupation.Status.PREVIOUS))
+                        return Mono.error(new CustomBadRequestException("Status PREVIOUS is not accepted!"));
+                    if (dto.getStatus().equals(Occupation.Status.BOOKED)) {
+                        return findByUnitIdAndNotBooked(unitId)
+                                .switchIfEmpty(Mono.error(new CustomBadRequestException("Unit is unavailable for booking!")))
+                                .flatMap(occupation -> noticeService.findByOccupationIdAndIsActive(occupation.getId(),
+                                        occupation.getStatus().equals(Occupation.Status.CURRENT)))
+                                .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Notice does not exist!")))
+                                .then(Mono.just(new Occupation(null, dto.getStatus(), dto.getStarted(), dto.getEnded(), dto.getTenantId(),
+                                        dto.getUnitId(), LocalDateTime.now(), null)));
+                    }
+                    return template.exists(occupationUnAvailable, Occupation.class)
+                            .filter(exists -> !exists)
+                            .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Occupation already exists!")))
+                            .then(Mono.just(new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(), dto.getEnded(), dto.getTenantId(),
+                                    dto.getUnitId(), LocalDateTime.now(), null)));
+                })
                 .flatMap(occupationRepository::save);
     }
 
     @Override
-    public Mono<Occupation> update(String id, UpdateOccupationDto dto) {
+    public Mono<Occupation> update(String id, OccupationDto dto) {
         if (dto.getStatus().equals(Occupation.Status.CURRENT)) {
             return occupationRepository
                     .findById(id)
@@ -99,13 +134,12 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     @Override
-    public Mono<Occupation> findOccupationWithStatusCurrentAndPreviousByUnitId(String unitId) {
+    public Mono<Occupation> findByUnitIdAndNotBooked(String unitId) {
         return template.findOne(new Query()
                 .addCriteria(Criteria
-                        .where("unitId").is(unitId)
-                        .and("status").is(Occupation.Status.CURRENT)
-                        .orOperator(new Criteria()
-                                .and("status").is(Occupation.Status.PREVIOUS))), Occupation.class);
+                                .where("unitId").is(unitId)
+                                .and("status").in(Occupation.Status.CURRENT, Occupation.Status.PREVIOUS)
+                ).with(Sort.by(Sort.Direction.DESC, "id")), Occupation.class);
     }
 
     @Override

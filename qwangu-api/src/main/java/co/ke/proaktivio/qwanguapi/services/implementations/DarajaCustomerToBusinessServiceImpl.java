@@ -1,43 +1,37 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.configs.BookingPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.models.*;
-import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
-import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessResponse;
+import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.*;
-import co.ke.proaktivio.qwanguapi.services.DarajaCustomerToBusinessService;
-import co.ke.proaktivio.qwanguapi.services.NoticeService;
-import co.ke.proaktivio.qwanguapi.services.OccupationService;
-import co.ke.proaktivio.qwanguapi.services.TenantService;
+import co.ke.proaktivio.qwanguapi.services.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiPredicate;
 
 @Service
 @RequiredArgsConstructor
 public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusinessService {
     private final PaymentRepository paymentRepository;
-    private final TenantService tenantService;
-    private final TenantRepository tenantRepository;
-    private final NoticeService noticeService;
+    private final UnitService unitService;
     private final OccupationService occupationService;
-    private final OccupationRepository occupationRepository;
+    private final NoticeService noticeService;
+    private final TenantService tenantService;
+    private final ReceivableService receivableService;
+    private final OccupationTransactionService occupationTransactionService;
     private final UnitRepository unitRepository;
-    private final ReceivableRepository receivableRepository;
-    private final OccupationTransactionRepository occupationTransactionRepository;
-    private final ReactiveMongoTemplate template;
+//    private static final Double BOOKING_PERCENTAGE = 25.0;
+    private final BookingPropertiesConfig bookingProperties;
 
     @Override
     public Mono<DarajaCustomerToBusinessResponse> validate(DarajaCustomerToBusinessDto dto) {
@@ -47,50 +41,77 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
     @Override
     @Transactional
     public Mono<DarajaCustomerToBusinessResponse> confirm(DarajaCustomerToBusinessDto dto) {
-        String bookingRegEx = "^(BOOK|book)";
         return Mono.just(dto)
                 .map(r -> {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ENGLISH);
                     LocalDateTime transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter).atZone(ZoneId.of("Africa/Nairobi")).toLocalDateTime();
-                    return new Payment(null, dto.getTransactionType().equals("Pay Bill") ? Payment.Type.MPESA_PAY_BILL : Payment.Type.MPESA_TILL, r.getTransactionId(), r.getTransactionType(), transactionTime,
+                    return new Payment(null, Payment.Status.NEW, dto.getTransactionType().equals("Pay Bill") ? Payment.Type.MPESA_PAY_BILL : Payment.Type.MPESA_TILL, r.getTransactionId(), r.getTransactionType(), transactionTime,
                             BigDecimal.valueOf(Double.parseDouble(r.getAmount())), r.getShortCode(), r.getReferenceNumber(), r.getInvoiceNo(), r.getAccountBalance(),
                             r.getThirdPartyId(), r.getMobileNumber(), r.getFirstName(), r.getMiddleName(), r.getLastName(),
                             LocalDateTime.now(), null);
                 })
-                .map(p -> {
-                    if (p.getReferenceNo() != null && !p.getReferenceNo().trim().isEmpty() && !p.getReferenceNo().trim().isBlank() && p.getReferenceNo().startsWith(bookingRegEx)) {
-                        return paymentRepository.save(p)
-                                .flatMap(payment -> noticeService.findUnitByAccountNoAndIsBooked(payment.getReferenceNo().substring(3), false)
-                                        .flatMap(unit -> occupationService.findOccupationWithStatusCurrentAndPreviousByUnitId(unit.getId())
-                                                .flatMap(occupation -> noticeService.findNoticeByOccupationIdAndIsActiveAndGTEVacatingOn(occupation.getId(), true, LocalDate.now())
-                                                        .flatMap(notice -> tenantService.findTenantByMobileNumber(payment.getMobileNumber())
-                                                                .switchIfEmpty(Mono.just(new Tenant(null, payment.getFirstName(), payment.getMiddleName(), payment.getLastName(),
-                                                                        payment.getMobileNumber(), null, LocalDateTime.now(), null)))
-                                                                .flatMap(tenantRepository::save)
-                                                                .map(tenant -> new Occupation(null, Occupation.Status.BOOKED, null, null, tenant.getId(), unit.getId(), LocalDateTime.now(), null))
-                                                                .flatMap(newOccupation -> occupationRepository.save(newOccupation)
-                                                                        .flatMap(savedOccupation -> {
-                                                                            Map<String, BigDecimal> otherAmounts = new HashMap<>();
-                                                                            otherAmounts.put("booking", BigDecimal.valueOf(Long.getLong(dto.getAmount())));
-                                                                            return Mono.just(new Receivable(null, Receivable.Type.BOOKING, null, null, null, null, otherAmounts, LocalDateTime.now(), null))
-                                                                                    .flatMap(receivableRepository::save)
-                                                                                    .map(savedReceivable -> new OccupationTransaction(null, BigDecimal.ZERO, savedReceivable.getOtherAmounts().get("booking"), BigDecimal.ZERO, savedOccupation.getId(), savedReceivable.getId(), payment.getId(), LocalDateTime.now()))
-                                                                                    .flatMap(occupationTransactionRepository::save);
-                                                                        })
-                                                                        .map($ -> {
-                                                                            unit.setIsBooked(true);
-                                                                            return unit;
-                                                                        })
-                                                                        .flatMap(unitRepository::save)
-                                                                )
-                                                        )
-                                                )
-                                        )
-                                )
-                                .then(Mono.just(p));
-                    }
-                    return paymentRepository.save(p);
-                })
-                .then(Mono.just(new DarajaCustomerToBusinessResponse<Integer>(0, "ACCEPTED")));
+                .flatMap(paymentRepository::save)
+                .filter(payment -> isBookingPayment.test("^(BOOK|book)", payment))
+                .flatMap(this::processBooking)
+                .then(Mono.just(new DarajaCustomerToBusinessResponse<>(0, "ACCEPTED")));
     }
+
+    @Transactional
+    public Mono<Unit> processBooking(Payment payment) {
+        String accountNo = payment.getReferenceNo().substring(4);
+        return unitService
+                .findByAccountNoAndIsBooked(accountNo, false)
+                .doOnSuccess(u -> System.out.println("---- Found: " + u))
+                .filter(unit -> {
+                    double bookingPercentage = bookingProperties.getPercentage() / 100;
+                    double bookingAmountRequired = bookingPercentage * unit.getRentPerMonth().doubleValue();
+                    boolean enough = payment.getAmount().doubleValue() >= bookingAmountRequired;
+                    return enough;
+                })
+                .flatMap(unit -> occupationService
+                        .findByUnitIdAndNotBooked(unit.getId())
+                        .doOnSuccess(u -> System.out.println("---- Found: " + u))
+                        .flatMap(occupation -> noticeService.findByOccupationIdAndIsActive(occupation.getId(),
+                                true))
+                        .doOnSuccess(u -> System.out.println("---- Found: " + u))
+                        .flatMap(notice -> tenantService.findTenantByMobileNumber(payment.getMobileNumber())
+                                .doOnSuccess(u -> System.out.println("---- Found: " + u)))
+                        .switchIfEmpty(tenantService.create(new TenantDto(payment.getFirstName(), payment.getMiddleName(),
+                                payment.getLastName(), payment.getMobileNumber(), null)))
+                        .doOnSuccess(u -> System.out.println("---- Created: " + u))
+                        .flatMap(tenant -> occupationService.create(new OccupationDto(Occupation.Status.BOOKED,
+                                null, null, tenant.getId(), unit.getId())))
+                        .doOnSuccess(u -> System.out.println("---- Created: " + u))
+                        .flatMap(occupation -> {
+                            Map<String, BigDecimal> amounts = new HashMap<>(1);
+                            amounts.put("booking", payment.getAmount());
+                            return receivableService
+                                .create(new ReceivableDto(Receivable.Type.BOOKING, null,
+                                        null, null, null, amounts))
+                                .doOnSuccess(u -> System.out.println("---- Created: " + u))
+                                .flatMap(receivable -> occupationTransactionService.create(
+                                        new OccupationTransactionDto(BigDecimal.ZERO,
+                                                receivable.getOtherAmounts().get("booking"), BigDecimal.ZERO,
+                                                occupation.getId(), receivable.getId(), payment.getId()))
+                                        .doOnSuccess(u -> System.out.println("---- Created: " + u))
+                                );
+                        })
+                        .map($ -> {
+                            payment.setStatus(Payment.Status.PROCESSED);
+                            return payment;
+                        })
+                        .flatMap(paymentRepository::save)
+                        .doOnSuccess(u -> System.out.println("---- Saved: " + u))
+                        .map($ -> {
+                            unit.setIsBooked(true);
+                            return unit;
+                        })
+                )
+                .flatMap(unitRepository::save)
+                .doOnSuccess(u -> System.out.println("---- Saved: " + u));
+    }
+
+    BiPredicate<String, Payment> isBookingPayment = (bookingRegEx, payment) -> payment.getReferenceNo() != null &&
+            !payment.getReferenceNo().trim().isEmpty() && !payment.getReferenceNo().trim().isBlank() &&
+            payment.getReferenceNo().startsWith(bookingRegEx);
 }

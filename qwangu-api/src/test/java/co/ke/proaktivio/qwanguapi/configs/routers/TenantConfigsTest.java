@@ -2,28 +2,20 @@ package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.configs.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.TenantHandler;
-import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
 import co.ke.proaktivio.qwanguapi.models.Tenant;
-import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.TenantService;
-import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
-import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
@@ -36,7 +28,6 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -93,7 +84,7 @@ class TenantConfigsTest {
                 .post()
                 .uri("/v1/tenants")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), CreateOccupationDto.class)
+                .body(Mono.just(dto), OccupationDto.class)
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentType("application/json")
@@ -116,7 +107,7 @@ class TenantConfigsTest {
                 .post()
                 .uri("/v1/tenants")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dtoNotValid), CreateOccupationDto.class)
+                .body(Mono.just(dtoNotValid), OccupationDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType("application/json")

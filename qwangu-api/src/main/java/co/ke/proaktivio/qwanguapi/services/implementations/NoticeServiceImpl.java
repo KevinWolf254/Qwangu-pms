@@ -4,7 +4,6 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.CreateNoticeDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateNoticeDto;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -70,20 +68,11 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public Mono<Notice> findNoticeByOccupationIdAndIsActiveAndGTEVacatingOn(String occupationId, Boolean isActive, LocalDate vacatingOn) {
+    public Mono<Notice> findByOccupationIdAndIsActive(String occupationId, Boolean isActive) {
         return template.findOne(new Query()
                 .addCriteria(Criteria
                         .where("occupationId").is(occupationId)
-                        .and("isActive").is(isActive)
-                        .and("vacatingOn").gte(vacatingOn)), Notice.class);
-    }
-
-    @Override
-    public Mono<Unit> findUnitByAccountNoAndIsBooked(String accountNo, Boolean isBooked) {
-        return template.findOne(new Query()
-                .addCriteria(Criteria
-                        .where("accountNo").is(accountNo)
-                        .and("isBooked").is(isBooked)), Unit.class);
+                        .and("isActive").is(isActive)), Notice.class);
     }
 
     @Override

@@ -1,13 +1,11 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
-import co.ke.proaktivio.qwanguapi.validators.CreateOccupationDtoValidator;
-import co.ke.proaktivio.qwanguapi.validators.UpdateOccupationDtoValidator;
+import co.ke.proaktivio.qwanguapi.validators.OccupationDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -34,11 +32,11 @@ public class OccupationHandler {
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request
-                .bodyToMono(CreateOccupationDto.class)
-                .map(validateCreateOccupationDtoFunc(new CreateOccupationDtoValidator()))
+                .bodyToMono(OccupationDto.class)
+                .map(validateOccupationDtoFunc(new OccupationDtoValidator()))
                 .flatMap(occupationService::create)
                 .flatMap(created -> ServerResponse
-                        .created(URI.create("v1/users/%s".formatted(created.getId())))
+                        .created(URI.create("v1/occupations/%s".formatted(created.getId())))
                         .body(Mono.just(new SuccessResponse<>(true, "Occupation created successfully.", created)), SuccessResponse.class)
                         .log())
                 .onErrorResume(handleExceptions());
@@ -47,8 +45,8 @@ public class OccupationHandler {
     public Mono<ServerResponse> update(ServerRequest request) {
         String id = request.pathVariable("id");
         return request
-                .bodyToMono(UpdateOccupationDto.class)
-                .map(validateUpdateOccupationDtoFunc(new UpdateOccupationDtoValidator()))
+                .bodyToMono(OccupationDto.class)
+                .map(validateOccupationDtoFunc(new OccupationDtoValidator()))
                 .flatMap(dto -> occupationService.update(id, dto))
                 .flatMap(updated ->
                         ServerResponse
@@ -106,9 +104,9 @@ public class OccupationHandler {
                 .onErrorResume(handleExceptions());
     }
 
-    private Function<CreateOccupationDto, CreateOccupationDto> validateCreateOccupationDtoFunc(Validator validator) {
+    private Function<OccupationDto, OccupationDto> validateOccupationDtoFunc(Validator validator) {
         return createOccupationDto -> {
-            Errors errors = new BeanPropertyBindingResult(createOccupationDto, CreateOccupationDto.class.getName());
+            Errors errors = new BeanPropertyBindingResult(createOccupationDto, OccupationDto.class.getName());
             validator.validate(createOccupationDto, errors);
             if (!errors.getAllErrors().isEmpty()) {
                 String errorMessage = errors.getAllErrors().stream()
@@ -117,20 +115,6 @@ public class OccupationHandler {
                 throw new CustomBadRequestException(errorMessage);
             }
             return createOccupationDto;
-        };
-    }
-
-    private Function<UpdateOccupationDto, UpdateOccupationDto> validateUpdateOccupationDtoFunc(Validator validator) {
-        return updateOccupationDto -> {
-            Errors errors = new BeanPropertyBindingResult(updateOccupationDto, UpdateOccupationDto.class.getName());
-            validator.validate(updateOccupationDto, errors);
-            if (!errors.getAllErrors().isEmpty()) {
-                String errorMessage = errors.getAllErrors().stream()
-                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                        .collect(Collectors.joining(" "));
-                throw new CustomBadRequestException(errorMessage);
-            }
-            return updateOccupationDto;
         };
     }
 }

@@ -1,8 +1,7 @@
 package co.ke.proaktivio.qwanguapi.jobs;
 
 import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.RentInvoice;
-import co.ke.proaktivio.qwanguapi.repositories.RentTransactionRepository;
+//import co.ke.proaktivio.qwanguapi.models.RentInvoice;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -18,12 +17,12 @@ import reactor.core.scheduler.Schedulers;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Component
-@RequiredArgsConstructor
-public class RentJobManager {
-    private final RentTransactionRepository rentTransactionRepository;
-    private final UnitRepository unitRepository;
-    private final ReactiveMongoTemplate template;
+//@Component
+//@RequiredArgsConstructor
+//public class RentJobManager {
+//    private final RentTransactionRepository rentTransactionRepository;
+//    private final UnitRepository unitRepository;
+//    private final ReactiveMongoTemplate template;
 
     // TODO - UNCOMMENT
 //    @Scheduled(cron = "${rent.cronToCreateInvoice}")
@@ -34,7 +33,7 @@ public class RentJobManager {
 //    }
 
 
-    public Flux<RentInvoice> create() {
+//    public Flux<?> create() {
 //        return template.find(new Query()
 //                        .addCriteria(Criteria.where("status").is(Occupation.Status.CURRENT)), Occupation.class)
 //                .flatMap(o -> unitRepository.findById(o.getUnitId())
@@ -52,6 +51,6 @@ public class RentJobManager {
 //                                        r.getGarbageAmountCarriedForward(), r.getPenaltyAmount(),
 //                                        r.getPenaltyAmountCarriedForward(), LocalDateTime.now(), null, o.getId(), null))))
 //                .flatMap(rentTransactionRepository::save);
-        return null;
-    }
-}
+//        return null;
+//    }
+//}

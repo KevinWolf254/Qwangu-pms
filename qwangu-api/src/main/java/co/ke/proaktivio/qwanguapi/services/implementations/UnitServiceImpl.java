@@ -156,11 +156,19 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public Flux<Unit> findUnitsByOccupationIds(List<String> occupationIds) {
+    public Flux<Unit> findByOccupationIds(List<String> occupationIds) {
         return occupationRepository.findAllById(occupationIds)
                 .filter(occupation -> occupation.getUnitId() != null && !occupation.getUnitId().isEmpty() &&
                         !occupation.getUnitId().isBlank())
                 .flatMap(occupation -> unitRepository.findById(occupation.getUnitId()));
+    }
+
+    @Override
+    public Mono<Unit> findByAccountNoAndIsBooked(String accountNo, Boolean isBooked) {
+        return template.findOne(new Query()
+                .addCriteria(Criteria
+                        .where("accountNo").is(accountNo)
+                        .and("isBooked").is(isBooked)), Unit.class);
     }
 
     @Override
