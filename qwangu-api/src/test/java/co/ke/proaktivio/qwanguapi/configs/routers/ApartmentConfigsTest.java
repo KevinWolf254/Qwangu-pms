@@ -303,8 +303,8 @@ class ApartmentConfigsTest {
         when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
 
         // then
-        client.post()
-                .uri("/v1/apartments")
+        client.put()
+                .uri("/v1/apartments/{id}", "1")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()

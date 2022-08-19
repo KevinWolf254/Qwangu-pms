@@ -129,7 +129,7 @@ class UserServiceImplTest {
         var person = new Person("John", "Doe", "Doe");
         var user = new User("1", person, "person@gmail.com", "1", encodedPassword,
                 false, false, false, true, now, now);
-        var role = new Role("1", "ADMIN", Set.of("1"), now, null);
+        var role = new Role("1", "ADMIN", now, null);
         var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(dto.getUsername())))).thenReturn(Mono.just(user));

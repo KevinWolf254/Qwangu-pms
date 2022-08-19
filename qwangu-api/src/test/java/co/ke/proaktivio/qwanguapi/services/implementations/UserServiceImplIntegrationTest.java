@@ -63,8 +63,9 @@ class UserServiceImplIntegrationTest {
         UserDto dto = new UserDto(person, "john.doe@gmail.com", "1");
         UserDto dto2 = new UserDto(person, "john.doe1@gmail.com", "1");
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true, LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", null, LocalDateTime.now(), null);
+        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
+                true, "1", LocalDateTime.now(), null);
+        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
 
         // when
         Mono<User> create = userRepository.deleteAll()
@@ -75,10 +76,7 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all Authorities!"))
                 .then(authorityRepository.save(authority))
                 .doOnSuccess(System.out::println)
-                .flatMap(authResult -> {
-                    role.setAuthorityIds(Set.of(authResult.getId()));
-                    return roleRepository.save(role);
-                })
+                .flatMap(authResult -> roleRepository.save(role))
                 .doOnSuccess(r -> System.out.println("---- Saved " + r))
                 .flatMap(roleResult -> userService.create(dto))
                 .doOnSuccess(u -> System.out.println("---- Saved " + u));

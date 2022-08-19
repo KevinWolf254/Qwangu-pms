@@ -47,8 +47,10 @@ class CustomAuthorityRepositoryImplTest {
         // given
 
         //when
-        Flux<Authority> saved = Flux.just(new Authority(null, "USERS", true, true, true, true, true, LocalDateTime.now(), null),
-                        new Authority(null, "APARTMENTS", true, true, true, true, true, LocalDateTime.now(), null))
+        Flux<Authority> saved = Flux.just(new Authority(null, "USERS", true, true, true,
+                                true, true, "1", LocalDateTime.now(), null),
+                        new Authority(null, "APARTMENTS", true, true, true, true,
+                                true, "1", LocalDateTime.now(), null))
                 .flatMap(a -> template.save(a, "AUTHORITY"))
                 .thenMany(customAuthorityRepository.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,

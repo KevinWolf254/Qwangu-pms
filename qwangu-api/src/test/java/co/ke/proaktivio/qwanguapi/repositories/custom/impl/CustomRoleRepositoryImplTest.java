@@ -49,8 +49,8 @@ class CustomRoleRepositoryImplTest {
         // given
 
         //when
-        Flux<Role> saved = Flux.just(new Role(null, "ADMIN", Set.of("1"), LocalDateTime.now(), null),
-                        new Role(null, "SUPERVISOR", Set.of("1"), LocalDateTime.now(), null))
+        Flux<Role> saved = Flux.just(new Role(null, "ADMIN", LocalDateTime.now(), null),
+                        new Role(null, "SUPERVISOR", LocalDateTime.now(), null))
                 .flatMap(a -> template.save(a, "ROLE"))
                 .thenMany(customRoleRepository.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,

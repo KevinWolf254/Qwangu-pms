@@ -89,7 +89,8 @@ class AuthorityConfigsTest {
         String id = "1";
         String name = "ADMIN";
         LocalDateTime now = LocalDateTime.now();
-        var authority = new Authority("1", name, true, true, true, true, true, now, null);
+        var authority = new Authority("1", name, true, true, true, true, true,
+                "1", now, null);
 
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");

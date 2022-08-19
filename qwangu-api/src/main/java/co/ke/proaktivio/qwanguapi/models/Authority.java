@@ -10,21 +10,21 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
-@Document(value = "AUTHORITY")
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
 @Data
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Document(value = "AUTHORITY")
 public class Authority {
     @Id
     private String id;
-    @Indexed(unique = true)
     private String name;
     private Boolean create;
     private Boolean read;
     private Boolean write;
     private Boolean delete;
     private Boolean authorize;
+    private String roleId;
     private LocalDateTime created;
     private LocalDateTime modified;
 }

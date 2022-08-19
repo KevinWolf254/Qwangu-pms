@@ -28,7 +28,8 @@ class AuthorityServiceImplTest {
     void findPaginated_returnFluxOfApartments_whenSuccessful() {
         // given
         LocalDateTime now = LocalDateTime.now();
-        var a1 = new Authority("1", "ADMIN", true, true, true, true, true, now, null);
+        var a1 = new Authority("1", "ADMIN", true, true, true, true, true,
+                "1",now, null);
         // when
         when(repository.findPaginated(Optional.of("1"), Optional.of("ADMIN"),1,10, OrderType.ASC))
                 .thenReturn(Flux.just(a1));

@@ -54,8 +54,9 @@ class CustomUserRepositoryImplTest {
         Person person = new Person("John", "Doe", "Doe");
         UserDto dto = new UserDto(person, "person@gmail.com", "1");
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true, LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", null, LocalDateTime.now(), null);
+        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true,
+                "1", LocalDateTime.now(), null);
+        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
 
         // when
         Mono<User> user = template
@@ -70,10 +71,7 @@ class CustomUserRepositoryImplTest {
                 .then(template
                         .save(authority, "AUTHORITY")
                         .doOnSuccess(System.out::println))
-                .flatMap(authResult -> {
-                    role.setAuthorityIds(Set.of(authResult.getId()));
-                    return template.save(role, "ROLE");
-                })
+                .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
                 .flatMap(roleResult -> customUserRepository.create(dto))
                 .doOnSuccess(System.out::println);
@@ -117,8 +115,9 @@ class CustomUserRepositoryImplTest {
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, "1");
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true, LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", null, LocalDateTime.now(), null);
+        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
+                true, "1", LocalDateTime.now(), null);
+        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
 
         // when
         Mono<User> user = template
@@ -133,10 +132,7 @@ class CustomUserRepositoryImplTest {
                 .then(template
                         .save(authority, "AUTHORITY")
                         .doOnSuccess(System.out::println))
-                .flatMap(authResult -> {
-                    role.setAuthorityIds(Set.of(authResult.getId()));
-                    return template.save(role, "ROLE");
-                })
+                .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
                 .flatMap(roleResult -> customUserRepository.create(dto))
                 .doOnSuccess(System.out::println)
@@ -161,8 +157,9 @@ class CustomUserRepositoryImplTest {
         UserDto dto = new UserDto(person, emailAddress, "1");
         User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true, LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", null, LocalDateTime.now(), null);
+        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
+                true, "1", LocalDateTime.now(), null);
+        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
 
         // when
         Mono<User> user = template
@@ -177,10 +174,7 @@ class CustomUserRepositoryImplTest {
                 .then(template
                         .save(authority, "AUTHORITY")
                         .doOnSuccess(System.out::println))
-                .flatMap(authResult -> {
-                    role.setAuthorityIds(Set.of(authResult.getId()));
-                    return template.save(role, "ROLE");
-                })
+                .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
                 .flatMap(roleResult -> template.save(userEntity, "USER"))
                 .doOnSuccess(System.out::println)
@@ -204,9 +198,10 @@ class CustomUserRepositoryImplTest {
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, roleId);
         User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", null, LocalDateTime.now(), null);
+        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true, LocalDateTime.now(), null);
+        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
+                true, "1", LocalDateTime.now(), null);
 
         // when
         Mono<User> user = template
@@ -221,10 +216,7 @@ class CustomUserRepositoryImplTest {
                 .then(template
                         .save(authority, "AUTHORITY")
                         .doOnSuccess(System.out::println))
-                .flatMap(authResult -> {
-                    role.setAuthorityIds(Set.of(authResult.getId()));
-                    return template.save(role, "ROLE");
-                })
+                .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
                 .flatMap(roleResult -> template.save(userEntity, "USER"))
                 .doOnSuccess(System.out::println)
@@ -251,8 +243,9 @@ class CustomUserRepositoryImplTest {
         UserDto dto = new UserDto(person, emailAddress1, roleId);
         User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
 
-        Role role = new Role(roleId, "ADMIN", null, LocalDateTime.now(), null);
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true, LocalDateTime.now(), null);
+        Role role = new Role(roleId, "ADMIN", LocalDateTime.now(), null);
+        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
+                true, roleId, LocalDateTime.now(), null);
 
         // when
         Mono<User> user = template
@@ -267,10 +260,7 @@ class CustomUserRepositoryImplTest {
                 .then(template
                         .save(authority, "AUTHORITY")
                         .doOnSuccess(System.out::println))
-                .flatMap(authResult -> {
-                    role.setAuthorityIds(Set.of(authResult.getId()));
-                    return template.save(role, "ROLE");
-                })
+                .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
                 .flatMap(roleResult -> template.save(userEntity, "USER"))
                 .doOnSuccess(System.out::println)

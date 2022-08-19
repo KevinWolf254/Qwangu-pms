@@ -44,7 +44,7 @@ class CustomUserDetailsServiceImplTest {
         User user = new User(id, person, username, "1", null, false, false, false, true, now, null);
 
         String name = "ADMIN";
-        var role = new Role("1", name, Set.of("1"), now, null);
+        var role = new Role("1", name, now, null);
 
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(username))))
