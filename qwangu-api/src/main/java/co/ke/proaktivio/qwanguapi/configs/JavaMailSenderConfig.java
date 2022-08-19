@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs;
 
+import co.ke.proaktivio.qwanguapi.configs.properties.MailPropertiesConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;

@@ -1,6 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.configs.MpesaPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.handlers.TenantHandler;
 import co.ke.proaktivio.qwanguapi.models.Tenant;

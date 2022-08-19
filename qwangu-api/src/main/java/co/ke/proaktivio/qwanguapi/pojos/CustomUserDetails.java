@@ -19,7 +19,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays.asList(new SimpleGrantedAuthority(role.getName().toUpperCase()));
+        return Arrays.asList(new SimpleGrantedAuthority("ROLE_" +role.getName().toUpperCase()));
     }
 
     @Override

@@ -1,4 +1,4 @@
-package co.ke.proaktivio.qwanguapi.configs;
+package co.ke.proaktivio.qwanguapi.configs.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

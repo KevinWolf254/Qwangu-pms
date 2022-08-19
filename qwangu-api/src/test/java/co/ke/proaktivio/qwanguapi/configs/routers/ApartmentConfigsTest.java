@@ -1,6 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.configs.MpesaPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
@@ -71,7 +71,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"ADMIN"})
     @DisplayName("create returns a Mono of Apartment when name does not exist")
     void create_returnsMonoApartment_status201() {
         // given

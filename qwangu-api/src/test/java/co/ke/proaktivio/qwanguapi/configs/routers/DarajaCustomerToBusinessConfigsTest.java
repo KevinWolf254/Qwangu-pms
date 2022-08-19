@@ -1,6 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.configs.*;
+import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.handlers.DarajaCustomerToBusinessHandler;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;

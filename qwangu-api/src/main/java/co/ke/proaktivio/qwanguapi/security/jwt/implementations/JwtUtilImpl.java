@@ -1,6 +1,6 @@
 package co.ke.proaktivio.qwanguapi.security.jwt.implementations;
 
-import co.ke.proaktivio.qwanguapi.configs.JwtPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.JwtPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;

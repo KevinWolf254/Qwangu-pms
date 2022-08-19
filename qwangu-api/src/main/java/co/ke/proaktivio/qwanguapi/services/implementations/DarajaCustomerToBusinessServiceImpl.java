@@ -1,6 +1,6 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
-import co.ke.proaktivio.qwanguapi.configs.BookingPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.BookingPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.*;

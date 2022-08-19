@@ -1,12 +1,6 @@
 package co.ke.proaktivio.qwanguapi.clients;
 
-import co.ke.proaktivio.qwanguapi.configs.MpesaPropertiesConfig;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaAuthenticationSuccessResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 //@Service

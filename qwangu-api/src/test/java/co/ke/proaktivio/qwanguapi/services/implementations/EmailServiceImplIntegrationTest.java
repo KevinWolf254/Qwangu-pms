@@ -1,6 +1,10 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.configs.*;
+import co.ke.proaktivio.qwanguapi.configs.properties.ApplicationPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.CompanyPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.FreeMarkerTemplatesPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.MailPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.pojos.Email;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;

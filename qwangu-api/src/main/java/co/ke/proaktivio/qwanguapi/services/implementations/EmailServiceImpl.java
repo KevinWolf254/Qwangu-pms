@@ -1,6 +1,6 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
-import co.ke.proaktivio.qwanguapi.configs.CompanyPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.CompanyPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.pojos.Email;
 import co.ke.proaktivio.qwanguapi.services.EmailService;
 import freemarker.template.Template;
