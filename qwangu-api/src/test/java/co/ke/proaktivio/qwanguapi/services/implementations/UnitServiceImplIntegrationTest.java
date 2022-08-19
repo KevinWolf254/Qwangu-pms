@@ -26,6 +26,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -57,12 +58,15 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
-                25000, 500, 500, id);
-        var dtoWithNonExistingApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
-                25000, 500, 500, "2");
-        var dtoNotApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null, 2, 1, 2, Unit.Currency.KES,
-                25000, 500, 500, null);
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1,
+                2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), id);
+        var dtoWithNonExistingApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
+                1, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), "2");
+        var dtoNotApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
+                2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null);
         // when
         Mono<Unit> createUnit = apartmentRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
@@ -115,22 +119,33 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
-                25000, 500, 500, id);
-        var dtoUpdate = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
-                26000, 510, 510, "1");
-        var unit = new Unit("301", Unit.Status.VACANT, false, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
-                2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var dtoThatChangesUnitType = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
-                25000, 500, 500, "1");
-        var unit2 = new Unit("302", Unit.Status.VACANT, false, "TE35", Unit.Type.APARTMENT_UNIT, Unit.Identifier.C,
-                3, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
-                25000, 500, 500, "1");
-        var unitNotForApartment = new Unit("4444", Unit.Status.VACANT, false, "SE44", Unit.Type.MAISONETTES, null,
-                null, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, null);
-        var dtoUpdateNotForApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null, 5, 3, 2, Unit.Currency.KES,
-                45000, 1510, 1510, null);
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2,
+                1, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
+                BigDecimal.valueOf(500), id);
+        var dtoUpdate = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1,
+                2, 1, 2, Unit.Currency.KES, BigDecimal.valueOf(26000),
+                BigDecimal.valueOf(510), BigDecimal.valueOf(510), "1");
+        var unit = new Unit("301", Unit.Status.VACANT, false, "TE34", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, "1");
+        var dtoThatChangesUnitType = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, Unit.Identifier.A, 1,
+                2, 1, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
+                BigDecimal.valueOf(500), BigDecimal.valueOf(500), "1");
+        var unit2 = new Unit("302", Unit.Status.VACANT, false, "TE35", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.C, 3, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, "1");
+        var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), "1");
+        var unitNotForApartment = new Unit("4444", Unit.Status.VACANT, false, "SE44",
+                Unit.Type.MAISONETTES, null, null, 2, 1, 2,
+                Unit.Currency.KES, BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300),
+                LocalDateTime.now(), null, null);
+        var dtoUpdateNotForApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
+                5, 3, 2, Unit.Currency.KES, BigDecimal.valueOf(45000),
+                BigDecimal.valueOf(1510), BigDecimal.valueOf(1510), null);
 
         // when
         Mono<Unit> createUpdateUnit = apartmentRepository.deleteAll()
@@ -147,9 +162,9 @@ class UnitServiceImplIntegrationTest {
         StepVerifier
                 .create(createUpdateUnit)
                 .expectNextMatches(u ->
-                        u.getRentPerMonth() == 26000 &&
-                                u.getSecurityPerMonth() == 510 &&
-                                u.getGarbagePerMonth() == 510 &&
+                        u.getRentPerMonth().equals(BigDecimal.valueOf(26000)) &&
+                                u.getSecurityPerMonth().equals(BigDecimal.valueOf(510)) &&
+                                u.getGarbagePerMonth().equals(BigDecimal.valueOf(510)) &&
                                 u.getModifiedOn() != null)
                 .verifyComplete();
 
@@ -164,9 +179,9 @@ class UnitServiceImplIntegrationTest {
                         u.getFloorNo() == null && u.getApartmentId() == null &&
                         u.getId().equals("4444") &&
                         u.getModifiedOn() != null &&
-                        u.getRentPerMonth() == 45000 &&
-                        u.getSecurityPerMonth() == 1510 &&
-                        u.getGarbagePerMonth() == 1510)
+                        u.getRentPerMonth().equals(BigDecimal.valueOf(45000)) &&
+                        u.getSecurityPerMonth().equals(BigDecimal.valueOf(1510)) &&
+                        u.getGarbagePerMonth().equals(BigDecimal.valueOf(1510)))
                 .verifyComplete();
         // when
         Mono<Unit> updateUnitThatDoesNotExist = unitService.update("299999", dto);
@@ -207,10 +222,14 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(id, name, now, null);
-        var unit = new Unit("301", Unit.Status.VACANT, false,"TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
-                2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var unit2 = new Unit("303", Unit.Status.VACANT, false, "TE36", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
-                2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
+        var unit = new Unit("301", Unit.Status.VACANT, false,"TE34", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, "1");
+        var unit2 = new Unit("303", Unit.Status.VACANT, false, "TE36", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.A, 2, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, "1");
 
         // when
         Flux<Unit> findUnit = apartmentRepository.deleteAll()
@@ -256,8 +275,10 @@ class UnitServiceImplIntegrationTest {
     @DisplayName("deleteById a unit that exists.")
     void deleteById() {
         // given
-        var unit = new Unit("9999", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
-                2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
+        var unit = new Unit("9999", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, "1");
 
         // when
         Mono<Boolean> createUnitThenDelete = apartmentRepository.deleteAll()

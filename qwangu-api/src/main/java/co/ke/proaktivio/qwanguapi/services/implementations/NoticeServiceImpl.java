@@ -36,23 +36,29 @@ public class NoticeServiceImpl implements NoticeService {
     public Mono<Notice> create(CreateNoticeDto dto) {
         return Mono.just(dto)
                 .flatMap(d -> occupationRepository.findById(d.getOccupationId()))
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(dto.getOccupationId()))))
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!"
+                        .formatted(dto.getOccupationId()))))
                 .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not create notice of occupation that is not active!")))
-                .then(Mono.just(new Notice(null, true, dto.getNotifiedOn(), dto.getVacatingOn(), LocalDateTime.now(), null, dto.getOccupationId())))
+                .switchIfEmpty(Mono.error(new
+                        CustomBadRequestException("Can not create notice of occupation that is not active!")))
+                .then(Mono.just(new Notice(null, true, dto.getNotifiedOn(), dto.getVacatingOn(),
+                        LocalDateTime.now(), null, dto.getOccupationId())))
                 .flatMap(noticeRepository::save);
     }
 
     @Override
     public Mono<Notice> update(String id, UpdateNoticeDto dto) {
         return noticeRepository.findById(id)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Notice with id %s does not exist!".formatted(id))))
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Notice with id %s does not exist!"
+                        .formatted(id))))
                 .filter(Notice::getIsActive)
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice that is inactive!")))
                 .flatMap(notice -> occupationRepository.findById(notice.getOccupationId())
-                        .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(notice.getOccupationId()))))
+                        .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!"
+                                .formatted(notice.getOccupationId()))))
                         .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
-                        .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice of occupation that is not active!")))
+                        .switchIfEmpty(Mono.error(new
+                                CustomBadRequestException("Can not update notice of occupation that is not active!")))
                         .then(Mono.just(notice)))
                 .map(notice -> {
                     if (dto.getIsActive() != null)
@@ -97,7 +103,8 @@ public class NoticeServiceImpl implements NoticeService {
     public Mono<Boolean> deleteById(String id) {
         return template
                 .findById(id, Notice.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Notice with id %s does not exist!".formatted(id))))
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Notice with id %s does not exist!"
+                        .formatted(id))))
                 .flatMap(template::remove)
                 .map(DeleteResult::wasAcknowledged);
     }

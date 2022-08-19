@@ -89,11 +89,11 @@ public class UnitServiceImpl implements UnitService {
                         u.getType() == dto.getType())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's type!")))
                 .filter(u -> {
-                    if(u.getType()!= null && u.getType().equals(Unit.Type.APARTMENT_UNIT)) {
-                       return (u.getIdentifier() != null &&
-                               u.getFloorNo() != null &&
+                    if (u.getType() != null && u.getType().equals(Unit.Type.APARTMENT_UNIT)) {
+                        return (u.getIdentifier() != null &&
+                                u.getFloorNo() != null &&
                                 dto.getIdentifier() != null &&
-                               dto.getFloorNo() != null &&
+                                dto.getFloorNo() != null &&
                                 u.getIdentifier().equals(dto.getIdentifier()) &&
                                 Objects.equals(u.getFloorNo(), dto.getFloorNo()));
                     }
@@ -101,13 +101,13 @@ public class UnitServiceImpl implements UnitService {
                 })
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's floorNo and identifier!")))
                 .filter(u -> {
-                    if(u.getType() != null && u.getType().equals(Unit.Type.APARTMENT_UNIT))
+                    if (u.getType() != null && u.getType().equals(Unit.Type.APARTMENT_UNIT))
                         return Objects.equals(u.getApartmentId(), dto.getApartmentId());
                     return true;
                 })
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's Apartment!")))
                 .map(u -> {
-                    if(dto.getStatus() != null)
+                    if (dto.getStatus() != null)
                         u.setStatus(dto.getStatus());
                     if (dto.getNoOfBedrooms() != null)
                         u.setNoOfBedrooms(dto.getNoOfBedrooms());
@@ -169,6 +169,13 @@ public class UnitServiceImpl implements UnitService {
                 .addCriteria(Criteria
                         .where("accountNo").is(accountNo)
                         .and("isBooked").is(isBooked)), Unit.class);
+    }
+
+    @Override
+    public Mono<Unit> findByAccountNo(String accountNo) {
+        return template.findOne(new Query()
+                .addCriteria(Criteria
+                        .where("accountNo").is(accountNo)), Unit.class);
     }
 
     @Override

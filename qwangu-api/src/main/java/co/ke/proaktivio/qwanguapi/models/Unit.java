@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -26,9 +27,9 @@ public class Unit {
     private Integer noOfBathrooms;
     private Integer advanceInMonths;
     private Currency currency;
-    private Integer rentPerMonth;
-    private Integer securityPerMonth;
-    private Integer garbagePerMonth;
+    private BigDecimal rentPerMonth;
+    private BigDecimal securityPerMonth;
+    private BigDecimal garbagePerMonth;
     private LocalDateTime createdOn;
     private LocalDateTime modifiedOn;
     private String apartmentId;

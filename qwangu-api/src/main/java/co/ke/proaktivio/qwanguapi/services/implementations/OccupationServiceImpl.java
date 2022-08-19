@@ -24,6 +24,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -32,27 +33,6 @@ public class OccupationServiceImpl implements OccupationService {
     private final OccupationRepository occupationRepository;
     private final NoticeService noticeService;
     private final ReactiveMongoTemplate template;
-
-//    @Override
-//    public Mono<Occupation> create(CreateOccupationDto dto) {
-//        String unitId = dto.getUnitId();
-//        String tenantId = dto.getTenantId();
-//        Query query = new Query()
-//                .addCriteria(Criteria
-//                        .where("unitId").is(unitId)
-//                        .and("status").is(Occupation.Status.CURRENT));
-//        return template
-//                .findById(unitId, Unit.class)
-//                .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(unitId))))
-//                .then(template.findById(tenantId, Tenant.class))
-//                .switchIfEmpty(Mono.error(new CustomNotFoundException("Tenant with id %s does not exist!".formatted(tenantId))))
-//                .then(template.exists(query, Occupation.class))
-//                .filter(exists -> !exists)
-//                .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Occupation already exists!")))
-//                .then(Mono.just(new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(), dto.getEnded(), dto.getTenantId(),
-//                        dto.getUnitId(), LocalDateTime.now(), null)))
-//                .flatMap(occupationRepository::save);
-//    }
 
     @Override
     public Mono<Occupation> create(OccupationDto dto) {
@@ -64,26 +44,31 @@ public class OccupationServiceImpl implements OccupationService {
                         .and("status").is(Occupation.Status.CURRENT));
         return template
                 .findById(unitId, Unit.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(unitId))))
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!"
+                        .formatted(unitId))))
                 .then(template.findById(tenantId, Tenant.class))
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Tenant with id %s does not exist!".formatted(tenantId))))
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Tenant with id %s does not exist!"
+                        .formatted(tenantId))))
                 .flatMap($ -> {
                     if (dto.getStatus().equals(Occupation.Status.PREVIOUS))
                         return Mono.error(new CustomBadRequestException("Status PREVIOUS is not accepted!"));
                     if (dto.getStatus().equals(Occupation.Status.BOOKED)) {
                         return findByUnitIdAndNotBooked(unitId)
-                                .switchIfEmpty(Mono.error(new CustomBadRequestException("Unit is unavailable for booking!")))
+                                .switchIfEmpty(Mono.error(new
+                                        CustomBadRequestException("Unit is unavailable for booking!")))
                                 .flatMap(occupation -> noticeService.findByOccupationIdAndIsActive(occupation.getId(),
                                         occupation.getStatus().equals(Occupation.Status.CURRENT)))
                                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Notice does not exist!")))
-                                .then(Mono.just(new Occupation(null, dto.getStatus(), dto.getStarted(), dto.getEnded(), dto.getTenantId(),
+                                .then(Mono.just(new Occupation(null, dto.getStatus(), dto.getStarted(), dto.getEnded(),
+                                        dto.getTenantId(),
                                         dto.getUnitId(), LocalDateTime.now(), null)));
                     }
                     return template.exists(occupationUnAvailable, Occupation.class)
                             .filter(exists -> !exists)
                             .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Occupation already exists!")))
-                            .then(Mono.just(new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(), dto.getEnded(), dto.getTenantId(),
-                                    dto.getUnitId(), LocalDateTime.now(), null)));
+                            .then(Mono.just(new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(),
+                                    dto.getEnded(), dto.getTenantId(), dto.getUnitId(), LocalDateTime.now(),
+                                    null)));
                 })
                 .flatMap(occupationRepository::save);
     }
@@ -93,7 +78,8 @@ public class OccupationServiceImpl implements OccupationService {
         if (dto.getStatus().equals(Occupation.Status.CURRENT)) {
             return occupationRepository
                     .findById(id)
-                    .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))))
+                    .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!"
+                            .formatted(id))))
                     .flatMap(o -> Mono.just(o.getUnitId())
                             .map(unitId -> new Query()
                                     .addCriteria(Criteria
@@ -103,7 +89,8 @@ public class OccupationServiceImpl implements OccupationService {
                             .flatMap(q -> template
                                     .exists(q, Occupation.class)
                                     .filter(exists -> !exists)
-                                    .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not activate while other occupation is active!")))
+                                    .switchIfEmpty(Mono.error(
+                                            new CustomBadRequestException("Can not activate while other occupation is active!")))
                                     .map(t -> o)))
                     .map(o -> {
                         if (dto.getStatus() != null)
@@ -119,7 +106,8 @@ public class OccupationServiceImpl implements OccupationService {
         }
         return occupationRepository
                 .findById(id)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))))
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!"
+                        .formatted(id))))
                 .map(o -> {
                     if (dto.getStatus() != null)
                         o.setStatus(dto.getStatus());
@@ -134,12 +122,35 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     @Override
+    public Mono<Occupation> findByUnitId(String unitId) {
+        return template.findOne(new Query()
+                .addCriteria(Criteria
+                        .where("unitId").is(unitId)), Occupation.class);
+    }
+
+    @Override
+    public Mono<Occupation> findByUnitIdAndStatus(String unitId, Occupation.Status status) {
+        return template.findOne(new Query()
+                .addCriteria(Criteria
+                        .where("unitId").is(unitId)
+                        .and("status").is(status))
+                .with(Sort.by(Sort.Direction.DESC, "createdOn")), Occupation.class);
+    }
+
+    @Override
+    public Flux<Occupation> findByStatus(List<Occupation.Status> statuses) {
+        return template
+                .find(new Query().addCriteria(Criteria
+                        .where("status").in(statuses)), Occupation.class);
+    }
+
+    @Override
     public Mono<Occupation> findByUnitIdAndNotBooked(String unitId) {
         return template.findOne(new Query()
                 .addCriteria(Criteria
                                 .where("unitId").is(unitId)
-                                .and("status").in(Occupation.Status.CURRENT, Occupation.Status.PREVIOUS)
-                ).with(Sort.by(Sort.Direction.DESC, "id")), Occupation.class);
+                                .and("status").in(Occupation.Status.CURRENT, Occupation.Status.PREVIOUS))
+                .with(Sort.by(Sort.Direction.DESC, "createdOn")), Occupation.class);
     }
 
     @Override

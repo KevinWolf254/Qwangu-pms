@@ -1,0 +1,81 @@
+package co.ke.proaktivio.qwanguapi.services.implementations;
+
+import co.ke.proaktivio.qwanguapi.models.Payment;
+import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
+import co.ke.proaktivio.qwanguapi.services.PaymentService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Testcontainers
+@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
+@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
+@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
+class PaymentServiceImplIntegrationTest {
+    @Autowired
+    private PaymentService paymentService;
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Container
+    private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName
+            .parse("mongo:latest"));
+
+    @DynamicPropertySource
+    public static void overrideProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
+    }
+
+    @BeforeEach
+    void deleteAll() {
+        paymentRepository.deleteAll()
+                .doOnSuccess(r -> System.out.println("---- Deleted all payments!"))
+                .subscribe();
+    }
+
+    @Test
+    void findPaginated() {
+        // given
+        var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
+                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
+                "TE34", "", "49197.00", "", "254708374147",
+                "John", "", "Doe", LocalDateTime.now(), null);
+        var payment2 = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W77",
+                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
+                "BOOKTE34", "", "49197.00", "", "254708374147",
+                "John", "", "Doe", LocalDateTime.now(), null);
+
+        // when
+        Flux<Payment> saveAll = paymentRepository.saveAll(List.of(payment, payment2))
+                .doOnNext(p -> System.out.println("---- Created: " + p))
+                .thenMany(paymentService.findPaginated(Optional.empty(), Optional.empty(),
+                        Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                        1, 10, OrderType.DESC))
+                .doOnNext(p -> System.out.println("---- Found: " +p));
+        // then
+        StepVerifier
+                .create(saveAll)
+                .expectNextMatches(p -> p.getReferenceNo().equals("BOOKTE34"))
+                .expectNextMatches(p -> p.getReferenceNo().equals("TE34"))
+                .verifyComplete();
+    }
+}

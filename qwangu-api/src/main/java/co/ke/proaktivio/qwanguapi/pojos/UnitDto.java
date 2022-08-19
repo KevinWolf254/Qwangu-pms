@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,8 +19,8 @@ public class UnitDto {
     private Integer noOfBathrooms;
     private Integer advanceInMonths;
     private Unit.Currency currency;
-    private Integer rentPerMonth;
-    private Integer securityPerMonth;
-    private Integer garbagePerMonth;
+    private BigDecimal rentPerMonth;
+    private BigDecimal securityPerMonth;
+    private BigDecimal garbagePerMonth;
     private String apartmentId;
 }

@@ -5,31 +5,31 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(value = "OCCUPATION_TRANSACTION")
-public class OccupationTransaction {
+@Document(value = "RENT_ADVANCE")
+public class RentAdvance {
     @Id
     private String id;
-    private Type type;
-    private BigDecimal totalAmountOwed;
-    private BigDecimal totalAmountPaid;
-    private BigDecimal totalAmountCarriedForward;
+    private Status status;
+    private String returnDetails;
     private String occupationId;
-    private String receivableId;
     private String paymentId;
     private LocalDateTime createdOn;
+    private LocalDateTime modifiedOn;
+    private LocalDate returnedOn;
 
     @Getter
     @RequiredArgsConstructor
-    public enum Type {
-        CREDIT("CREDIT"),
-        DEBIT("DEBIT");
+    public enum Status {
+        HOLDING("HOLDING"),
+        RELEASED("RELEASED"),
+        RENT_PAYMENT("RENT_PAYMENT");
 
-        private final String type;
+        private final String state;
     }
 }

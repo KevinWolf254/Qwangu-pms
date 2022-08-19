@@ -29,9 +29,13 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
     private final TenantService tenantService;
     private final ReceivableService receivableService;
     private final OccupationTransactionService occupationTransactionService;
+    private final RentAdvanceService rentAdvanceService;
     private final UnitRepository unitRepository;
-//    private static final Double BOOKING_PERCENTAGE = 25.0;
     private final BookingPropertiesConfig bookingProperties;
+
+    private final BiPredicate<String, String> checkReferenceNo = (RegEx, referenceNo) -> referenceNo != null &&
+            !referenceNo.trim().isEmpty() && !referenceNo.trim().isBlank() &&
+            referenceNo.trim().toLowerCase().startsWith(RegEx);
 
     @Override
     public Mono<DarajaCustomerToBusinessResponse> validate(DarajaCustomerToBusinessDto dto) {
@@ -51,13 +55,19 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
                             LocalDateTime.now(), null);
                 })
                 .flatMap(paymentRepository::save)
-                .filter(payment -> isBookingPayment.test("^(BOOK|book)", payment))
-                .flatMap(this::processBooking)
+                .flatMap(payment -> {
+                    if (checkReferenceNo.test("^(BOOK|book)", payment.getReferenceNo()))
+                        return this.processBooking(payment);
+                    if (checkReferenceNo.test("^(ADVANCE|advance)", payment.getReferenceNo()))
+                        return this.processRentAdvance(payment);
+                    return this.processRent(payment);
+                })
                 .then(Mono.just(new DarajaCustomerToBusinessResponse<>(0, "ACCEPTED")));
     }
 
+    @Override
     @Transactional
-    public Mono<Unit> processBooking(Payment payment) {
+    public Mono<Payment> processBooking(Payment payment) {
         String accountNo = payment.getReferenceNo().substring(4);
         return unitService
                 .findByAccountNoAndIsBooked(accountNo, false)
@@ -65,8 +75,7 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
                 .filter(unit -> {
                     double bookingPercentage = bookingProperties.getPercentage() / 100;
                     double bookingAmountRequired = bookingPercentage * unit.getRentPerMonth().doubleValue();
-                    boolean enough = payment.getAmount().doubleValue() >= bookingAmountRequired;
-                    return enough;
+                    return payment.getAmount().doubleValue() >= bookingAmountRequired;
                 })
                 .flatMap(unit -> occupationService
                         .findByUnitIdAndNotBooked(unit.getId())
@@ -86,32 +95,75 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
                             Map<String, BigDecimal> amounts = new HashMap<>(1);
                             amounts.put("booking", payment.getAmount());
                             return receivableService
-                                .create(new ReceivableDto(Receivable.Type.BOOKING, null,
-                                        null, null, null, amounts))
-                                .doOnSuccess(u -> System.out.println("---- Created: " + u))
-                                .flatMap(receivable -> occupationTransactionService.create(
-                                        new OccupationTransactionDto(BigDecimal.ZERO,
-                                                receivable.getOtherAmounts().get("booking"), BigDecimal.ZERO,
-                                                occupation.getId(), receivable.getId(), payment.getId()))
-                                        .doOnSuccess(u -> System.out.println("---- Created: " + u))
-                                );
+                                    .create(new ReceivableDto(Receivable.Type.BOOKING, null,
+                                            null, null, null, amounts))
+                                    .doOnSuccess(u -> System.out.println("---- Created: " + u))
+                                    .flatMap(receivable -> occupationTransactionService.create(
+                                                    new OccupationTransactionDto(OccupationTransaction.Type.CREDIT, BigDecimal.ZERO,
+                                                            receivable.getOtherAmounts().get("booking"),
+                                                            BigDecimal.ZERO.subtract(receivable.getOtherAmounts().get("booking")),
+                                                            occupation.getId(), receivable.getId(), payment.getId()))
+                                            .doOnSuccess(u -> System.out.println("---- Created: " + u))
+                                    );
                         })
-                        .map($ -> {
-                            payment.setStatus(Payment.Status.PROCESSED);
-                            return payment;
-                        })
-                        .flatMap(paymentRepository::save)
-                        .doOnSuccess(u -> System.out.println("---- Saved: " + u))
                         .map($ -> {
                             unit.setIsBooked(true);
                             return unit;
                         })
                 )
                 .flatMap(unitRepository::save)
+                .doOnSuccess(u -> System.out.println("---- Saved: " + u))
+                .map($ -> {
+                    payment.setStatus(Payment.Status.PROCESSED);
+                    return payment;
+                })
+                .flatMap(paymentRepository::save)
                 .doOnSuccess(u -> System.out.println("---- Saved: " + u));
     }
 
-    BiPredicate<String, Payment> isBookingPayment = (bookingRegEx, payment) -> payment.getReferenceNo() != null &&
-            !payment.getReferenceNo().trim().isEmpty() && !payment.getReferenceNo().trim().isBlank() &&
-            payment.getReferenceNo().startsWith(bookingRegEx);
+    @Override
+    @Transactional
+    public Mono<Payment> processRent(Payment payment) {
+        return unitService
+                .findByAccountNo(payment.getReferenceNo())
+                .flatMap(unit -> occupationService.findByUnitIdAndStatus(unit.getId(), Occupation.Status.CURRENT)
+                        .doOnSuccess(t -> System.out.println("---- Found: " + t))
+                        .flatMap(occupation -> occupationTransactionService
+                                .findLatestByOccupationId(occupation.getId())
+                                .switchIfEmpty(Mono.just(new OccupationTransaction(null, null, BigDecimal.ZERO,
+                                        BigDecimal.ZERO, BigDecimal.ZERO, occupation.getId(), null, "1",
+                                        null)))
+                                .doOnSuccess(t -> System.out.println("---- Found: " + t))
+                                .flatMap(previousOT -> occupationTransactionService
+                                        .create(new OccupationTransactionDto(OccupationTransaction.Type.CREDIT,
+                                                BigDecimal.ZERO, payment.getAmount(),
+                                                payment.getAmount().subtract(previousOT.getTotalAmountCarriedForward()),
+                                                occupation.getId(), null, payment.getId()))
+                                        .doOnSuccess(u -> System.out.println("---- Created: " + u))))
+                )
+                .map($ -> {
+                    payment.setStatus(Payment.Status.PROCESSED);
+                    return payment;
+                })
+                .flatMap(paymentRepository::save)
+                .doOnSuccess(u -> System.out.println("---- Updated: " + u));
+    }
+
+    @Override
+    @Transactional
+    public Mono<Payment> processRentAdvance(Payment payment) {
+        String accountNo = payment.getReferenceNo().substring(7);
+        return unitService
+                .findByAccountNoAndIsBooked(accountNo, false)
+                .doOnSuccess(u -> System.out.println("---- Found: " + u))
+                .flatMap(unit -> rentAdvanceService.create(new RentAdvanceDto(RentAdvance.Status.HOLDING,
+                        null, payment.getId())))
+                .doOnSuccess(u -> System.out.println("---- Saved: " + u))
+                .map($ -> {
+                    payment.setStatus(Payment.Status.PROCESSED);
+                    return payment;
+                })
+                .flatMap(paymentRepository::save)
+                .doOnSuccess(u -> System.out.println("---- Saved: " + u));
+    }
 }

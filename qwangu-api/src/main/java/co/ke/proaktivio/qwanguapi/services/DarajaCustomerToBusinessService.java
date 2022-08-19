@@ -9,5 +9,7 @@ import reactor.core.publisher.Mono;
 public interface DarajaCustomerToBusinessService {
     Mono<DarajaCustomerToBusinessResponse> validate(DarajaCustomerToBusinessDto dto);
     Mono<DarajaCustomerToBusinessResponse> confirm(DarajaCustomerToBusinessDto dto);
-    Mono<Unit> processBooking(Payment payment);
+    Mono<Payment> processBooking(Payment payment);
+    Mono<Payment> processRent(Payment payment);
+    Mono<Payment> processRentAdvance(Payment payment);
 }

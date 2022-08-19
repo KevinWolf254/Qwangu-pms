@@ -2,13 +2,11 @@ package co.ke.proaktivio.qwanguapi.jobs;
 
 import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.repositories.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -18,10 +16,9 @@ import org.testcontainers.utility.DockerImageName;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
@@ -34,7 +31,7 @@ class NoticeJobManagerIntegrationTest {
     @Autowired
     private UnitRepository unitRepository;
     @Autowired
-    private BookingRepository bookingRepository;
+    private BookingRefundRepository bookingRefundRepository;
     @Autowired
     private TenantRepository tenantRepository;
     @Autowired
@@ -48,11 +45,15 @@ class NoticeJobManagerIntegrationTest {
     }
     private final LocalDateTime now = LocalDateTime.now();
     private final LocalDate today = LocalDate.now();
-    private final Unit unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
-            2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, now, null, "1");
-    private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", now, null);
-    private final Tenant tenant = new Tenant("1", "John", "middle", "Doe", "0700000000", "person@gmail.com", now, null);
-    private final Notice notice = new Notice("1", true, now.minusDays(30), today.minusDays(1), now, null, "1");
+    private final Unit unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT,
+            Unit.Identifier.A, 2, 2, 1, 2, Unit.Currency.KES,
+            BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), now, null, "1");
+    private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(),
+            null, "1", "1", now, null);
+    private final Tenant tenant = new Tenant("1", "John", "middle", "Doe",
+            "0700000000", "person@gmail.com", now, null);
+    private final Notice notice = new Notice("1", true, now.minusDays(30), today.minusDays(1),
+            now, null, "1");
 
     @Test
     void vacate() {

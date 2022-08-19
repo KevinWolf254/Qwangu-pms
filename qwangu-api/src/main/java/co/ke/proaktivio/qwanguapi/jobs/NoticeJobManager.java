@@ -1,10 +1,9 @@
 package co.ke.proaktivio.qwanguapi.jobs;
 
-import co.ke.proaktivio.qwanguapi.models.Booking;
 import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Unit;
-import co.ke.proaktivio.qwanguapi.repositories.BookingRepository;
+import co.ke.proaktivio.qwanguapi.repositories.BookingRefundRepository;
 import co.ke.proaktivio.qwanguapi.repositories.NoticeRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
@@ -12,12 +11,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Component
@@ -27,15 +27,15 @@ public class NoticeJobManager {
     private final OccupationRepository occupationRepository;
     private final UnitRepository unitRepository;
     private final ReactiveMongoTemplate template;
-    private final BookingRepository bookingRepository;
+    private final BookingRefundRepository bookingRefundRepository;
 
     // TODO - UNCOMMENT
-//    @Scheduled(cron = "0 0/1 * * * ?")
-//    void processNotices() {
-//        vacate()
-//                .subscribeOn(Schedulers.parallel())
-//                .subscribe();
-//    }
+    @Scheduled(cron = "0 0/1 * * * ?")
+    void processNotices() {
+        vacate()
+                .subscribeOn(Schedulers.parallel())
+                .subscribe();
+    }
 
     public Flux<Notice> vacate() {
         return Mono.just(new Query()

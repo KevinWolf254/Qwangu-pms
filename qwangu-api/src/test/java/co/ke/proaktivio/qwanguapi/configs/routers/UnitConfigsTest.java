@@ -26,6 +26,7 @@ import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -70,16 +71,20 @@ public class UnitConfigsTest {
     @WithMockUser
     void create() {
         // given
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2, 2,
-                2, Unit.Currency.KES, 25000, 500, 300, "1");
-        var unit = new Unit("1", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
-                0, 2, 1, 2, Unit.Currency.KES, 25000, 500,
-                300, LocalDateTime.now(), null, "1");
-        var dtoNonApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null, 2, 2,
-                2, Unit.Currency.KES, 25000, 500, 300, null);
-        var unitNonApartment = new Unit("2", Unit.Status.VACANT, false, "TE99", Unit.Type.MAISONETTES, null,
-                0, 2, 1, 2, Unit.Currency.KES, 25000, 500,
-                300, LocalDateTime.now(), null, null);
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
+                2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
+                BigDecimal.valueOf(300), "1");
+        var unit = new Unit("1", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, "1");
+        var dtoNonApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
+                2, 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
+                BigDecimal.valueOf(500), BigDecimal.valueOf(300), null);
+        var unitNonApartment = new Unit("2", Unit.Status.VACANT, false, "TE99", Unit.Type.MAISONETTES,
+                null, 0, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, null);
         var dtoFailsValidation = new UnitDto(null, null, null, null, null, null,
                 null, null, null, null, null, null);
         var dtoApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, null, null, null, null,
@@ -216,11 +221,13 @@ public class UnitConfigsTest {
     void update() {
         // given
         var id = "1";
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2, 2,
-                2, Unit.Currency.KES, 25000, 500, 300, "1");
-        var unit = new Unit(id, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
-                0, 2, 1, 2, Unit.Currency.KES, 25000, 500,
-                300, LocalDateTime.now(), null, "1");
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
+                2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
+                BigDecimal.valueOf(300), "1");
+        var unit = new Unit(id, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, "1");
 
         // when
         when(unitService.update(id, dto)).thenReturn(Mono.just(unit));
@@ -303,8 +310,9 @@ public class UnitConfigsTest {
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
         var unit = new Unit(id, Unit.Status.VACANT, false, accountNo, type, identifier,
-                floorNo, noOfBedrooms, noOfBathrooms, 2, Unit.Currency.KES, 25000, 500,
-                300, LocalDateTime.now(), null, apartmentId);
+                floorNo, noOfBedrooms, noOfBathrooms, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, apartmentId);
 
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder

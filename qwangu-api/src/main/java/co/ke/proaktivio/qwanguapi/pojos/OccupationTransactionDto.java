@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.pojos;
 
+import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -10,9 +11,10 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OccupationTransactionDto {
+    private OccupationTransaction.Type type;
     private BigDecimal totalAmountOwed;
     private BigDecimal totalAmountPaid;
-    private BigDecimal totalAmountRemaining;
+    private BigDecimal totalAmountCarriedForward;
     private String occupationId;
     private String receivableId;
     private String paymentId;

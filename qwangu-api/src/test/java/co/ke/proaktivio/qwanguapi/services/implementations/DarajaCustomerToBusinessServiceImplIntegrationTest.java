@@ -1,15 +1,9 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
-import co.ke.proaktivio.qwanguapi.models.Notice;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Payment;
-import co.ke.proaktivio.qwanguapi.models.Unit;
+import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessResponse;
-import co.ke.proaktivio.qwanguapi.repositories.NoticeRepository;
-import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
-import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
-import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
+import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.services.DarajaCustomerToBusinessService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +26,7 @@ import reactor.test.StepVerifier;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Testcontainers
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
@@ -47,19 +42,23 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
     @Autowired
     private NoticeRepository noticeRepository;
     @Autowired
+    private OccupationTransactionRepository occupationTransactionRepository;
+    @Autowired
     private DarajaCustomerToBusinessService darajaCustomerToBusinessService;
 
     @Container
-    private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
+    private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName
+            .parse("mongo:latest"));
 
-    private final DarajaCustomerToBusinessDto dto = new DarajaCustomerToBusinessDto("RKTQDM7W6S", "Pay Bill", "20191122063845", "10", "600638",
-            "T903", "", "49197.00", "", "254708374149", "John", "", "Doe");
+    private final DarajaCustomerToBusinessDto dto = new DarajaCustomerToBusinessDto("RKTQDM7W6S",
+            "Pay Bill", "20191122063845", "10", "600638",
+            "T903", "", "49197.00", "", "254708374149",
+            "John", "", "Doe");
 
-    private final DarajaCustomerToBusinessDto dtoBooking = new DarajaCustomerToBusinessDto("RKTQDM7W67", "Pay Bill", "20191122063845", "10", "600638",
-            "BOOKT903", "", "49197.00", "", "254708374147", "John", "", "Doe");
-
-    private final Unit unit = new Unit("9999", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
-            2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
+    private final DarajaCustomerToBusinessDto dtoBooking = new DarajaCustomerToBusinessDto("RKTQDM7W67",
+            "Pay Bill", "20191122063845", "10", "600638",
+            "BOOKT903", "", "49197.00", "", "254708374147",
+            "John", "", "Doe");
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
@@ -121,16 +120,27 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
         // given
         var now = LocalDateTime.now();
         var today = LocalDate.now();
-        var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67", "Pay Bill",
-                LocalDateTime.now(), BigDecimal.valueOf(20000), "600638", "BOOKTE34", "", "49197.00", "", "254708374147",
+        var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
+                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
+                "BOOKTE34", "", "49197.00", "", "254708374147",
                 "John", "", "Doe", LocalDateTime.now(), null);
-        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT, Unit.Identifier.B,
-                2, 2, 1, 2, Unit.Currency.KES, 27000, 510, 300, LocalDateTime.now(), null, "1");
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
-        var notice = new Notice("1", true, now, today.plusDays(40), now, null, "1");
+        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
+                null, "1");
+        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null,
+                "1", "1", LocalDateTime.now(), null);
+        var notice = new Notice("1", true, now, today.plusDays(40), now, null,
+                "1");
 
         // when
-        Mono<Unit> processBookingPayment = unitRepository.save(unit)
+        Mono<Payment> processBookingPayment = unitRepository.deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
+                .then(noticeRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
+                .then(unitRepository.save(unit))
                 .doOnSuccess(u -> System.out.println("---- Created: " + u))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(u -> System.out.println("---- Created: " + u))
@@ -142,7 +152,96 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(processBookingPayment)
+                .expectNextMatches(p -> p.getStatus().equals(Payment.Status.PROCESSED))
+                .verifyComplete();
+
+        // when
+        Mono<Unit> findUnit = unitRepository.findById(unit.getId());
+        // then
+        StepVerifier
+                .create(findUnit)
                 .expectNextMatches(Unit::getIsBooked)
+                .verifyComplete();
+    }
+
+    @Test
+    void processRent() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE3489", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.A, 2, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
+                null, "1");
+        var occupation = new Occupation("1", Occupation.Status.CURRENT, now, null,
+                "1", unit.getId(), now, null);
+        var occupationTransaction = new OccupationTransaction("1", OccupationTransaction.Type.DEBIT,
+                BigDecimal.valueOf(5000), BigDecimal.ZERO, BigDecimal.valueOf(5000), occupation.getId(), null,
+                "1", null);
+        var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
+                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
+                "TE3489", "", "49197.00", "", "254708374147",
+                "John", "", "Doe", LocalDateTime.now(), null);
+
+        var unit2 = new Unit("2", Unit.Status.OCCUPIED, false, "TE3490", Unit.Type.APARTMENT_UNIT,
+                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
+                null, "1");
+        var occupation2 = new Occupation("2", Occupation.Status.CURRENT, now, null, "2", unit2.getId(),
+                now, null);
+        var payment2 = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
+                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
+                "TE3490", "", "49197.00", "", "254708374147",
+                "John", "", "Doe", LocalDateTime.now(), null);
+
+        Mono<Payment> processPayments = unitRepository.deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
+                .then(occupationTransactionRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all OccupationTransactions!"))
+                .thenMany(unitRepository.saveAll(List.of(unit, unit2)))
+                .doOnNext(t -> System.out.println("---- Created: " + t))
+                .thenMany(occupationRepository.saveAll(List.of(occupation, occupation2)))
+                .doOnNext(t -> System.out.println("---- Created: " + t))
+                .then(occupationTransactionRepository.save(occupationTransaction))
+                .doOnSuccess(t -> System.out.println("---- Created: " + t))
+                .then(darajaCustomerToBusinessService.processRent(payment))
+                .then(darajaCustomerToBusinessService.processRent(payment2));
+        // then
+        StepVerifier
+                .create(processPayments)
+                .expectNextCount(1)
+                .verifyComplete();
+
+        // then
+        Flux<OccupationTransaction> allOccupationTransactions = occupationTransactionRepository.findAll();
+        StepVerifier
+                .create(allOccupationTransactions)
+                .expectNextMatches(ot -> (ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(15000)) &&
+                        ot.getOccupationId().equals("1")) || (
+                                ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(20000)) &&
+                        ot.getOccupationId().equals("2")) || (
+                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(5000)) &&
+                                ot.getOccupationId().equals("1")))
+                .expectNextMatches(ot -> (ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(15000)) &&
+                        ot.getOccupationId().equals("1")) || (
+                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(20000)) &&
+                                ot.getOccupationId().equals("2")) || (
+                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(5000)) &&
+                                ot.getOccupationId().equals("1")))
+                .expectNextMatches(ot -> (ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(15000)) &&
+                        ot.getOccupationId().equals("1")) || (
+                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(20000)) &&
+                                ot.getOccupationId().equals("2")) || (
+                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(5000)) &&
+                                ot.getOccupationId().equals("1")))
+                .verifyComplete();
+
+        // then
+        Flux<Payment> allPayments = paymentRepository.findAll();
+        StepVerifier
+                .create(allPayments)
+                .expectNextCount(2)
                 .verifyComplete();
     }
 }
