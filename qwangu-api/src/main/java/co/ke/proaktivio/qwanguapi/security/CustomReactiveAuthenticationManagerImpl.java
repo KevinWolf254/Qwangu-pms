@@ -5,12 +5,13 @@ import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -26,16 +27,22 @@ public class CustomReactiveAuthenticationManagerImpl implements CustomReactiveAu
                 .filter(isValid -> isValid)
                 .map(v -> {
                     Claims claims = jwtUtil.getClaims(token);
-                    String role = claims.get("role", String.class);
-                    return role == null ? Optional.empty() : Optional.of(role);
+                    List<String> authoritiesResult = claims.get("authorities", List.class);
+                    List<String> authorities = authoritiesResult != null && !authoritiesResult.isEmpty()
+                            ? authoritiesResult : new ArrayList<>();
+                    return authorities.isEmpty() || username == null || username.isEmpty() || username.isBlank()
+                            ? Optional.empty() : Optional.of(authorities);
                 })
                 .filter(Optional::isPresent)
-                .map(role -> username == null || username.isEmpty() || username.isBlank() ? Optional.empty() : role)
-                .filter(Optional::isPresent)
-                .flatMap(optRole -> Mono.just((Authentication) new UsernamePasswordAuthenticationToken(
+                .flatMap(authorities -> Mono.just((Authentication) new UsernamePasswordAuthenticationToken(
                         username,
                         null,
-                        List.of(new SimpleGrantedAuthority((String) optRole.get())))
+                        authorities.isPresent()
+                                ? ((List<String>) authorities.get()).stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .collect(Collectors.toSet())
+                                : Set.of()
+                        )
                 ))
                 .switchIfEmpty(Mono.just(new UsernamePasswordAuthenticationToken(null, null, List.of())));
     }

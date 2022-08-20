@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.security.jwt.implementations;
 
 import co.ke.proaktivio.qwanguapi.configs.properties.JwtPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.models.Authority;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
@@ -12,9 +13,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class JwtUtilImpl implements JwtUtil {
@@ -63,10 +62,31 @@ public class JwtUtilImpl implements JwtUtil {
     }
 
     @Override
-    public String generateToken(User user, Role role) {
+    public String generateToken(User user, Role role, List<Authority> authorities) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role.getName());
+        claims.put("authorities", generateAuthorities(role, authorities));
         return generate(claims, user.getEmailAddress());
+    }
+
+    private Set<String> generateAuthorities(Role role, List<Authority> authorities) {
+        Set<String> userAuthorities = new HashSet<>();
+        userAuthorities.add("ROLE_" + role.getName());
+        authorities.forEach(authority -> {
+            String name = authority.getName();
+            if(authority.getCreate()) {
+                userAuthorities.add(name.toUpperCase().concat("_CREATE"));
+            }
+            if(authority.getRead()) {
+                userAuthorities.add(name.toUpperCase().concat("_READ"));
+            }
+            if(authority.getUpdate()) {
+                userAuthorities.add(name.toUpperCase().concat("_UPDATE"));
+            }
+            if(authority.getAuthorize()) {
+                userAuthorities.add(name.toUpperCase().concat("_AUTHORIZE"));
+            }
+        });
+        return userAuthorities;
     }
 
     private String generate(Map<String, Object> claims, String username) {

@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface AuthorityService {
     Flux<Authority> findPaginated(Optional<String> id, Optional<String> name, int page, int pageSize, OrderType order);
+    Flux<Authority> findByRoleId(String roleId);
 }

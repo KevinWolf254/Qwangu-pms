@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -21,7 +20,7 @@ public class Authority {
     private String name;
     private Boolean create;
     private Boolean read;
-    private Boolean write;
+    private Boolean update;
     private Boolean delete;
     private Boolean authorize;
     private String roleId;

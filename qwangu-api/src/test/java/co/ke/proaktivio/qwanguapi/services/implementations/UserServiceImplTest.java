@@ -3,6 +3,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.models.Authority;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
@@ -11,6 +12,7 @@ import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
+import co.ke.proaktivio.qwanguapi.services.AuthorityService;
 import co.ke.proaktivio.qwanguapi.services.EmailGenerator;
 import co.ke.proaktivio.qwanguapi.services.EmailService;
 import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
@@ -52,6 +54,8 @@ class UserServiceImplTest {
     private RoleRepository roleRepository;
     @Mock
     private JwtUtil jwtUtil;
+    @Mock
+    private AuthorityService authorityService;
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -131,11 +135,15 @@ class UserServiceImplTest {
                 false, false, false, true, now, now);
         var role = new Role("1", "ADMIN", now, null);
         var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+        var authority = new Authority("1", "APARTMENT", true, true, true, true,
+                true, "1", LocalDateTime.now(), null);
+
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(dto.getUsername())))).thenReturn(Mono.just(user));
         Mockito.when(encoder.matches(dto.getPassword(), user.getPassword())).thenReturn(true);
         Mockito.when(roleRepository.findById("1")).thenReturn(Mono.just(role));
-        Mockito.when(jwtUtil.generateToken(user, role)).thenReturn(token);
+        Mockito.when(jwtUtil.generateToken(user, role, List.of(authority))).thenReturn(token);
+        Mockito.when(authorityService.findByRoleId("1")).thenReturn(Flux.just(authority));
         // then
         StepVerifier
                 .create(userService.signIn(dto))
@@ -166,7 +174,7 @@ class UserServiceImplTest {
                 .verify();
         // then
         Mockito.when(roleRepository.findById("1")).thenReturn(Mono.just(role));
-        Mockito.when(jwtUtil.generateToken(user, role)).thenReturn(null);
+        Mockito.when(jwtUtil.generateToken(user, role, List.of(authority))).thenReturn(null);
         StepVerifier
                 .create(userService.signIn(dto))
                 .expectErrorMatches(e -> e instanceof UsernameNotFoundException &&

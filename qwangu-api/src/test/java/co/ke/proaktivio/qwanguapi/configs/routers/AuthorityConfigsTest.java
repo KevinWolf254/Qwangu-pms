@@ -130,7 +130,7 @@ class AuthorityConfigsTest {
                 .jsonPath("$.data.[0].name").isEqualTo(name)
                 .jsonPath("$.data.[0].create").isEqualTo(true)
                 .jsonPath("$.data.[0].read").isEqualTo(true)
-                .jsonPath("$.data.[0].write").isEqualTo(true)
+                .jsonPath("$.data.[0].update").isEqualTo(true)
                 .jsonPath("$.data.[0].delete").isEqualTo(true)
                 .jsonPath("$.data.[0].authorize").isEqualTo(true)
                 .jsonPath("$.data.[0].created").isNotEmpty()

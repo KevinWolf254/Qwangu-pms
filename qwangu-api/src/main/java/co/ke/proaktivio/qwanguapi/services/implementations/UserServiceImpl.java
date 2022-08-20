@@ -9,10 +9,7 @@ import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
-import co.ke.proaktivio.qwanguapi.services.EmailGenerator;
-import co.ke.proaktivio.qwanguapi.services.EmailService;
-import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
-import co.ke.proaktivio.qwanguapi.services.UserService;
+import co.ke.proaktivio.qwanguapi.services.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -38,6 +35,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder encoder;
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
+    private final AuthorityService authorityService;
 
     @Override
     public Mono<User> create(UserDto dto) {
@@ -89,7 +87,9 @@ public class UserServiceImpl implements UserService {
                                 .flatMap(match -> roleRepository
                                         .findById(user.getRoleId())
                                         .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                                        .map(role -> jwtUtil.generateToken(user, role))
+                                        .flatMap(role -> authorityService.findByRoleId(role.getId())
+                                                .collectList()
+                                                .map(authorities -> jwtUtil.generateToken(user, role, authorities)))
                                         .filter(StringUtils::hasText)
                                         .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
                                         .map(TokenDto::new)

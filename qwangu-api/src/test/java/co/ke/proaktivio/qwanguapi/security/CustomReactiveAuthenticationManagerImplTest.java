@@ -12,6 +12,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.test.StepVerifier;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.when;
@@ -21,6 +22,9 @@ class CustomReactiveAuthenticationManagerImplTest {
     @Mock
     JwtUtil util;
     private final static String TOKEN = "eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJwZXJzb25AZ21haWwuY29tIiwiaWF0IjoxNjU1MjAwODM1LCJleHAiOjE2NTUyMDQ0MzV9.S1AG9Tgxhufl2Ffd5VeeEBuThvVhlzDneDbiZwl2_kwHI2AS8MVLWeMLMsp7CAs6";
+    private final List<String> authorities = List.of("ROLE_ADMIN", "APARTMENT_CREATE", "APARTMENT_UPDATE",
+            "APARTMENT_READ");
+
     @InjectMocks
     CustomReactiveAuthenticationManagerImpl authenticationManager;
 
@@ -28,7 +32,7 @@ class CustomReactiveAuthenticationManagerImplTest {
     void authenticate_returnsAMonoOfAnAuthenticatedAuthentication_whenAuthenticationIsValid() {
         // given
         Map<String, Object> claimsMap = new HashMap<>();
-        claimsMap.put("role", "ADMIN");
+        claimsMap.put("authorities", authorities);
         DefaultClaims claims = new DefaultClaims(claimsMap);
         Authentication authentication = new UsernamePasswordAuthenticationToken(TOKEN, TOKEN);
         // when
@@ -44,11 +48,8 @@ class CustomReactiveAuthenticationManagerImplTest {
     }
 
     @Test
-    void authenticate_returnsAMonoOfAnNullAuthentication_whenTokenIsNotValid() {
+    void authenticate_returnsANullAuthentication_whenTokenIsNotValid() {
         // given
-        Map<String, Object> claimsMap = new HashMap<>();
-        claimsMap.put("role", "ADMIN");
-        DefaultClaims claims = new DefaultClaims(claimsMap);
         Authentication authentication = new UsernamePasswordAuthenticationToken(TOKEN, TOKEN);
         // when
         when(util.getUsername(TOKEN)).thenReturn("person@gmail.com");
@@ -83,7 +84,7 @@ class CustomReactiveAuthenticationManagerImplTest {
     void authenticate_returnsAMonoOfANullAuthenticatedAuthentication_whenUsernameIsEmpty() {
         // given
         Map<String, Object> claimsMap = new HashMap<>();
-        claimsMap.put("role", "ADMIN");
+        claimsMap.put("authorities", authorities);
         DefaultClaims claims = new DefaultClaims(claimsMap);
         Authentication authentication = new UsernamePasswordAuthenticationToken(TOKEN, TOKEN);
         // when

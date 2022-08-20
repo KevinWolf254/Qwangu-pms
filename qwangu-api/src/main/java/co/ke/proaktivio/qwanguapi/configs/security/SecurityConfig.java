@@ -1,10 +1,11 @@
 package co.ke.proaktivio.qwanguapi.configs.security;
 
-import co.ke.proaktivio.qwanguapi.configs.MpesaPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
@@ -47,6 +48,7 @@ public class SecurityConfig {
                         "/v1/token",
                         "/v1/resetPassword"
                 ).permitAll()
+//                .pathMatchers(HttpMethod.GET, "/v1/users/**").hasRole("ACCOUNTANT")
                 .pathMatchers("/v1/mpesa/c2b/**").access(this::whiteListIp)
                 .anyExchange().authenticated()
                 .and()

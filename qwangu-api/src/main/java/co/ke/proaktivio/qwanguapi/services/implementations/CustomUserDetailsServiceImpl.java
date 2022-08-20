@@ -25,6 +25,7 @@ import java.util.Optional;
 public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final AuthorityService authorityService;
 
     @Override
     public Mono<UserDetails> findByUsername(String username) {
@@ -35,7 +36,10 @@ public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
                         return roleRepository
                                 .findOne(Example.of(new Role(user.getRoleId())))
                                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username))))
-                                .map(role -> (UserDetails) new CustomUserDetails(user, role));
+                                .flatMap(role -> authorityService
+                                        .findByRoleId(role.getId())
+                                        .collectList()
+                                        .map(authorities -> (UserDetails) new CustomUserDetails(user, role, authorities)));
                     return Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username)));
                 });
     }
