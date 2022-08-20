@@ -5,13 +5,11 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.util.StringUtils;
@@ -26,35 +24,35 @@ import reactor.test.StepVerifier;
 import java.util.Optional;
 
 @Testcontainers
-@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
+@SpringBootTest
 class CustomApartmentRepositoryImplTest {
+    @Autowired
+    private ApartmentRepository apartmentRepository;
+    @Autowired
+    private CustomApartmentRepositoryImpl customApartmentRepository;
+    private final String name = "Luxury Apartment";
+    private final ApartmentDto dto = new ApartmentDto(name);
 
     @Container
-    private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
+    private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName
+            .parse("mongo:latest"));
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
 
-    @Autowired
-    private ReactiveMongoTemplate template;
-
-    @Autowired
-    private CustomApartmentRepositoryImpl customApartmentRepository;
+    private Mono<Void> deleteAll() {
+        return apartmentRepository.deleteAll()
+                .doOnSuccess($ -> System.out.println("---- Deleted all Apartments!"));
+    }
 
     @Test
     @DisplayName("create returns a Mono of Apartment when name does not exist")
     void create_returnMonoOfApartment_whenSuccessful() {
-
-        // given
-        String name = "Luxury Apartment";
-        ApartmentDto dto = new ApartmentDto(name);
-
         // when
-        Mono<Apartment> saved = customApartmentRepository.create(dto);
-
+        Mono<Apartment> saved = deleteAll()
+                .then(customApartmentRepository.create(dto));
         // then
         StepVerifier.create(saved)
                 .expectNextMatches(apartment ->
@@ -67,13 +65,9 @@ class CustomApartmentRepositoryImplTest {
     @Test
     @DisplayName("create returns a CustomAlreadyExistsException when name already exists")
     void create_returnsCustomAlreadyExistsException_whenApartmentNameExists() {
-
-        // given
-        String name = "Luxury Apartments";
-        ApartmentDto dto = new ApartmentDto(name);
-
         // when
-        Mono<Apartment> saved = customApartmentRepository.create(dto)
+        Mono<Apartment> saved = deleteAll()
+                .then(customApartmentRepository.create(dto))
                 .thenReturn(dto)
                 .flatMap(d -> customApartmentRepository.create(d));
 
@@ -89,53 +83,40 @@ class CustomApartmentRepositoryImplTest {
     void update_returnsMonoOfAnUpdatedApartment_whenSuccessful() {
         // given
         String updatedName = "Thika road Apartments";
-
         //when
-        Mono<Apartment> updated =
-                template.dropCollection(Apartment.class)
-                        .thenReturn(new ApartmentDto("Luxury Apartments"))
-                        .flatMap(a -> customApartmentRepository.create(a))
-                        .flatMap(a -> customApartmentRepository.update(a.getId(), new ApartmentDto(updatedName)));
+        Mono<Apartment> updated = deleteAll()
+                .then(customApartmentRepository.create(dto))
+                .doOnSuccess(a -> System.out.println("---- Created: " + a))
+                .flatMap(a -> customApartmentRepository.update(a.getId(), new ApartmentDto(updatedName)));
 
         // then
         StepVerifier.create(updated)
-                .expectNextMatches(apartment ->
-                        StringUtils.hasText(apartment.getId()) &&
-                                StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(updatedName) &&
-                                apartment.getModified() != null && StringUtils.hasText(apartment.getModified().toString()))
-//                        result.getId() != null && !result.getId().isBlank() && !result.getId().isEmpty() &&
-//                        result.getName().isPresent() && result.getName().get().equalsIgnoreCase(updatedName))
+                .expectNextMatches(apartment -> StringUtils.hasText(apartment.getId()) &&
+                        StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(updatedName) &&
+                        apartment.getModified() != null && StringUtils.hasText(apartment.getModified().toString()))
                 .verifyComplete();
     }
 
     @Test
     @DisplayName("update returns a CustomNotFoundException when id does not exist")
     void update_returnsCustomNotFoundException_whenIdDoesNotExist() {
-
-        // given
-        String id = "1";
-        ApartmentDto dto = new ApartmentDto("Luxury Apartments");
-
         // when
-        Mono<Apartment> saved = customApartmentRepository.update(id, dto);
+        Mono<Apartment> saved = deleteAll()
+                .then(customApartmentRepository.update("12345", dto));
 
         // then
         StepVerifier.create(saved)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Apartment with id %s does not exists!".formatted(id)))
+                        e.getMessage().equalsIgnoreCase("Apartment with id %s does not exists!".formatted("12345")))
                 .verify();
     }
 
     @Test
     @DisplayName("update returns a CustomAlreadyExistsException when name already exists")
     void update_returnsCustomAlreadyExistsException_whenNameAlreadyExists() {
-
-        // given
-        String name = "Luxury Apartments";
-        ApartmentDto dto = new ApartmentDto(name);
-
         // when
-        Mono<Apartment> saved = customApartmentRepository.create(dto)
+        Mono<Apartment> saved = deleteAll()
+                .then(customApartmentRepository.create(dto))
                 .thenReturn(new ApartmentDto("Luxury Apartments B"))
                 .flatMap(dto2 -> customApartmentRepository.create(dto2))
                 .flatMap(a -> customApartmentRepository.update(a.getId(), dto));
@@ -153,9 +134,9 @@ class CustomApartmentRepositoryImplTest {
         // given
 
         //when
-        Flux<Apartment> saved = template.dropCollection(Apartment.class)
+        Flux<Apartment> saved = deleteAll()
                 .thenMany(Flux
-                    .just(new ApartmentDto("Luxury Apartments"), new ApartmentDto("Luxury Apartments B")))
+                        .just(new ApartmentDto("Luxury Apartments"), new ApartmentDto("Luxury Apartments B")))
                 .flatMap(a -> customApartmentRepository.create(a))
                 .thenMany(customApartmentRepository
                         .findPaginated(Optional.empty(),
@@ -165,9 +146,10 @@ class CustomApartmentRepositoryImplTest {
         // then
         StepVerifier
                 .create(saved)
-                .expectNextCount(2)
-//                .expectNextMatches(aprt1 -> aprt1.getName().equalsIgnoreCase("Luxury Apartments"))
-//                .expectNextMatches(aprt2 -> aprt2.getName().equalsIgnoreCase("Luxury Apartments B"))
+                .expectNextMatches(aprt -> aprt.getName().equalsIgnoreCase("Luxury Apartments") ||
+                        aprt.getName().equalsIgnoreCase("Luxury Apartments B"))
+                .expectNextMatches(aprt -> aprt.getName().equalsIgnoreCase("Luxury Apartments") ||
+                        aprt.getName().equalsIgnoreCase("Luxury Apartments B"))
                 .verifyComplete();
     }
 
@@ -177,8 +159,7 @@ class CustomApartmentRepositoryImplTest {
         // given
 
         //when
-        Flux<Apartment> saved = template.dropCollection(Apartment.class)
-                .doOnSuccess(e -> System.out.println("----Dropped table successfully!"))
+        Flux<Apartment> saved = deleteAll()
                 .thenMany(customApartmentRepository.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
                         OrderType.ASC))
@@ -195,12 +176,9 @@ class CustomApartmentRepositoryImplTest {
     @Test
     @DisplayName("delete returns a true when successful")
     void delete_returnsTrue_whenSuccessful() {
-        //given
-        var dto = new ApartmentDto("Luxury Apartments");
-
         // when
-        Mono<Boolean> deleted = customApartmentRepository
-                .create(dto)
+        Mono<Boolean> deleted = deleteAll()
+                .then(customApartmentRepository.create(dto))
                 .flatMap(a -> customApartmentRepository.delete(a.getId()));
 
         // then
@@ -212,16 +190,14 @@ class CustomApartmentRepositoryImplTest {
     @Test
     @DisplayName("delete returns CustomNotFoundException when id does not exist")
     void delete_returnsCustomNotFoundException_whenIdDoesNotExist() {
-        // given
-        String id = "1";
-
         // when
-        Mono<Boolean> deleted = customApartmentRepository.delete(id);
+        Mono<Boolean> deleted = deleteAll()
+                .then(customApartmentRepository.delete("11234"));
 
         // then
         StepVerifier.create(deleted)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Apartment with id %s does not exist!".formatted(id)))
+                        e.getMessage().equalsIgnoreCase("Apartment with id %s does not exist!".formatted("11234")))
                 .verify();
     }
 }

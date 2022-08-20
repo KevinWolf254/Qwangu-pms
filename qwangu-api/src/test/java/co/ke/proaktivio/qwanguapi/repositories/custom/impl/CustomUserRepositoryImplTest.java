@@ -10,9 +10,7 @@ import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.pojos.UserDto;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -26,12 +24,14 @@ import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 
 @Testcontainers
-@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
+@SpringBootTest
 class CustomUserRepositoryImplTest {
+    @Autowired
+    private ReactiveMongoTemplate template;
+    @Autowired
+    private CustomUserRepositoryImpl customUserRepository;
 
     @Container
     private final static MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
@@ -40,12 +40,6 @@ class CustomUserRepositoryImplTest {
     public static void overrideProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
-
-    @Autowired
-    private ReactiveMongoTemplate template;
-
-    @Autowired
-    private CustomUserRepositoryImpl customUserRepository;
 
     @Test
     @DisplayName("create returns a Mono of User when email address does not exist")

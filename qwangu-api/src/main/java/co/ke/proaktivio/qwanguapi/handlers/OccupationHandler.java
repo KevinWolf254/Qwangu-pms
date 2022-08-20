@@ -9,6 +9,7 @@ import co.ke.proaktivio.qwanguapi.validators.OccupationDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -18,12 +19,11 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
 @Component
 @RequiredArgsConstructor
@@ -37,9 +37,11 @@ public class OccupationHandler {
                 .flatMap(occupationService::create)
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/occupations/%s".formatted(created.getId())))
-                        .body(Mono.just(new SuccessResponse<>(true, "Occupation created successfully.", created)), SuccessResponse.class)
-                        .log())
-                .onErrorResume(handleExceptions());
+                        .body(Mono.just(new Response<>(
+                                LocalDateTime.now().toString(),
+                                request.uri().getPath(),
+                                HttpStatus.CREATED.value(),true, "Occupation created successfully.",
+                                created)), Response.class));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
@@ -51,9 +53,11 @@ public class OccupationHandler {
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Occupation updated successfully.", updated)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "Occupation updated successfully.",
+                                        updated)), Response.class));
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -64,7 +68,6 @@ public class OccupationHandler {
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
-        try {
             if (status.isPresent() &&  !EnumUtils.isValidEnum(Occupation.Status.class, status.get())) {
                 String[] arrayOfState = Stream.of(Occupation.Status.values()).map(Occupation.Status::getState).toArray(String[]::new);
                 String states = String.join(" or ", arrayOfState);
@@ -83,12 +86,11 @@ public class OccupationHandler {
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Occupations found successfully.", results)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
-        } catch (Exception e) {
-            return handleExceptions(e);
-        }
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "Occupations found successfully.",
+                                        results)), Response.class));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -98,10 +100,11 @@ public class OccupationHandler {
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Occupation with id %s deleted successfully."
-                                        .formatted(id), null)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "Occupation with id %s deleted successfully."
+                                        .formatted(id), null)), Response.class));
     }
 
     private Function<OccupationDto, OccupationDto> validateOccupationDtoFunc(Validator validator) {

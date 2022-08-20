@@ -1,18 +1,15 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.models.RentAdvance;
 import co.ke.proaktivio.qwanguapi.pojos.BookingRefundDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.pojos.RentAdvanceDto;
-import co.ke.proaktivio.qwanguapi.pojos.SuccessResponse;
+import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.services.BookingRefundService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.BookingRefundDtoValidator;
-import co.ke.proaktivio.qwanguapi.validators.RentAdvanceDtoValidator;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.EnumUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -22,12 +19,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
 @Component
 @RequiredArgsConstructor
@@ -41,10 +36,11 @@ public class BookingRefundHandler {
                 .flatMap(bookingRefundService::create)
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/refunds/%s".formatted(created.getId())))
-                        .body(Mono.just(new SuccessResponse<>(true, "Refund created successfully.",
-                                created)), SuccessResponse.class)
-                        .log())
-                .onErrorResume(handleExceptions());
+                        .body(Mono.just(new Response<>(
+                                LocalDateTime.now().toString(),
+                                request.uri().getPath(),
+                                HttpStatus.CREATED.value(),true, "Refund created successfully.",
+                                created)), Response.class));
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -63,10 +59,11 @@ public class BookingRefundHandler {
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Refunds found successfully.",
-                                        results)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "Refunds found successfully.",
+                                        results)), Response.class));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -76,10 +73,11 @@ public class BookingRefundHandler {
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Refund with id %s deleted successfully."
-                                        .formatted(id), null)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "Refund with id %s deleted successfully."
+                                        .formatted(id), null)), Response.class));
     }
 
     private Function<BookingRefundDto, BookingRefundDto> validateBookingRefundDtoFunc(Validator validator) {

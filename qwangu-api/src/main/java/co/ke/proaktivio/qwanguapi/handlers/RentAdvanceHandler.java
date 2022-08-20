@@ -4,7 +4,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.RentAdvance;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.RentAdvanceDto;
-import co.ke.proaktivio.qwanguapi.pojos.SuccessResponse;
+import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateRentAdvanceDto;
 import co.ke.proaktivio.qwanguapi.services.RentAdvanceService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -13,6 +13,7 @@ import co.ke.proaktivio.qwanguapi.validators.UpdateRentAdvanceDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -22,12 +23,11 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
 @Component
 @RequiredArgsConstructor
@@ -41,9 +41,11 @@ public class RentAdvanceHandler {
                 .flatMap(rentAdvanceService::create)
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/advances/%s".formatted(created.getId())))
-                        .body(Mono.just(new SuccessResponse<>(true, "Advance created successfully.", created)), SuccessResponse.class)
-                        .log())
-                .onErrorResume(handleExceptions());
+                        .body(Mono.just(new Response<>(
+                                LocalDateTime.now().toString(),
+                                request.uri().getPath(),
+                                HttpStatus.CREATED.value(), true, "Advance created successfully.",
+                                created)), Response.class));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
@@ -55,9 +57,11 @@ public class RentAdvanceHandler {
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Advance updated successfully.", updated)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(), true, "Advance updated successfully.",
+                                        updated)), Response.class));
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -68,18 +72,17 @@ public class RentAdvanceHandler {
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
-        try {
-            if (status.isPresent() &&  !EnumUtils.isValidEnum(RentAdvance.Status.class, status.get())) {
-                String[] arrayOfState = Stream.of(RentAdvance.Status.values()).map(RentAdvance.Status::getState).toArray(String[]::new);
-                String states = String.join(" or ", arrayOfState);
-                throw new CustomBadRequestException("Status should be " + states + "!");
-            }
+        if (status.isPresent() && !EnumUtils.isValidEnum(RentAdvance.Status.class, status.get())) {
+            String[] arrayOfState = Stream.of(RentAdvance.Status.values()).map(RentAdvance.Status::getState).toArray(String[]::new);
+            String states = String.join(" or ", arrayOfState);
+            throw new CustomBadRequestException("Status should be " + states + "!");
+        }
 
-            return rentAdvanceService.findPaginated(
+        return rentAdvanceService.findPaginated(
                         id,
                         status.map(RentAdvance.Status::valueOf),
-                            occupationId,
-                            paymentId,
+                        occupationId,
+                        paymentId,
                         page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
                         pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
                         order.map(OrderType::valueOf).orElse(OrderType.DESC)
@@ -87,12 +90,11 @@ public class RentAdvanceHandler {
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Advances found successfully.", results)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
-        } catch (Exception e) {
-            return handleExceptions(e);
-        }
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(), true, "Advances found successfully.",
+                                        results)), Response.class));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -102,10 +104,11 @@ public class RentAdvanceHandler {
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Advance with id %s deleted successfully."
-                                        .formatted(id), null)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(), true, "Advance with id %s deleted successfully."
+                                        .formatted(id), null)), Response.class));
     }
 
     private Function<RentAdvanceDto, RentAdvanceDto> validateRentAdvanceDtoFunc(Validator validator) {

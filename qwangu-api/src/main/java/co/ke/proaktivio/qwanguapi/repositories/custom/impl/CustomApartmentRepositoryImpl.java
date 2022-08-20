@@ -33,13 +33,10 @@ public class CustomApartmentRepositoryImpl implements CustomApartmentRepository 
                 .addCriteria(Criteria.where("name").is(name));
         return template
                 .exists(query, Apartment.class)
-                .flatMap(exists -> {
-                    if (exists)
-                        throw new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name));
-                    LocalDateTime now = LocalDateTime.now();
-                    Mono<Apartment> saved = template.save(new Apartment(null, name, now, null));
-                    return saved;
-                });
+                .filter(exists -> !exists)
+                .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name))))
+                .map($ -> new Apartment(null, name, LocalDateTime.now(), null))
+                .flatMap(template::save);
     }
 
     @Override

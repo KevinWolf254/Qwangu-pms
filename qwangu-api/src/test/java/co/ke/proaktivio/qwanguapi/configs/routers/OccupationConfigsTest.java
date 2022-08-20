@@ -1,7 +1,9 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.OccupationHandler;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
@@ -35,7 +37,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {OccupationConfigs.class, OccupationHandler.class, SecurityConfig.class})
+@ContextConfiguration(classes = {OccupationConfigs.class, OccupationHandler.class, SecurityConfig.class,
+        GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 class OccupationConfigsTest {
     @Autowired
     private ApplicationContext context;
@@ -116,8 +119,8 @@ class OccupationConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Status is required. Started is required. Tenant id is required. Unit id is required.")
+                .jsonPath("$.message").isEqualTo("Status is required. Started is required. Tenant id is required. Unit id is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -186,8 +189,8 @@ class OccupationConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Status is required. Started is required. Tenant id is required. Unit id is required.")
+                .jsonPath("$.message").isEqualTo("Status is required. Started is required. Tenant id is required. Unit id is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -301,9 +304,8 @@ class OccupationConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Status should be BOOKED or CURRENT or PREVIOUS!")
+                .jsonPath("$.message").isEqualTo("Status should be BOOKED or CURRENT or PREVIOUS!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 

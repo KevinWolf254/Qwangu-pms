@@ -14,9 +14,7 @@ import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -33,8 +31,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Testcontainers
-@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.services", "co.ke.proaktivio.qwanguapi.repositories"})
+@SpringBootTest
 class OccupationServiceImplIntegrationTest {
     @Autowired
     private OccupationRepository occupationRepository;

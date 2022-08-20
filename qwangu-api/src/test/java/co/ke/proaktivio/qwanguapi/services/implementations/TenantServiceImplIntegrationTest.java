@@ -3,15 +3,12 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Tenant;
-import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.TenantDto;
 import co.ke.proaktivio.qwanguapi.repositories.TenantRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -26,11 +23,8 @@ import reactor.test.StepVerifier;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @Testcontainers
-@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
+@SpringBootTest
 class TenantServiceImplIntegrationTest {
     @Autowired
     private TenantRepository tenantRepository;

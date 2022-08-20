@@ -8,6 +8,7 @@ import co.ke.proaktivio.qwanguapi.validators.CreateNoticeDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.UpdateNoticeDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -17,11 +18,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
 @Component
 @RequiredArgsConstructor
@@ -34,9 +34,11 @@ public class NoticeHandler {
                 .flatMap(noticeService::create)
                 .flatMap(created ->
                         ServerResponse.created(URI.create("v1/notices/%s".formatted(created.getId())))
-                                .body(Mono.just(new SuccessResponse<>(true, "Notice created successfully.", created)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.CREATED.value(), true, "Notice created successfully.",
+                                        created)), Response.class));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
@@ -47,9 +49,11 @@ public class NoticeHandler {
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Notice updated successfully.", updated)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(), true, "Notice updated successfully.",
+                                        updated)), Response.class));
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -60,29 +64,27 @@ public class NoticeHandler {
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
 
-        try {
-            if (isActive.isPresent() && (!"true".equalsIgnoreCase(isActive.get()) &&
-            !"false".equalsIgnoreCase(isActive.get()))) {
-                throw new CustomBadRequestException("isActive should be a true or false!");
-            }
-
-            return noticeService.findPaginated(
-                            id,
-                            isActive.map(r -> r.equalsIgnoreCase("true")),
-                            occupationId,
-                            page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
-                            pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
-                            order.map(OrderType::valueOf).orElse(OrderType.DESC)
-                    ).collectList()
-                    .flatMap(results ->
-                            ServerResponse
-                                    .ok()
-                                    .body(Mono.just(new SuccessResponse<>(true, "Notices found successfully.", results)), SuccessResponse.class)
-                                    .log())
-                    .onErrorResume(handleExceptions());
-        } catch (Exception e) {
-            return handleExceptions(e);
+        if (isActive.isPresent() && (!"true".equalsIgnoreCase(isActive.get()) &&
+                !"false".equalsIgnoreCase(isActive.get()))) {
+            throw new CustomBadRequestException("isActive should be a true or false!");
         }
+
+        return noticeService.findPaginated(
+                        id,
+                        isActive.map(r -> r.equalsIgnoreCase("true")),
+                        occupationId,
+                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
+                        pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
+                        order.map(OrderType::valueOf).orElse(OrderType.DESC)
+                ).collectList()
+                .flatMap(results ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(), true,
+                                        "Notices found successfully.", results)), Response.class));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -91,9 +93,12 @@ public class NoticeHandler {
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Notice with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                                LocalDateTime.now().toString(),
+                                                request.uri().getPath(),
+                                                HttpStatus.OK.value(), true,
+                                                "Notice with id %s deleted successfully.".formatted(id), null)),
+                                        Response.class));
     }
 
     private Function<CreateNoticeDto, CreateNoticeDto> validateCreateNoticeDtoFunc(Validator validator) {

@@ -13,11 +13,7 @@ import co.ke.proaktivio.qwanguapi.repositories.RentAdvanceRepository;
 import co.ke.proaktivio.qwanguapi.services.RentAdvanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -35,9 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Testcontainers
-@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
+@SpringBootTest
 class RentAdvanceServiceImplTest {
     @Autowired
     private RentAdvanceService rentAdvanceService;

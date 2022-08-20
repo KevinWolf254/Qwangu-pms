@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -19,12 +20,11 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
 @Component
 @RequiredArgsConstructor
@@ -37,10 +37,11 @@ public class UnitHandler {
                 .flatMap(unitService::create)
                 .flatMap(created ->
                         ServerResponse.created(URI.create("v1/units/%s".formatted(created.getId())))
-                                .body(Mono.just(new SuccessResponse<>(true, "Unit created successfully.",
-                                        created)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.CREATED.value(),true, "Unit created successfully.",
+                                        created)), Response.class));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
@@ -51,10 +52,11 @@ public class UnitHandler {
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Unit updated successfully.",
-                                        updated)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "Unit updated successfully.",
+                                        updated)), Response.class));
     }
 
     private Optional<Integer> convertToInteger(Optional<String> paramOpt) {
@@ -74,12 +76,6 @@ public class UnitHandler {
         throw new CustomBadRequestException("Not a valid Identifier!");
     }
 
-//    private Optional<Unit.Type> convertToType(String param) {
-//        if(EnumUtils.isValidEnumIgnoreCase(Unit.Type.class, param)){
-//            return Optional.of(EnumUtils.getEnum(Unit.Type.class, param));
-//        }
-//        throw new CustomBadRequestException("Not a valid Type!");
-//    }
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> id = request.queryParam("id");
         Optional<String> status = request.queryParam("status");
@@ -93,7 +89,6 @@ public class UnitHandler {
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
-        try {
             if (type.isPresent() &&  !EnumUtils.isValidEnum(Unit.Type.class, type.get())) {
                 String[] arrayOfState = Stream.of(Unit.Type.values()).map(Unit.Type::getType).toArray(String[]::new);
                 String states = String.join(" or ", arrayOfState);
@@ -131,12 +126,11 @@ public class UnitHandler {
                     .flatMap(results ->
                             ServerResponse
                                     .ok()
-                                    .body(Mono.just(new SuccessResponse<>(true, "Units found successfully.", results)), SuccessResponse.class)
-                                    .log())
-                    .onErrorResume(handleExceptions());
-        } catch (Exception e) {
-            return handleExceptions(e);
-        }
+                                    .body(Mono.just(new Response<>(
+                                            LocalDateTime.now().toString(),
+                                            request.uri().getPath(),
+                                            HttpStatus.OK.value(),true, "Units found successfully.",
+                                            results)), Response.class));
     }
 
     public Mono<ServerResponse> findUnitsWithNotice(ServerRequest request) {
@@ -147,10 +141,11 @@ public class UnitHandler {
                 .flatMap(units ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Units found successfully.",
-                                        units)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "Units found successfully.",
+                                        units)), Response.class));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -159,9 +154,12 @@ public class UnitHandler {
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Unit with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,
+                                        "Unit with id %s deleted successfully.".formatted(id), null)),
+                                        Response.class));
     }
 
     private Function<UnitDto, UnitDto> validateUnitDtoFunc(Validator validator) {

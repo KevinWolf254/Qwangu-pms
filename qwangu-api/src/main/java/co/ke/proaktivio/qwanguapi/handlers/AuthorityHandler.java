@@ -1,11 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.pojos.ErrorCode;
-import co.ke.proaktivio.qwanguapi.pojos.ErrorResponse;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.pojos.SuccessResponse;
-import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
+import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.services.AuthorityService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import lombok.RequiredArgsConstructor;
@@ -15,15 +11,13 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.function.Function;
 
 @Component
 @RequiredArgsConstructor
 public class AuthorityHandler {
     private final AuthorityService authorityService;
-
 
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> id = request.queryParam("id");
@@ -41,23 +35,10 @@ public class AuthorityHandler {
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true,"Authorities found successfully.",results)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
-    }
-
-    private Function<Throwable, Mono<? extends ServerResponse>> handleExceptions() {
-        return e -> {
-            if (e instanceof CustomNotFoundException) {
-                return ServerResponse.status(HttpStatus.NOT_FOUND)
-                        .body(Mono.just(
-                                new ErrorResponse<>(false, ErrorCode.NOT_FOUND_ERROR, "Not found!", e.getMessage())), ErrorResponse.class)
-                        .log();
-            }
-            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Mono.just(
-                            new ErrorResponse<>(false, ErrorCode.INTERNAL_SERVER_ERROR, "Something happened!","Something happened!")), ErrorResponse.class)
-                    .log();
-        };
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.CREATED.value(),true,"Authorities found successfully.",
+                                        results)), Response.class));
     }
 }

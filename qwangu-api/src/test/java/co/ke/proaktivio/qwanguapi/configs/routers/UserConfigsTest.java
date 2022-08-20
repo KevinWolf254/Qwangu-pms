@@ -1,10 +1,12 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
@@ -19,6 +21,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -41,7 +44,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {UserConfigs.class, UserHandler.class, SecurityConfig.class})
+@ContextConfiguration(classes = {UserConfigs.class, UserHandler.class, SecurityConfig.class,
+        GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 class UserConfigsTest {
     @Autowired
     private ApplicationContext context;
@@ -138,9 +142,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("User with email address %s already exists!".formatted(emailAddress))
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("User with email address %s already exists!".formatted(emailAddress))
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -167,9 +171,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -196,9 +200,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -225,9 +229,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -254,9 +258,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Email address is not valid.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Email address is not valid.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -285,9 +289,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Mail could not be sent!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Mail could not be sent!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -300,22 +304,22 @@ class UserConfigsTest {
         UserDto dto = new UserDto(person, "person@gmail.com", "1");
 
         //when
-        Mockito.when(userService.create(dto)).thenThrow(new RuntimeException("Something happened!"));
+        Mockito.when(userService.createAndNotify(dto)).thenThrow(new RuntimeException("Something happened!"));
 
         //then
         client
                 .post()
                 .uri("/v1/users")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), UserDto.class)
                 .exchange()
                 .expectStatus().isEqualTo(500)
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isEqualTo("Something happened!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -400,9 +404,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -430,9 +434,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -460,9 +464,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -490,9 +494,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Email address is not valid.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Email address is not valid.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -519,8 +523,8 @@ class UserConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isEqualTo("Something happened!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
     }
@@ -649,9 +653,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isEqualTo("Users were not found!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
+                .jsonPath("$.message").isEqualTo("Users were not found!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
     }
@@ -697,8 +701,8 @@ class UserConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isEqualTo("Something happened!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -763,9 +767,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isEqualTo("User with id %s does not exist!".formatted(id))
+                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
+                .jsonPath("$.message").isEqualTo("User with id %s does not exist!".formatted(id))
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -790,8 +794,8 @@ class UserConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isEqualTo("Something happened!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -844,9 +848,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Username is required.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Username is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -869,9 +873,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Username is required. Username must be at least 6 characters in length. Username is not a valid email address.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Username is required. Username must be at least 6 characters in length. Username is not a valid email address.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -893,9 +897,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Password is required.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Password is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -917,9 +921,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Password is required. Password must be at least 6 characters in length.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Password is required. Password must be at least 6 characters in length.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -984,9 +988,8 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Current password is not valid. New password is not valid.")
+                .jsonPath("$.message").isEqualTo("Current password is not valid. New password is not valid.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -1035,9 +1038,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Token is required!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Token is required!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
         // given
@@ -1113,9 +1116,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Email address is not valid.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Email address is not valid.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
         // given
@@ -1133,9 +1136,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
         // given
@@ -1153,9 +1156,9 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Email address is required.")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Email address is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
         // given
         var emailDto3 = new EmailDto("person@gmail.com");
@@ -1227,8 +1230,8 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Token is required!")
+                .jsonPath("$.message").isEqualTo("Token is required!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
         // then
@@ -1242,8 +1245,8 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Password is required.")
+                .jsonPath("$.message").isEqualTo("Password is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
         // then
@@ -1257,8 +1260,8 @@ class UserConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Password is not valid.")
+                .jsonPath("$.message").isEqualTo("Password is not valid.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 }

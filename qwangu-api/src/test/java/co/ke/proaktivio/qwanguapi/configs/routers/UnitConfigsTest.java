@@ -1,7 +1,9 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.UnitHandler;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
@@ -37,7 +39,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {UnitConfigs.class, UnitHandler.class, SecurityConfig.class})
+@ContextConfiguration(classes = {UnitConfigs.class, UnitHandler.class, SecurityConfig.class,
+        GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 public class UnitConfigsTest {
     @Autowired
     private ApplicationContext context;
@@ -153,9 +156,8 @@ public class UnitConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Type is required. No of bedrooms is required. No of bathrooms is required. Advance in months is required. Currency is required. Rent per month is required. Security per month is required. Garbage per month is required.")
+                .jsonPath("$.message").isEqualTo("Type is required. No of bedrooms is required. No of bathrooms is required. Advance in months is required. Currency is required. Rent per month is required. Security per month is required. Garbage per month is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
         // when
@@ -173,9 +175,8 @@ public class UnitConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Identifier is required. Floor No is required. No of bedrooms is required. No of bathrooms is required. Advance in months is required. Currency is required. Rent per month is required. Security per month is required. Garbage per month is required. Apartment Id is required.")
+                .jsonPath("$.message").isEqualTo("Identifier is required. Floor No is required. No of bedrooms is required. No of bathrooms is required. Advance in months is required. Currency is required. Rent per month is required. Security per month is required. Garbage per month is required. Apartment Id is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
         // when
@@ -193,9 +194,8 @@ public class UnitConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("No of bedrooms is required. No of bathrooms is required. Advance in months is required. Currency is required. Rent per month is required. Security per month is required. Garbage per month is required.")
+                .jsonPath("$.message").isEqualTo("No of bedrooms is required. No of bathrooms is required. Advance in months is required. Currency is required. Rent per month is required. Security per month is required. Garbage per month is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -384,9 +384,8 @@ public class UnitConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Status should be VACANT or OCCUPIED!")
+                .jsonPath("$.message").isEqualTo("Status should be VACANT or OCCUPIED!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
         // then
         client
@@ -398,9 +397,8 @@ public class UnitConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Type should be APARTMENT_UNIT or TOWN_HOUSE or MAISONETTES or VILLA!")
+                .jsonPath("$.message").isEqualTo("Type should be APARTMENT_UNIT or TOWN_HOUSE or MAISONETTES or VILLA!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 

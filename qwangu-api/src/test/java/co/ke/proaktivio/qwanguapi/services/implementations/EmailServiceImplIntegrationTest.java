@@ -1,26 +1,20 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
-import co.ke.proaktivio.qwanguapi.configs.*;
 import co.ke.proaktivio.qwanguapi.configs.properties.ApplicationPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.CompanyPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.FreeMarkerTemplatesPropertiesConfig;
-import co.ke.proaktivio.qwanguapi.configs.properties.MailPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.pojos.Email;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.reactive.result.view.freemarker.FreeMarkerConfigurer;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -33,11 +27,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
-@EnableConfigurationProperties(value = {MailPropertiesConfig.class, CompanyPropertiesConfig.class,
-        ApplicationPropertiesConfig.class, FreeMarkerTemplatesPropertiesConfig.class})
-@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class,
-        classes = {JavaMailSenderConfig.class, FreeMarkerConfig.class, EmailServiceImpl.class})
+@SpringBootTest
 class EmailServiceImplIntegrationTest {
     @Autowired
     @Qualifier("customJavaMailSender")

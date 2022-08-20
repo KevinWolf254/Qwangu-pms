@@ -1,7 +1,9 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.TenantHandler;
 import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.pojos.*;
@@ -35,7 +37,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {TenantConfigs.class, TenantHandler.class, SecurityConfig.class})
+@ContextConfiguration(classes = {TenantConfigs.class, TenantHandler.class, SecurityConfig.class,
+        GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 class TenantConfigsTest {
     @Autowired
     private ApplicationContext context;
@@ -114,8 +117,8 @@ class TenantConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("First name is required. Surname is required. Email address must be at least 10 characters in length. Mobile number is not valid. Email address is not valid.")
+                .jsonPath("$.message").isEqualTo("First name is required. Surname is required. Email address must be at least 10 characters in length. Mobile number is not valid. Email address is not valid.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -183,8 +186,8 @@ class TenantConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("First name is required. Surname is required. Mobile number is required. Email address is required.")
+                .jsonPath("$.message").isEqualTo("First name is required. Surname is required. Mobile number is required. Email address is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
     }

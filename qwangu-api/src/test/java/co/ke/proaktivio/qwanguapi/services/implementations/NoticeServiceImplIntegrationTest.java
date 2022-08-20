@@ -11,9 +11,7 @@ import co.ke.proaktivio.qwanguapi.repositories.NoticeRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -29,8 +27,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Testcontainers
-@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
-@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
+@SpringBootTest
 class NoticeServiceImplIntegrationTest {
     @Autowired
     private NoticeRepository noticeRepository;

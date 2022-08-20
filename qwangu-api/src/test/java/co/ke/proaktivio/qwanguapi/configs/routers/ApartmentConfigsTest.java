@@ -1,14 +1,15 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.ApartmentHandler;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
-import co.ke.proaktivio.qwanguapi.pojos.ErrorCode;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -20,6 +21,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -40,7 +42,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {ApartmentConfigs.class, ApartmentHandler.class, SecurityConfig.class})
+@ContextConfiguration(classes = {ApartmentConfigs.class, ApartmentHandler.class, SecurityConfig.class,
+        GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 class ApartmentConfigsTest {
     @Autowired
     private ApplicationContext context;
@@ -126,9 +129,9 @@ class ApartmentConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Apartment %s already exists!".formatted(name))
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Apartment %s already exists!".formatted(name))
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -153,8 +156,8 @@ class ApartmentConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Name is required. Name must be at least 6 characters in length.")
+                .jsonPath("$.message").isEqualTo("Name is required. Name must be at least 6 characters in length.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -179,8 +182,8 @@ class ApartmentConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Name must be at least 6 characters in length.")
+                .jsonPath("$.message").isEqualTo("Name must be at least 6 characters in length.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -206,8 +209,8 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isEqualTo("Something happened!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -287,8 +290,8 @@ class ApartmentConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Name is required.")
+                .jsonPath("$.message").isEqualTo("Name is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -313,8 +316,8 @@ class ApartmentConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Name must be at least 6 characters in length.")
+                .jsonPath("$.message").isEqualTo("Name must be at least 6 characters in length.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -340,9 +343,9 @@ class ApartmentConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Apartment %s already exists!".formatted(name))
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Apartment %s already exists!".formatted(name))
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -369,8 +372,8 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isEqualTo("Something happened!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
     }
@@ -488,9 +491,9 @@ class ApartmentConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isEqualTo("Apartments were not found!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
+                .jsonPath("$.message").isEqualTo("Apartments were not found!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -535,8 +538,8 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isEqualTo("Something happened!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -601,9 +604,9 @@ class ApartmentConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isEqualTo("Apartment with id %s does not exist!".formatted(id))
+                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
+                .jsonPath("$.message").isEqualTo("Apartment with id %s does not exist!".formatted(id))
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -628,8 +631,8 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isEqualTo("Something happened!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 }

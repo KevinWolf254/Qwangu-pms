@@ -9,8 +9,6 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
-
 @Component
 @RequiredArgsConstructor
 public class DarajaCustomerToBusinessHandler {
@@ -22,9 +20,7 @@ public class DarajaCustomerToBusinessHandler {
                 .flatMap(response ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(response), DarajaCustomerToBusinessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(response), DarajaCustomerToBusinessResponse.class));
     }
 
     public Mono<ServerResponse> confirm(ServerRequest request) {
@@ -33,8 +29,6 @@ public class DarajaCustomerToBusinessHandler {
                 .flatMap(response ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(response), DarajaCustomerToBusinessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(response), DarajaCustomerToBusinessResponse.class));
     }
 }

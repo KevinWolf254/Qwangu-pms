@@ -1,10 +1,11 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.TokenHandler;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
-import co.ke.proaktivio.qwanguapi.pojos.ErrorCode;
 import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Example;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,7 +33,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {TokenConfigs.class, TokenHandler.class, SecurityConfig.class})
+@ContextConfiguration(classes = {TokenConfigs.class, TokenHandler.class, SecurityConfig.class,
+        GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 class TokenConfigsTest {
     @Autowired
     private ApplicationContext context;
@@ -88,10 +91,9 @@ class TokenConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.BAD_REQUEST_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("Token is required!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
+                .jsonPath("$.message").isEqualTo("Token is required!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 }

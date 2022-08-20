@@ -1,7 +1,6 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.models.Authority;
-import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
@@ -14,9 +13,7 @@ import co.ke.proaktivio.qwanguapi.services.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -28,12 +25,9 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.UUID;
 
 @Testcontainers
-@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
-@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})
+@SpringBootTest
 class UserServiceImplIntegrationTest {
 
     @Container

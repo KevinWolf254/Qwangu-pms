@@ -1,11 +1,12 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.RoleHandler;
 import co.ke.proaktivio.qwanguapi.models.Role;
-import co.ke.proaktivio.qwanguapi.pojos.ErrorCode;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.RoleService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -18,6 +19,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -31,7 +33,6 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -39,7 +40,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {RoleConfigs.class, RoleHandler.class, SecurityConfig.class})
+@ContextConfiguration(classes = {RoleConfigs.class, RoleHandler.class, SecurityConfig.class,
+        GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 class RoleConfigsTest {
     @Autowired
     private ApplicationContext context;
@@ -172,9 +174,9 @@ class RoleConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.NOT_FOUND_ERROR.toString())
-                .jsonPath("$.message").isEqualTo("Not found!")
-                .jsonPath("$.data").isEqualTo("Roles were not found!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
+                .jsonPath("$.message").isEqualTo("Roles were not found!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
 
     }
@@ -220,8 +222,8 @@ class RoleConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.errorCode").isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR.toString())
-                .jsonPath("$.data").isEqualTo("Something happened!")
+                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 }

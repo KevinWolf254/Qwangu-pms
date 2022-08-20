@@ -7,6 +7,7 @@ import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.ApartmentDtoValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -17,11 +18,10 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 
 @Component
 @RequiredArgsConstructor
@@ -33,10 +33,13 @@ public class ApartmentHandler {
                 .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
                 .flatMap(apartmentService::create)
                 .flatMap(created ->
-                        ServerResponse.created(URI.create("v1/apartments/%s".formatted(created.getId())))
-                                .body(Mono.just(new SuccessResponse<>(true,"Apartment created successfully.",created)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                        ServerResponse
+                                .created(URI.create("v1/apartments/%s".formatted(created.getId())))
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.CREATED.value(), true, "Apartment created successfully.",
+                                        created)), Response.class));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
@@ -47,9 +50,11 @@ public class ApartmentHandler {
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true,"Apartment updated successfully.",updated)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        "",
+                                        HttpStatus.OK.value(), true,"Apartment updated successfully.",
+                                        updated)), Response.class));
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -68,9 +73,11 @@ public class ApartmentHandler {
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true,"Apartments found successfully.",results)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        "",
+                                        HttpStatus.OK.value(),true,"Apartments found successfully.",
+                                        results)), Response.class));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -79,9 +86,12 @@ public class ApartmentHandler {
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Apartment with id %s deleted successfully.".formatted(id), null)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        "",
+                                        HttpStatus.OK.value(),
+                                        true, "Apartment with id %s deleted successfully.".formatted(id),
+                                        null)), Response.class));
     }
 
     private Function<ApartmentDto, ApartmentDto> validateApartmentDtoFunc(Validator validator) {

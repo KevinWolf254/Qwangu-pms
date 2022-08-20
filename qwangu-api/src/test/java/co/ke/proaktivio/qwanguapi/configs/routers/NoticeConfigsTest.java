@@ -1,7 +1,9 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.NoticeHandler;
 import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.pojos.*;
@@ -36,7 +38,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {NoticeConfigs.class, NoticeHandler.class, SecurityConfig.class})
+@ContextConfiguration(classes = {NoticeConfigs.class, NoticeHandler.class, SecurityConfig.class,
+        GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 class NoticeConfigsTest {
     @Autowired
     private ApplicationContext context;
@@ -115,8 +118,8 @@ class NoticeConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("Notification date required. Vacating date is required. Occupation id is required.")
+                .jsonPath("$.message").isEqualTo("Notification date required. Vacating date is required. Occupation id is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -183,8 +186,8 @@ class NoticeConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isEqualTo("IsActive is required. Notification date required. Vacating date is required.")
+                .jsonPath("$.message").isEqualTo("IsActive is required. Notification date required. Vacating date is required.")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -284,9 +287,8 @@ class NoticeConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Bad request.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data").isEqualTo("isActive should be a true or false!")
+                .jsonPath("$.message").isEqualTo("isActive should be a true or false!")
+                .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 

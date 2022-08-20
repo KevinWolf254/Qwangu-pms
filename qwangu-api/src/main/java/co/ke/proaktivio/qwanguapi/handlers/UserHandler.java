@@ -7,15 +7,16 @@ import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static co.ke.proaktivio.qwanguapi.utils.CustomErrorUtil.handleExceptions;
 import static co.ke.proaktivio.qwanguapi.utils.CustomUserHandlerValidatorUtil.*;
 
 @Component
@@ -30,9 +31,11 @@ public class UserHandler {
                 .flatMap(userService::createAndNotify)
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/users/%s".formatted(created.getId())))
-                        .body(Mono.just(new SuccessResponse<>(true, "User created successfully.", created)), SuccessResponse.class)
-                        .log())
-                .onErrorResume(handleExceptions());
+                        .body(Mono.just(new Response<>(
+                                LocalDateTime.now().toString(),
+                                request.uri().getPath(),
+                                HttpStatus.CREATED.value(),true, "User created successfully.", created)),
+                                Response.class));
     }
 
     public Mono<ServerResponse> activate(ServerRequest request) {
@@ -46,9 +49,11 @@ public class UserHandler {
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "User updated successfully.", updated)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "User updated successfully.",
+                                        updated)), Response.class));
 
     }
 
@@ -61,9 +66,11 @@ public class UserHandler {
                 .flatMap(user ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "User updated successfully.", user)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "User updated successfully.",
+                                        user)), Response.class));
     }
 
     public Mono<ServerResponse> sendResetPassword(ServerRequest request) {
@@ -74,18 +81,25 @@ public class UserHandler {
                 .then(
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Email for password reset will be sent if email address exists.", null)), SuccessResponse.class)
-                                .log())
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,
+                                        "Email for password reset will be sent if email address exists.",
+                                        null)), Response.class))
                 .onErrorResume(e -> {
                     if (e instanceof CustomNotFoundException) {
                         return ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Email for password reset will be sent if email address exists.", null)), SuccessResponse.class)
-                                .log();
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.BAD_REQUEST.value(),true,
+                                        "Email for password reset will be sent if email address exists.",
+                                        null)), Response.class);
                     }
                     return Mono.error(e);
-                })
-                .onErrorResume(handleExceptions());
+                });
     }
 
     public Mono<ServerResponse> resetPassword(ServerRequest request) {
@@ -101,9 +115,11 @@ public class UserHandler {
                 .flatMap(user ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "User password updated successfully.", user)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,
+                                        "User password updated successfully.", user)), Response.class));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
@@ -115,9 +131,11 @@ public class UserHandler {
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "User updated successfully.", updated)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "User updated successfully.",
+                                        updated)), Response.class));
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -136,9 +154,11 @@ public class UserHandler {
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Users found successfully.", results)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.CREATED.value(),true, "Users found successfully.",
+                                        results)), Response.class));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -148,10 +168,11 @@ public class UserHandler {
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "User with id %s deleted successfully."
-                                        .formatted(id), null)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "User with id %s deleted successfully."
+                                        .formatted(id), null)), Response.class));
     }
 
     public Mono<ServerResponse> signIn(ServerRequest request) {
@@ -162,9 +183,11 @@ public class UserHandler {
                 .flatMap(tokenDto ->
                         ServerResponse
                                 .ok()
-                                .body(Mono.just(new SuccessResponse<>(true, "Signed in successfully.", tokenDto)), SuccessResponse.class)
-                                .log())
-                .onErrorResume(handleExceptions());
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.CREATED.value(),true, "Signed in successfully.",
+                                        tokenDto)), Response.class));
     }
 
 }
