@@ -1,7 +1,9 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.BookingRefund;
 import co.ke.proaktivio.qwanguapi.models.Receivable;
 import co.ke.proaktivio.qwanguapi.pojos.BookingRefundDto;
@@ -12,6 +14,7 @@ import co.ke.proaktivio.qwanguapi.services.BookingRefundService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -31,7 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class BookingRefundServiceImplIntegrationTest {
     @Autowired
     private BookingRefundService bookingRefundService;
@@ -39,6 +42,10 @@ class BookingRefundServiceImplIntegrationTest {
     private ReceivableRepository receivableRepository;
     @Autowired
     private BookingRefundRepository bookingRefundRepository;
+    @MockBean
+    private BootstrapConfig bootstrapConfig;
+    @MockBean
+    private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
 
     private final BookingRefund bookingRefund = new BookingRefund(null, BigDecimal.valueOf(10000), "Details!", "1",
             LocalDateTime.now(), null);

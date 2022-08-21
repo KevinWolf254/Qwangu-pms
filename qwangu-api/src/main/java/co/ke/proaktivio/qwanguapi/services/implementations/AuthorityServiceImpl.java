@@ -1,10 +1,13 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Authority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
 import co.ke.proaktivio.qwanguapi.services.AuthorityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -16,17 +19,26 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AuthorityServiceImpl implements AuthorityService {
-    private final AuthorityRepository authorityRepository;
     private final ReactiveMongoTemplate template;
-    @Override
-    public Flux<Authority> findPaginated(Optional<String> id, Optional<String> name, int page, int pageSize,
-                                         OrderType order) {
-        return authorityRepository.findPaginated(id, name, page, pageSize, order);
-    }
 
     @Override
     public Flux<Authority> findByRoleId(String roleId) {
         return template.find(new Query()
                 .addCriteria(Criteria.where("roleId").is(roleId)), Authority.class);
+    }
+
+    @Override
+    public Flux<Authority> findPaginated(Optional<String> optionalId, Optional<String> optionalApartmentName, int page, int pageSize, OrderType order) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        Sort sort = order.equals(OrderType.ASC) ?
+                Sort.by(Sort.Order.asc("id")) :
+                Sort.by(Sort.Order.desc("id"));
+        Query query = new Query();
+        optionalId.ifPresent(s -> query.addCriteria(Criteria.where("id").is(s)));
+        optionalApartmentName.ifPresent(s -> query.addCriteria(Criteria.where("name").is(s)));
+        query.with(pageable)
+                .with(sort);
+        return template.find(query, Authority.class)
+                .switchIfEmpty(Flux.error(new CustomNotFoundException("Authorities were not found!")));
     }
 }

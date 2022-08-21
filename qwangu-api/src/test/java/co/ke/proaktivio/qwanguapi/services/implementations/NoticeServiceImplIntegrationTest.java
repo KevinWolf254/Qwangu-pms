@@ -1,7 +1,9 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.CreateNoticeDto;
@@ -12,6 +14,7 @@ import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -27,7 +30,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class NoticeServiceImplIntegrationTest {
     @Autowired
     private NoticeRepository noticeRepository;
@@ -35,6 +38,10 @@ class NoticeServiceImplIntegrationTest {
     private OccupationRepository occupationRepository;
     @Autowired
     private NoticeServiceImpl noticeService;
+    @MockBean
+    private BootstrapConfig bootstrapConfig;
+    @MockBean
+    private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
 

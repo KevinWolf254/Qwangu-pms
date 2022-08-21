@@ -1,8 +1,10 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
+import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
@@ -10,8 +12,15 @@ import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import co.ke.proaktivio.qwanguapi.services.*;
+import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,10 +45,29 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
     private final AuthorityService authorityService;
+    private final ReactiveMongoTemplate template;
 
     @Override
     public Mono<User> create(UserDto dto) {
-        return userRepository.create(dto);
+        String emailAddress = dto.getEmailAddress();
+        return roleRepository.findById(dto.getRoleId())
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Role with id %s does not exist!"
+                        .formatted(dto.getRoleId()))))
+                .flatMap(role -> findByEmailAddress(emailAddress))
+                .filter(exists -> !exists)
+                .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("User with email address %s already exists!"
+                        .formatted(emailAddress))))
+                .map($ -> {
+                    LocalDateTime now = LocalDateTime.now();
+                    return new User( null, dto.getPerson(), emailAddress, dto.getRoleId(), null,
+                            false, false, false, false, now, null);
+                })
+                .flatMap(userRepository::save);
+    }
+
+    public Mono<Boolean> findByEmailAddress(String emailAddress) {
+        return template.exists(new Query()
+                .addCriteria(Criteria.where("emailAddress").is(emailAddress)), User.class);
     }
 
     @Override
@@ -98,6 +126,68 @@ public class UserServiceImpl implements UserService {
                 );
     }
 
+//    @Override
+//    public Mono<User> update(String id, UserDto dto) {
+//        return userRepository.update(id, dto);
+//    }
+
+    @Override
+    public Mono<User> update(String id, UserDto dto) {
+        String emailAddress = dto.getEmailAddress();
+        String roleId = dto.getRoleId();
+
+        Query query = new Query()
+                .addCriteria(Criteria.where("emailAddress").is(emailAddress).and("id").is(id));
+
+        return template.findById(roleId, Role.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Role with id %s does not exist!".formatted(roleId))))
+                .flatMap(role -> template.findOne(query, User.class))
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s and email address %s does not exist!"
+                        .formatted(id, emailAddress))))
+                .flatMap(user -> {
+                    user.setPerson(dto.getPerson());
+                    user.setRoleId(roleId);
+                    user.setModified(LocalDateTime.now());
+                    return template.save(user, "USER");
+                });
+    }
+
+//    @Override
+//    public Flux<User> findPaginated(Optional<String> id, Optional<String> emailAddress, int page, int pageSize, OrderType order) {
+//        return userRepository.findPaginated(id, emailAddress, page, pageSize, order);
+//    }
+
+    @Override
+    public Flux<User> findPaginated(Optional<String> id, Optional<String> emailAddress, int page, int pageSize,
+                                    OrderType order) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        Sort sort = order.equals(OrderType.ASC) ?
+                Sort.by(Sort.Order.asc("id")) :
+                Sort.by(Sort.Order.desc("id"));
+        Query query = new Query();
+        id.ifPresent(s -> query.addCriteria(Criteria.where("id").is(s)));
+        emailAddress.ifPresent(s -> query.addCriteria(Criteria.where("emailAddress").is(s)));
+        query.with(pageable)
+                .with(sort);
+        return template.find(query, User.class)
+                .switchIfEmpty(Flux.error(new CustomNotFoundException("Users were not found!")));
+    }
+
+//    @Override
+//    public Mono<Boolean> deleteById(String id) {
+//        return userRepository.delete(id);
+//    }
+
+    @Override
+    public Mono<Boolean> deleteById(String id) {
+        return template
+                .findById(id, User.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s does not exist!".formatted(id))))
+                .flatMap(template::remove)
+                .map(DeleteResult::wasAcknowledged);
+    }
+
+    // TODO - CREATE PASSWORD_SERVICE
     @Override
     public Mono<User> changePassword(String userId, PasswordDto dto) {
         return userRepository
@@ -133,21 +223,6 @@ public class UserServiceImpl implements UserService {
                             return user;
                         })
                 );
-    }
-
-    @Override
-    public Mono<User> update(String id, UserDto dto) {
-        return userRepository.update(id, dto);
-    }
-
-    @Override
-    public Flux<User> findPaginated(Optional<String> id, Optional<String> emailAddress, int page, int pageSize, OrderType order) {
-        return userRepository.findPaginated(id, emailAddress, page, pageSize, order);
-    }
-
-    @Override
-    public Mono<Boolean> deleteById(String id) {
-        return userRepository.delete(id);
     }
 
     @Override

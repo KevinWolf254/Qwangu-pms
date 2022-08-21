@@ -1,5 +1,7 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessResponse;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -25,7 +28,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class DarajaCustomerToBusinessServiceImplIntegrationTest {
     @Autowired
     private PaymentRepository paymentRepository;
@@ -39,6 +42,10 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
     private OccupationTransactionRepository occupationTransactionRepository;
     @Autowired
     private DarajaCustomerToBusinessService darajaCustomerToBusinessService;
+    @MockBean
+    private BootstrapConfig bootstrapConfig;
+    @MockBean
+    private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
 
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName

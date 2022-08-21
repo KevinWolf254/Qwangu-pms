@@ -1,8 +1,10 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.ApplicationPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.CompanyPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.FreeMarkerTemplatesPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.pojos.Email;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -27,7 +30,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class EmailServiceImplIntegrationTest {
     @Autowired
     @Qualifier("customJavaMailSender")
@@ -41,6 +44,10 @@ class EmailServiceImplIntegrationTest {
     private FreeMarkerTemplatesPropertiesConfig fmpc;
     @Autowired
     private ApplicationPropertiesConfig apc;
+    @MockBean
+    private BootstrapConfig bootstrapConfig;
+    @MockBean
+    private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
 
     @RegisterExtension
     static GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP)

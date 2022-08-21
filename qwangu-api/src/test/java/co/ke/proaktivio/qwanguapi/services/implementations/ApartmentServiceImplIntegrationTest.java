@@ -1,15 +1,19 @@
-package co.ke.proaktivio.qwanguapi.repositories.custom.impl;
+package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
+import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.util.StringUtils;
@@ -21,15 +25,21 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Testcontainers
-@SpringBootTest
-class CustomApartmentRepositoryImplTest {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+class ApartmentServiceImplIntegrationTest {
     @Autowired
     private ApartmentRepository apartmentRepository;
     @Autowired
-    private CustomApartmentRepositoryImpl customApartmentRepository;
+    private ApartmentService apartmentService;
+    @MockBean
+    private BootstrapConfig bootstrapConfig;
+    @MockBean
+    private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
+
     private final String name = "Luxury Apartment";
     private final ApartmentDto dto = new ApartmentDto(name);
 
@@ -52,7 +62,7 @@ class CustomApartmentRepositoryImplTest {
     void create_returnMonoOfApartment_whenSuccessful() {
         // when
         Mono<Apartment> saved = deleteAll()
-                .then(customApartmentRepository.create(dto));
+                .then(apartmentService.create(dto));
         // then
         StepVerifier.create(saved)
                 .expectNextMatches(apartment ->
@@ -67,9 +77,9 @@ class CustomApartmentRepositoryImplTest {
     void create_returnsCustomAlreadyExistsException_whenApartmentNameExists() {
         // when
         Mono<Apartment> saved = deleteAll()
-                .then(customApartmentRepository.create(dto))
+                .then(apartmentService.create(dto))
                 .thenReturn(dto)
-                .flatMap(d -> customApartmentRepository.create(d));
+                .flatMap(d -> apartmentService.create(d));
 
         // then
         StepVerifier.create(saved)
@@ -85,9 +95,9 @@ class CustomApartmentRepositoryImplTest {
         String updatedName = "Thika road Apartments";
         //when
         Mono<Apartment> updated = deleteAll()
-                .then(customApartmentRepository.create(dto))
+                .then(apartmentService.create(dto))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
-                .flatMap(a -> customApartmentRepository.update(a.getId(), new ApartmentDto(updatedName)));
+                .flatMap(a -> apartmentService.update(a.getId(), new ApartmentDto(updatedName)));
 
         // then
         StepVerifier.create(updated)
@@ -102,7 +112,7 @@ class CustomApartmentRepositoryImplTest {
     void update_returnsCustomNotFoundException_whenIdDoesNotExist() {
         // when
         Mono<Apartment> saved = deleteAll()
-                .then(customApartmentRepository.update("12345", dto));
+                .then(apartmentService.update("12345", dto));
 
         // then
         StepVerifier.create(saved)
@@ -116,10 +126,12 @@ class CustomApartmentRepositoryImplTest {
     void update_returnsCustomAlreadyExistsException_whenNameAlreadyExists() {
         // when
         Mono<Apartment> saved = deleteAll()
-                .then(customApartmentRepository.create(dto))
-                .thenReturn(new ApartmentDto("Luxury Apartments B"))
-                .flatMap(dto2 -> customApartmentRepository.create(dto2))
-                .flatMap(a -> customApartmentRepository.update(a.getId(), dto));
+                .then(apartmentRepository.save(new Apartment(null, name, LocalDateTime.now(), null)))
+                .doOnSuccess(a -> System.out.println("---- Created: " + a))
+                .flatMap(apartment -> apartmentRepository.save(new Apartment(null, "Luxury Apartments B",
+                        LocalDateTime.now(), null)))
+                .doOnSuccess(a -> System.out.println("---- Created: " + a))
+                .flatMap(a -> apartmentService.update(a.getId(), dto));
 
         // then
         StepVerifier.create(saved)
@@ -137,8 +149,8 @@ class CustomApartmentRepositoryImplTest {
         Flux<Apartment> saved = deleteAll()
                 .thenMany(Flux
                         .just(new ApartmentDto("Luxury Apartments"), new ApartmentDto("Luxury Apartments B")))
-                .flatMap(a -> customApartmentRepository.create(a))
-                .thenMany(customApartmentRepository
+                .flatMap(a -> apartmentService.create(a))
+                .thenMany(apartmentService
                         .findPaginated(Optional.empty(),
                                 Optional.empty(), 1, 10,
                                 OrderType.ASC));
@@ -160,7 +172,7 @@ class CustomApartmentRepositoryImplTest {
 
         //when
         Flux<Apartment> saved = deleteAll()
-                .thenMany(customApartmentRepository.findPaginated(Optional.empty(),
+                .thenMany(apartmentService.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
                         OrderType.ASC))
                 .doOnError(a -> System.out.println("---- Found no apartments!"));
@@ -178,8 +190,8 @@ class CustomApartmentRepositoryImplTest {
     void delete_returnsTrue_whenSuccessful() {
         // when
         Mono<Boolean> deleted = deleteAll()
-                .then(customApartmentRepository.create(dto))
-                .flatMap(a -> customApartmentRepository.delete(a.getId()));
+                .then(apartmentService.create(dto))
+                .flatMap(a -> apartmentService.deleteById(a.getId()));
 
         // then
         StepVerifier.create(deleted)
@@ -192,7 +204,7 @@ class CustomApartmentRepositoryImplTest {
     void delete_returnsCustomNotFoundException_whenIdDoesNotExist() {
         // when
         Mono<Boolean> deleted = deleteAll()
-                .then(customApartmentRepository.delete("11234"));
+                .then(apartmentService.deleteById("11234"));
 
         // then
         StepVerifier.create(deleted)

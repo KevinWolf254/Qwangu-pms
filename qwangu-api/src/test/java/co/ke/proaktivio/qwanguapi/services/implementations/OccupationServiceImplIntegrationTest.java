@@ -1,8 +1,10 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.models.Unit;
@@ -15,6 +17,7 @@ import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -31,7 +34,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class OccupationServiceImplIntegrationTest {
     @Autowired
     private OccupationRepository occupationRepository;
@@ -43,6 +46,10 @@ class OccupationServiceImplIntegrationTest {
     private UnitRepository unitRepository;
     @Autowired
     private TenantRepository tenantRepository;
+    @MockBean
+    private BootstrapConfig bootstrapConfig;
+    @MockBean
+    private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName
             .parse("mongo:latest"));
