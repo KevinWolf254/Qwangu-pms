@@ -4,6 +4,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
+import io.jsonwebtoken.JwtException;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -18,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -72,7 +74,21 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     e.getMessage(), null)
                     ), Response.class);
         }
-        if (e instanceof UsernameNotFoundException || e instanceof AccessDeniedException) {
+        if (e instanceof UsernameNotFoundException || e instanceof JwtException) {
+            return ServerResponse
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Mono.just(
+                            new Response<>(
+                                    LocalDateTime.now().toString(),
+                                    path,
+                                    HttpStatus.UNAUTHORIZED.value(),
+                                    false,
+                                    e.getMessage(), null)
+                    ), Response.class);
+
+        }
+        if (e instanceof AccessDeniedException) {
             return ServerResponse
                     .status(HttpStatus.FORBIDDEN)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -81,6 +97,19 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     LocalDateTime.now().toString(),
                                     path,
                                     HttpStatus.FORBIDDEN.value(),
+                                    false,
+                                    e.getMessage(), null)
+                    ), Response.class);
+        }
+        if (e instanceof ResponseStatusException) {
+            return ServerResponse
+                    .status(((ResponseStatusException) e).getStatus())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Mono.just(
+                            new Response<>(
+                                    LocalDateTime.now().toString(),
+                                    path,
+                                    ((ResponseStatusException) e).getStatus().value(),
                                     false,
                                     e.getMessage(), null)
                     ), Response.class);

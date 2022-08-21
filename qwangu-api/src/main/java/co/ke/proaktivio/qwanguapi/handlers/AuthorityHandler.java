@@ -38,7 +38,7 @@ public class AuthorityHandler {
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.CREATED.value(),true,"Authorities found successfully.",
+                                        HttpStatus.OK.value(),true,"Authorities found successfully.",
                                         results)), Response.class));
     }
 }

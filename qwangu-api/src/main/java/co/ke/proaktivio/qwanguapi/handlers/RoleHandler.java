@@ -39,7 +39,7 @@ public class RoleHandler {
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.CREATED.value(),true,"Roles found successfully.",
+                                        HttpStatus.OK.value(),true,"Roles found successfully.",
                                         results)), Response.class));
     }
 }

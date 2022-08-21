@@ -25,7 +25,7 @@ public class CustomReactiveAuthenticationManagerImpl implements CustomReactiveAu
         return Mono
                 .just(jwtUtil.validate(token))
                 .filter(isValid -> isValid)
-                .map(v -> {
+                .map($ -> {
                     Claims claims = jwtUtil.getClaims(token);
                     List<String> authoritiesResult = claims.get("authorities", List.class);
                     List<String> authorities = authoritiesResult != null && !authoritiesResult.isEmpty()

@@ -157,7 +157,7 @@ public class UserHandler {
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.CREATED.value(),true, "Users found successfully.",
+                                        HttpStatus.OK.value(),true, "Users found successfully.",
                                         results)), Response.class));
     }
 
@@ -186,7 +186,7 @@ public class UserHandler {
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.CREATED.value(),true, "Signed in successfully.",
+                                        HttpStatus.OK.value(),true, "Signed in successfully.",
                                         tokenDto)), Response.class));
     }
 
