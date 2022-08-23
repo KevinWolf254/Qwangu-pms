@@ -2,8 +2,6 @@ package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
-//import co.ke.proaktivio.qwanguapi.configs.security.CorsConfig;
-import co.ke.proaktivio.qwanguapi.configs.security.CorsConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
@@ -37,7 +35,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -47,8 +44,8 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {UserConfigs.class, UserHandler.class, SecurityConfig.class,
-        GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class, CorsConfig.class})
+@ContextConfiguration(classes = {UserConfigs.class, UserHandler.class, SecurityConfig.class, GlobalErrorConfig.class,
+        GlobalErrorWebExceptionHandler.class})
 class UserConfigsTest {
     @Autowired
     private ApplicationContext context;

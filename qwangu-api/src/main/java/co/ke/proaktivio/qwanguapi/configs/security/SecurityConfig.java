@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -22,11 +23,11 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
 @EnableReactiveMethodSecurity
@@ -38,7 +39,7 @@ public class SecurityConfig {
     @Bean
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
-                .cors(ServerHttpSecurity.CorsSpec::disable)
+                .cors(Customizer.withDefaults())
                 .exceptionHandling()
                 .and()
                 .httpBasic().disable()
@@ -48,6 +49,14 @@ public class SecurityConfig {
                 .securityContextRepository(contextRepository)
                 .authorizeExchange()
                 .pathMatchers(
+                        "/v3/api-docs/**",
+                        "/configuration/ui",
+                        "/swagger-resources/**",
+                        "/configuration/security",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/webjars/**",
+
                         "/v1/signIn",
                         "/v1/users/sendResetPassword",
                         "/v1/token",
@@ -62,7 +71,7 @@ public class SecurityConfig {
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(16);
+        return new BCryptPasswordEncoder(6);
     }
 
     private Mono<AuthorizationDecision> whiteListIp(Mono<Authentication> authentication, AuthorizationContext context) {
@@ -85,9 +94,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setMaxAge(8000L);
         configuration.applyPermitDefaultValues();
-//        configuration.setAllowedOrigins(List.of());
-        configuration.setAllowedOrigins(Collections.singletonList("http://any-origin.com"));
-//        configuration.setAllowedOriginPatterns(Collections.singletonList("http://any-origin.com"));
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(
                 List.of(
                         HttpMethod.GET.name(),
@@ -101,13 +108,12 @@ public class SecurityConfig {
                 List.of(
                         HttpHeaders.CONTENT_TYPE,
                         HttpHeaders.AUTHORIZATION,
-                        HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
                         HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
                         HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
                         HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN
                 )
         );
-
+        configuration.setExposedHeaders(List.of(HttpHeaders.CONTENT_TYPE));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 

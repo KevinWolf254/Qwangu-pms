@@ -12,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @AutoConfigureWebTestClient
@@ -37,8 +36,8 @@ public class CorsConfigTest {
 
         // then
         client.post()
-//                .uri("/v1/signIn")
-                .uri("http://look-ma-no-port/v1/signIn")
+                .uri("/v1/signIn")
+//                .uri("http://look-ma-no-port/v1/signIn")
                 .header("Origin", "http://any-origin.com")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), SignInDto.class)

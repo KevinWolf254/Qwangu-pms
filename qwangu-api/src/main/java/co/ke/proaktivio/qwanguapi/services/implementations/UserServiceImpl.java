@@ -6,6 +6,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
+import co.ke.proaktivio.qwanguapi.models.UserToken;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -46,6 +48,7 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final AuthorityService authorityService;
     private final ReactiveMongoTemplate template;
+    private final UserTokenService userTokenService;
 
     @Override
     public Mono<User> create(UserDto dto) {
@@ -59,7 +62,7 @@ public class UserServiceImpl implements UserService {
                         .formatted(emailAddress))))
                 .map($ -> {
                     LocalDateTime now = LocalDateTime.now();
-                    return new User( null, dto.getPerson(), emailAddress, dto.getRoleId(), null,
+                    return new User(null, dto.getPerson(), emailAddress, dto.getRoleId(), null,
                             false, false, false, false, now, null);
                 })
                 .flatMap(userRepository::save);
@@ -105,31 +108,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<TokenDto> signIn(SignInDto signInDto) {
-        return Mono.just(signInDto)
-                .flatMap(dto -> userRepository.findOne(Example.of(new User(dto.getUsername())))
+        String emailAddress = signInDto.getUsername();
+        String password = signInDto.getPassword();
+        return userRepository
+                .findOne(Example.of(new User(emailAddress)))
+                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                .flatMap(user -> Mono
+                        .just(encoder.matches(password, user.getPassword())).subscribeOn(Schedulers.parallel())
+                        .filter(passwordsMatch -> passwordsMatch)
                         .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                        .flatMap(user -> Mono
-                                .just(encoder.matches(dto.getPassword(), user.getPassword()))
-                                .filter(passwordsMatch -> passwordsMatch)
+                        .flatMap($ -> roleRepository
+                                .findById(user.getRoleId())
                                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                                .flatMap(match -> roleRepository
-                                        .findById(user.getRoleId())
-                                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                                        .flatMap(role -> authorityService.findByRoleId(role.getId())
-                                                .collectList()
-                                                .map(authorities -> jwtUtil.generateToken(user, role, authorities)))
-                                        .filter(StringUtils::hasText)
-                                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                                        .map(TokenDto::new)
-                                )
+                                .flatMap(role -> authorityService.findByRoleId(role.getId())
+                                        .collectList()
+                                        .map(authorities -> jwtUtil.generateToken(user, role, authorities)))
+                                .filter(StringUtils::hasText)
+                                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                                .flatMap(token -> userTokenService.create(new UserTokenDto(emailAddress, token))
+                                        .map(UserToken::getToken))
+                                .map(TokenDto::new)
                         )
                 );
     }
-
-//    @Override
-//    public Mono<User> update(String id, UserDto dto) {
-//        return userRepository.update(id, dto);
-//    }
 
     @Override
     public Mono<User> update(String id, UserDto dto) {
@@ -152,11 +153,6 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
-//    @Override
-//    public Flux<User> findPaginated(Optional<String> id, Optional<String> emailAddress, int page, int pageSize, OrderType order) {
-//        return userRepository.findPaginated(id, emailAddress, page, pageSize, order);
-//    }
-
     @Override
     public Flux<User> findPaginated(Optional<String> id, Optional<String> emailAddress, int page, int pageSize,
                                     OrderType order) {
@@ -172,11 +168,6 @@ public class UserServiceImpl implements UserService {
         return template.find(query, User.class)
                 .switchIfEmpty(Flux.error(new CustomNotFoundException("Users were not found!")));
     }
-
-//    @Override
-//    public Mono<Boolean> deleteById(String id) {
-//        return userRepository.delete(id);
-//    }
 
     @Override
     public Mono<Boolean> deleteById(String id) {

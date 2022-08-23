@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.security;
 
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -27,7 +28,9 @@ public class CustomServerSecurityContextRepositoryImpl implements CustomServerSe
         return Mono
                 .justOrEmpty(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
                 .filter(authHeader -> authHeader.startsWith("Bearer "))
+                .switchIfEmpty(Mono.error(new JwtException("Bearer required!")))
                 .filter(authHeader -> StringUtils.hasText(authHeader.substring(7)))
+                .switchIfEmpty(Mono.error(new JwtException("Token required!")))
                 .map(header -> header.substring(7))
                 .filter(StringUtils::hasText)
                 .map(token -> new UsernamePasswordAuthenticationToken(token, token))

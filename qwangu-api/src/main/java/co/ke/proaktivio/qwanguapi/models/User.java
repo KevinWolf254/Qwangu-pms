@@ -11,11 +11,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
-@Document(value = "USER")
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Document(value = "USER")
 public class User {
     @Id
     private String id;

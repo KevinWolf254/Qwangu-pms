@@ -1,11 +1,12 @@
 package co.ke.proaktivio.qwanguapi.security;
 
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
+import co.ke.proaktivio.qwanguapi.services.UserTokenService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CustomReactiveAuthenticationManagerImpl implements CustomReactiveAuthenticationManager {
     private final JwtUtil jwtUtil;
+    private final UserTokenService userTokenService;
 
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
@@ -25,6 +27,8 @@ public class CustomReactiveAuthenticationManagerImpl implements CustomReactiveAu
         return Mono
                 .just(jwtUtil.validate(token))
                 .filter(isValid -> isValid)
+                .flatMap($ -> userTokenService.exists(username, token))
+                .filter(isCurrent -> isCurrent)
                 .map($ -> {
                     Claims claims = jwtUtil.getClaims(token);
                     List<String> authoritiesResult = claims.get("authorities", List.class);
@@ -44,6 +48,6 @@ public class CustomReactiveAuthenticationManagerImpl implements CustomReactiveAu
                                 : Set.of()
                         )
                 ))
-                .switchIfEmpty(Mono.just(new UsernamePasswordAuthenticationToken(null, null, List.of())));
+                .switchIfEmpty(Mono.error(new JwtException("Unauthorised token!")));
     }
 }

@@ -6,7 +6,6 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
-import co.ke.proaktivio.qwanguapi.pojos.UnitsWithNoticeDto;
 import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;

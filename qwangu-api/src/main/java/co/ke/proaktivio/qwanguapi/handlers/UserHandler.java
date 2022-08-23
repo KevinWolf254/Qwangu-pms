@@ -38,90 +38,6 @@ public class UserHandler {
                                 Response.class));
     }
 
-    public Mono<ServerResponse> activate(ServerRequest request) {
-        String id = request.pathVariable("id");
-        Optional<String> tokenOpt = request.queryParam("token");
-        return Mono.just(tokenOpt)
-                .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
-                .map(Optional::get)
-                .flatMap(token -> userService.activate(token, id))
-                .flatMap(updated ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true, "User updated successfully.",
-                                        updated)), Response.class));
-
-    }
-
-    public Mono<ServerResponse> changePassword(ServerRequest request) {
-        String id = request.pathVariable("id");
-        return request
-                .bodyToMono(PasswordDto.class)
-                .map(validatePasswordDtoFunc(new PasswordDtoValidator()))
-                .flatMap(dto -> userService.changePassword(id, dto))
-                .flatMap(user ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true, "User updated successfully.",
-                                        user)), Response.class));
-    }
-
-    public Mono<ServerResponse> sendResetPassword(ServerRequest request) {
-        return request
-                .bodyToMono(EmailDto.class)
-                .map(validateEmailDtoFunc(new EmailDtoValidator()))
-                .flatMap(userService::sendResetPassword)
-                .then(
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,
-                                        "Email for password reset will be sent if email address exists.",
-                                        null)), Response.class))
-                .onErrorResume(e -> {
-                    if (e instanceof CustomNotFoundException) {
-                        return ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.BAD_REQUEST.value(),true,
-                                        "Email for password reset will be sent if email address exists.",
-                                        null)), Response.class);
-                    }
-                    return Mono.error(e);
-                });
-    }
-
-    public Mono<ServerResponse> resetPassword(ServerRequest request) {
-        Optional<String> tokenOpt = request.queryParam("token");
-        return Mono.just(tokenOpt)
-                .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
-                .map(Optional::get)
-                .flatMap(token -> request
-                        .bodyToMono(ResetPasswordDto.class)
-                        .map(validateResetPasswordDtoFunc(new ResetPasswordDtoValidator()))
-                        .flatMap(dto -> userService.resetPassword(token, dto.getPassword())))
-                .flatMap(user ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,
-                                        "User password updated successfully.", user)), Response.class));
-    }
-
     public Mono<ServerResponse> update(ServerRequest request) {
         String id = request.pathVariable("id");
         return request
@@ -173,6 +89,90 @@ public class UserHandler {
                                         request.uri().getPath(),
                                         HttpStatus.OK.value(),true, "User with id %s deleted successfully."
                                         .formatted(id), null)), Response.class));
+    }
+
+    public Mono<ServerResponse> activate(ServerRequest request) {
+        String id = request.pathVariable("id");
+        Optional<String> tokenOpt = request.queryParam("token");
+        return Mono.just(tokenOpt)
+                .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
+                .map(Optional::get)
+                .flatMap(token -> userService.activate(token, id))
+                .flatMap(updated ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "User updated successfully.",
+                                        updated)), Response.class));
+
+    }
+
+    public Mono<ServerResponse> sendResetPassword(ServerRequest request) {
+        return request
+                .bodyToMono(EmailDto.class)
+                .map(validateEmailDtoFunc(new EmailDtoValidator()))
+                .flatMap(userService::sendResetPassword)
+                .then(
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,
+                                        "Email for password reset will be sent if email address exists.",
+                                        null)), Response.class))
+                .onErrorResume(e -> {
+                    if (e instanceof CustomNotFoundException) {
+                        return ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.BAD_REQUEST.value(),true,
+                                        "Email for password reset will be sent if email address exists.",
+                                        null)), Response.class);
+                    }
+                    return Mono.error(e);
+                });
+    }
+
+    public Mono<ServerResponse> resetPassword(ServerRequest request) {
+        Optional<String> tokenOpt = request.queryParam("token");
+        return Mono.just(tokenOpt)
+                .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
+                .map(Optional::get)
+                .flatMap(token -> request
+                        .bodyToMono(ResetPasswordDto.class)
+                        .map(validateResetPasswordDtoFunc(new ResetPasswordDtoValidator()))
+                        .flatMap(dto -> userService.resetPassword(token, dto.getPassword())))
+                .flatMap(user ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,
+                                        "User password updated successfully.", user)), Response.class));
+    }
+
+    public Mono<ServerResponse> changePassword(ServerRequest request) {
+        String id = request.pathVariable("id");
+        return request
+                .bodyToMono(PasswordDto.class)
+                .map(validatePasswordDtoFunc(new PasswordDtoValidator()))
+                .flatMap(dto -> userService.changePassword(id, dto))
+                .flatMap(user ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true, "User updated successfully.",
+                                        user)), Response.class));
     }
 
     public Mono<ServerResponse> signIn(ServerRequest request) {

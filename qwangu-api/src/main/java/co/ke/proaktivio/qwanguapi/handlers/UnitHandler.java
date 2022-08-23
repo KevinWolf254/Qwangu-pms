@@ -133,8 +133,8 @@ public class UnitHandler {
                                             results)), Response.class));
     }
 
-    public Mono<ServerResponse> findUnitsWithNotice(ServerRequest request) {
-        return request.bodyToMono(UnitsWithNoticeDto.class)
+    public Mono<ServerResponse> findByOccupationIds(ServerRequest request) {
+        return request.bodyToMono(FindUnitsDto.class)
                 .filter(dto -> dto.getOccupationIds() != null && !dto.getOccupationIds().isEmpty())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation ids must not be null!")))
                 .flatMap(dto -> unitService.findByOccupationIds(dto.getOccupationIds()).collectList())

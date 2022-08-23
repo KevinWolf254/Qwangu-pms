@@ -20,7 +20,7 @@ import java.util.Optional;
 public class TokenHandler {
     private final OneTimeTokenRepository oneTimeTokenRepository;
 
-    public Mono<ServerResponse> findToken(ServerRequest request) {
+    public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> tokenOpt = request.queryParam("token");
         return Mono.just(tokenOpt)
                 .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
