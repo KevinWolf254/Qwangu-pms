@@ -7,7 +7,11 @@ import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -19,6 +23,7 @@ import java.util.Optional;
 
 import static co.ke.proaktivio.qwanguapi.utils.CustomUserHandlerValidatorUtil.*;
 
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class UserHandler {
@@ -29,6 +34,8 @@ public class UserHandler {
                 .bodyToMono(UserDto.class)
                 .map(validateUserDtoFunc(new UserDtoValidator()))
                 .flatMap(userService::createAndNotify)
+                .doOnSuccess(a -> log.info(" Created {}", a))
+                .doOnError(e -> log.error(" Failed to create apartment. Error ", e))
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/users/%s".formatted(created.getId())))
                         .body(Mono.just(new Response<>(
@@ -44,6 +51,8 @@ public class UserHandler {
                 .bodyToMono(UserDto.class)
                 .map(validateUserDtoFunc(new UserDtoValidator()))
                 .flatMap(dto -> userService.update(id, dto))
+                .doOnSuccess(a -> log.info(" Updated {}", a))
+                .doOnError(e -> log.error(" Failed to update user. Error ", e))
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
@@ -67,6 +76,8 @@ public class UserHandler {
                         pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
                         order.map(OrderType::valueOf).orElse(OrderType.DESC)
                 ).collectList()
+                .doOnSuccess(a -> log.info(" Found {} users", a.size()))
+                .doOnError(e -> log.error(" Failed to find user. Error ", e))
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
@@ -81,6 +92,8 @@ public class UserHandler {
         String id = request.pathVariable("id");
         return userService
                 .deleteById(id)
+                .doOnSuccess($ -> log.info(" Deleted apartment"))
+                .doOnError(e -> log.error(" Failed to delete user. Error ", e))
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
@@ -99,6 +112,8 @@ public class UserHandler {
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
                 .map(Optional::get)
                 .flatMap(token -> userService.activate(token, id))
+                .doOnSuccess(u -> log.info(" Activated {}", u))
+                .doOnError(e -> log.error(" Failed to activate user. Error ", e))
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
@@ -115,6 +130,8 @@ public class UserHandler {
                 .bodyToMono(EmailDto.class)
                 .map(validateEmailDtoFunc(new EmailDtoValidator()))
                 .flatMap(userService::sendResetPassword)
+                .doOnSuccess($ -> log.info(" Reset password request sent"))
+                .doOnError(e -> log.error(" Failed to send reset password request. Error ", e))
                 .then(
                         ServerResponse
                                 .ok()
@@ -149,6 +166,8 @@ public class UserHandler {
                         .bodyToMono(ResetPasswordDto.class)
                         .map(validateResetPasswordDtoFunc(new ResetPasswordDtoValidator()))
                         .flatMap(dto -> userService.resetPassword(token, dto.getPassword())))
+                .doOnSuccess(u -> log.info(" Reset password successful for {}", u.getEmailAddress()))
+                .doOnError(e -> log.error(" Failed to reset password. Error ", e))
                 .flatMap(user ->
                         ServerResponse
                                 .ok()
@@ -165,6 +184,8 @@ public class UserHandler {
                 .bodyToMono(PasswordDto.class)
                 .map(validatePasswordDtoFunc(new PasswordDtoValidator()))
                 .flatMap(dto -> userService.changePassword(id, dto))
+                .doOnSuccess(u -> log.info(" Changed password successful for {}", u.getEmailAddress()))
+                .doOnError(e -> log.error(" Failed to change password. Error ", e))
                 .flatMap(user ->
                         ServerResponse
                                 .ok()
@@ -180,6 +201,8 @@ public class UserHandler {
                 .bodyToMono(SignInDto.class)
                 .map(validateSignInDtoFunc(new SignInDtoValidator()))
                 .flatMap(userService::signIn)
+                .doOnSuccess(t -> getCurrentUser().doOnSuccess(a -> log.info("Sign in successfully {}", a.getPrincipal())))
+                .doOnError(e -> log.error(" Failed to sign in. Error ", e))
                 .flatMap(tokenDto ->
                         ServerResponse
                                 .ok()
@@ -190,4 +213,8 @@ public class UserHandler {
                                         tokenDto)), Response.class));
     }
 
+    public Mono<Authentication> getCurrentUser() {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication);
+    }
 }

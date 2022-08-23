@@ -6,6 +6,7 @@ import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.ApartmentDtoValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class ApartmentHandler {
@@ -32,6 +34,8 @@ public class ApartmentHandler {
         return request.bodyToMono(ApartmentDto.class)
                 .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
                 .flatMap(apartmentService::create)
+                .doOnSuccess(a -> log.info(" Created {}", a))
+                .doOnError(e -> log.error(" Failed to create apartment. Error ", e))
                 .flatMap(created ->
                         ServerResponse
                                 .created(URI.create("v1/apartments/%s".formatted(created.getId())))
@@ -47,6 +51,8 @@ public class ApartmentHandler {
         return request.bodyToMono(ApartmentDto.class)
                 .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
                 .flatMap(dto -> apartmentService.update(id, dto))
+                .doOnSuccess(a -> log.info(" Updated {}", a))
+                .doOnError(e -> log.error(" Failed to update apartment. Error ", e))
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
@@ -70,6 +76,8 @@ public class ApartmentHandler {
                         pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
                         order.map(OrderType::valueOf).orElse(OrderType.DESC)
                 ).collectList()
+                .doOnSuccess(a -> log.info(" Found {} apartments", a.size()))
+                .doOnError(e -> log.error(" Failed to find apartment. Error ", e))
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
@@ -83,6 +91,8 @@ public class ApartmentHandler {
     public Mono<ServerResponse> delete(ServerRequest request) {
         String id = request.pathVariable("id");
         return apartmentService.deleteById(id)
+                .doOnSuccess($ -> log.info(" Deleted apartment"))
+                .doOnError(e -> log.error(" Failed to delete apartment. Error ", e))
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
