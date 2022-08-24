@@ -71,7 +71,7 @@ class TenantConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     void create() {
         // given
         String id = "1";
@@ -139,7 +139,7 @@ class TenantConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     void update() {
         // given
         String id = "1";
@@ -222,7 +222,7 @@ class TenantConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     void find() {
         // given
         String id = "1";
@@ -293,7 +293,7 @@ class TenantConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     void deleteById() {
         // given
         String id = "1";

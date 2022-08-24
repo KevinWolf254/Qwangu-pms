@@ -74,8 +74,8 @@ class NoticeConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void create() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void create_returnsNotice_whenSuccessful() {
         // given
         var dto = new CreateNoticeDto(now, today.plusDays(30), "1");
         var dtoNotValid = new CreateNoticeDto(null ,null, null);
@@ -140,8 +140,8 @@ class NoticeConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void update() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void update_returnsNotice_whenSuccessful() {
         // given
         var id = "1";
         var dto = new UpdateNoticeDto(true, now, today.plusDays(30));
@@ -220,8 +220,8 @@ class NoticeConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void find() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void find_returnsNotices_whenSuccessful() {
         // given
         var id = "1";
         var occupationId = "1";
@@ -309,8 +309,8 @@ class NoticeConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void deleteById() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void deleteById_returnTrue_whenSuccessful() {
         // given
         String id = "1";
         // when

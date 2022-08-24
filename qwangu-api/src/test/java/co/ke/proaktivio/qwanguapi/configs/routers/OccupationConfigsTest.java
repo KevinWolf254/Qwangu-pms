@@ -71,8 +71,8 @@ class OccupationConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void create() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void create_returnsOccupation_whenSuccessful() {
         // given
         String tenantId = "1";
         String unitId = "1";
@@ -141,8 +141,8 @@ class OccupationConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void update() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void update_returnsOccupation_whenSuccessful() {
         // given
         var id = "1";
         var dto = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1");
@@ -225,8 +225,8 @@ class OccupationConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void find() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void find_returnsOccupations_whenSuccessful() {
         // given
         String id = "1";
         String unitId = "1";
@@ -326,8 +326,8 @@ class OccupationConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void deleteById() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void deleteById_returnsTrue_whenSuccessful() {
         // given
         String id = "1";
         // when

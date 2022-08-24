@@ -78,7 +78,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns a user when email address does not exist")
     void create_returnsUser_whenEmailAddressDoesNotExist_status201() {
         // given
@@ -118,7 +118,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomAlreadyExistsException with status 400")
     void create_returnsCustomAlreadyExistsException_status400() {
         // given
@@ -149,7 +149,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomBadRequestException when required validation fails with status 403")
     void create_returnsCustomBadRequestException_whenRequiredValidationFails_status403() {
         // given
@@ -178,7 +178,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomBadRequestException when min length validation fails with status 403")
     void create_returnsCustomBadRequestException_whenMinLengthValidationFails_status403() {
         // given
@@ -207,7 +207,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomBadRequestException when max length validation fails with status 403")
     void create_returnsCustomBadRequestException_whenMaxLengthValidationFails_status403() {
         // given
@@ -236,7 +236,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomBadRequestException when email address validation fails with status 403")
     void create_returnsCustomBadRequestException_whenEmailValidationFails_status403() {
         // given
@@ -265,7 +265,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns MailException with status 400")
     void create_returnsMailException_status400() {
         // given
@@ -296,7 +296,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns Exception with status 500")
     void create_returnsException_status500() {
         // given
@@ -340,7 +340,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns a Mono of updated User when id and email address are paired")
     void update_returnsUpdatedUser_status200() {
         // given
@@ -381,7 +381,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns CustomBadRequestException when required validation fails with status 403")
     void update_returnsCustomBadRequestException_whenRequiredValidationFails_status403() {
         // given
@@ -411,7 +411,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns CustomBadRequestException when min length validation fails with status 403")
     void update_returnsCustomBadRequestException_whenMinLengthValidationFails_status403() {
         // given
@@ -441,7 +441,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns CustomBadRequestException when max length validation fails with status 403")
     void update_returnsCustomBadRequestException_whenMaxLengthValidationFails_status403() {
         // given
@@ -471,7 +471,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns CustomBadRequestException when email address validation fails with status 403")
     void update_returnsCustomBadRequestException_whenEmailValidationFails_status403() {
         // given
@@ -501,7 +501,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns Exception with status 500")
     void update_returnsException_status500() {
         // given
@@ -553,7 +553,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("Find returns a Flux of Users")
     void find_returnsFluxOfUsers_status200() {
         // given
@@ -614,7 +614,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns CustomNotFoundException with status 404")
     void find_returnsCustomNotFoundException_status404() {
         // given
@@ -661,7 +661,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns Exception with status 500")
     void find_returnsException_status500() {
         // given
@@ -723,7 +723,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("delete by id returns a Mono of boolean when id exists")
     void deleteById_returnsTrue_status200() {
         // given
@@ -748,7 +748,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("delete by id returns CustomNotFoundException with status 404")
     void deleteById_returnsCustomNotFoundException_status404() {
         // given
@@ -774,7 +774,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("delete by id returns Exception with status 500")
     void deleteById_returnsException_status500() {
         // given
@@ -945,7 +945,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     void changePassword() {
         // given
         String id = "1";
@@ -1016,7 +1016,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     void activate() {
         // given
         String id = "1";

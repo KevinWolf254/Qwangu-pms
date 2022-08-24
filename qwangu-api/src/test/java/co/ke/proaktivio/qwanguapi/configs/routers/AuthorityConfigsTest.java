@@ -84,9 +84,9 @@ class AuthorityConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns a flux of Authorities")
-    void find_returnsFluxOfAuthorities_status200() {
+    void find_returnsAuthorities_whenSuccessful_withStatus200() {
         // given
         String page = "1";
         String id = "1";
@@ -141,7 +141,7 @@ class AuthorityConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns CustomNotFoundException with status 404")
     void find_returnsCustomNotFoundException_status404() {
         // given
@@ -188,7 +188,7 @@ class AuthorityConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns Exception with status 500")
     void find_returnsException_status500() {
         // given

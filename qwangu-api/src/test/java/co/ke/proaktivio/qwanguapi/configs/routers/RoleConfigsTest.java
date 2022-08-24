@@ -84,7 +84,7 @@ class RoleConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("Find returns a Flux of roles")
     void find_returnsFluxOfRoles_status200() {
         // given
@@ -135,7 +135,7 @@ class RoleConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns CustomNotFoundException with status 404")
     void find_returnsCustomNotFoundException_status404() {
         // given
@@ -182,7 +182,7 @@ class RoleConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns Exception with status 500")
     void find_returnsException_status500() {
         // given

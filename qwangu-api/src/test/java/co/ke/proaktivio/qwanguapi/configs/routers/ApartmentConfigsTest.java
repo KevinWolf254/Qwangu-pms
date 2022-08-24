@@ -74,9 +74,9 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns a Mono of Apartment when name does not exist")
-    void create_returnsMonoApartment_status201() {
+    void create_returnsApartment_whenSuccessful_withStatus201() {
         // given
         String name = "Luxury Apartments";
         var dto = new ApartmentDto(name);
@@ -108,7 +108,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomAlreadyExistsException with status 400")
     void create_returnsCustomAlreadyExistsException_status400() {
         // given
@@ -136,7 +136,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomBadRequestException when apartment name is null or blank with status 403")
     void create_returnsCustomBadRequestException_whenApartmentNameIsNullOrBlank_status403() {
         // given
@@ -162,7 +162,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomBadRequestException when apartment name length is less than 6 with status 403")
     void create_returnsCustomBadRequestException_whenApartmentNameLengthLessThan6_status403() {
         // given
@@ -188,7 +188,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns Exception with status 500")
     void create_returnsException_status500() {
         // given
@@ -231,7 +231,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns a Mono of updated Apartment when name does not exist")
     void update_returnsUpdatedApartment_status200() {
         // given
@@ -267,7 +267,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns CustomBadRequestException when apartment name is null or blank with status 403")
     void update_returnsCustomBadRequestException_whenApartmentNameIsNullOrBlank_status403() {
         // given
@@ -279,7 +279,6 @@ class ApartmentConfigsTest {
 
         // then
         client
-//                .mutateWith(csrf())
                 .put()
                 .uri("/v1/apartments/{id}",id)
                 .accept(MediaType.APPLICATION_JSON)
@@ -296,7 +295,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns CustomBadRequestException when apartment name length is less than 6 with status 403")
     void update_returnsCustomBadRequestException_whenApartmentNameLengthLessThan6_status403() {
         // given
@@ -322,7 +321,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns CustomAlreadyExistsException with status 400")
     void update_returnsCustomAlreadyExistsException_status400() {
         // given
@@ -350,7 +349,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns Exception with status 500")
     void update_returnsException_status500() {
         // given
@@ -402,7 +401,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns a Flux of Apartments")
     void find_returnsFluxOfApartments_status200() {
         // given
@@ -452,7 +451,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns CustomNotFoundException with status 404")
     void find_returnsCustomNotFoundException_status404() {
         // given
@@ -498,7 +497,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns Exception with status 500")
     void find_returnsException_status500() {
         // given
@@ -560,7 +559,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("Delete by id returns a Mono of boolean when id exists")
     void deleteById_returnsTrue_status200() {
         // given
@@ -585,7 +584,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("deleteById returns CustomNotFoundException with status 404")
     void deleteById_returnsCustomNotFoundException_status404() {
         // given
@@ -611,7 +610,7 @@ class ApartmentConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("deleteById returns Exception with status 500")
     void deleteById_returnsException_status500() {
         // given

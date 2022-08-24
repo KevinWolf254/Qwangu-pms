@@ -74,7 +74,7 @@ class RentAdvanceConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns a RentAdvance with status 201")
     void create_returnsRentAdvance_status201() {
         // given
@@ -127,7 +127,7 @@ class RentAdvanceConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("update returns a RentAdvance with status 200")
     void update_returnsRentAdvance_status200() {
         // given
@@ -184,7 +184,7 @@ class RentAdvanceConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns RentAdvances with status 200")
     void find_returnsRentAdvance_status200() {
         // given
@@ -255,7 +255,7 @@ class RentAdvanceConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("Delete by id returns a Mono of boolean when id exists")
     void deleteById_returnsTrue_status200() {
         // given

@@ -62,7 +62,16 @@ public class SecurityConfig {
                         "/v1/token",
                         "/v1/resetPassword"
                 ).permitAll()
-//                .pathMatchers(HttpMethod.GET, "/v1/users/**").hasRole("ACCOUNTANT")
+                .pathMatchers( "/v1/apartments/**").hasAnyRole("SUPER_ADMIN")
+                .pathMatchers( "/v1/units/**").hasAnyRole("SUPER_ADMIN")
+                .pathMatchers( "/v1/occupations/**").hasAnyRole("SUPER_ADMIN")
+                .pathMatchers( "/v1/tenants/**").hasAnyRole("SUPER_ADMIN")
+                .pathMatchers( "/v1/notices/**").hasAnyRole("SUPER_ADMIN")
+                .pathMatchers( "/v1/users/**").hasAnyRole("SUPER_ADMIN")
+                .pathMatchers( "/v1/roles/**").hasAnyRole("SUPER_ADMIN")
+                .pathMatchers( "/v1/authorities/**").hasAnyRole("SUPER_ADMIN")
+                .pathMatchers( "/v1/refunds/**").hasAnyRole("SUPER_ADMIN")
+                .pathMatchers( "/v1/advances/**").hasAnyRole("SUPER_ADMIN")
                 .pathMatchers("/v1/mpesa/c2b/**").access(this::whiteListIp)
                 .anyExchange().authenticated()
                 .and()

@@ -71,8 +71,8 @@ public class UnitConfigsTest {
     }
     
     @Test
-    @WithMockUser
-    void create() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void create_returnsUnit_whenSuccessful_withStatus201() {
         // given
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
                 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
@@ -217,8 +217,8 @@ public class UnitConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void update() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void update_returnsUnit_whenSuccessful_withStatus200() {
         // given
         var id = "1";
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
@@ -293,8 +293,8 @@ public class UnitConfigsTest {
     }
 
     @Test
-    @WithMockUser
-    void find() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void find_returnsUnits_whenSuccessful_withStatus200() {
         // given
         var id = "1";
         String accountNo = "TE99";
@@ -418,9 +418,9 @@ public class UnitConfigsTest {
                 .expectStatus().isUnauthorized();
     }
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("Delete by id returns a Mono of boolean when id exists")
-    void deleteById_returnsTrue_status200() {
+    void deleteById_returnsTrue_withStatus200() {
         // given
         String id = "1";
 

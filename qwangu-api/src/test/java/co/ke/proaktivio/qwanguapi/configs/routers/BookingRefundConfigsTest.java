@@ -67,7 +67,7 @@ class BookingRefundConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns a Mono of BookingRefund when name does not exist")
     void create_returnsBookingRefund_status201() {
         // given
@@ -123,7 +123,7 @@ class BookingRefundConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("find returns BookingRefunds with status 200")
     void find_returnsBookingRefunds_status200() {
         // given
@@ -188,7 +188,7 @@ class BookingRefundConfigsTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("Delete by id returns true with status 200")
     void deleteById_returnsTrue_status200() {
         // given
