@@ -7,6 +7,7 @@ import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +18,9 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
+@Log4j2
 @Configuration
 public class BootstrapConfig {
     Role adminRole = new Role(null, "ADMIN", LocalDateTime.now(), null);
@@ -40,26 +43,27 @@ public class BootstrapConfig {
                         return user;
                     })
                     .flatMap(userRepository::save)
-                    .doOnSuccess(r -> System.out.println("---- Created: " + r))
+                    .filter(Objects::nonNull)
+                    .doOnSuccess(r -> log.info(" Created: " + r))
                     .flatMapMany(savedUser -> roleRepository.findAll().collectList()
                             .filter(List::isEmpty)
                             .map($ -> adminRole)
                             .flatMapMany(admin -> roleRepository
                                     .save(admin)
-                                    .doOnSuccess(r -> System.out.println("---- Created: " + r))
+                                    .doOnSuccess(r -> System.out.println(" Created: " + r))
                                     .flatMapMany(savedAdmin -> adminAuthorities
                                             .map(authority -> {
                                                 authority.setRoleId(savedAdmin.getId());
                                                 return authority;
                                             })
-                                            .doOnNext(r -> System.out.println("---- Created: " + r))
+                                            .doOnNext(r -> System.out.println(" Created: " + r))
                                             .flatMap(authorityRepository::save)
                                             .map($ -> {
                                                 savedUser.setRoleId(savedUser.getId());
                                                 return savedUser;
                                             })
                                             .flatMap(userRepository::save)
-                                            .doOnNext(r -> System.out.println("---- Updated: " + r))
+                                            .doOnNext(r -> System.out.println(" Updated: " + r))
                                     )
                             ))
                     .subscribe();

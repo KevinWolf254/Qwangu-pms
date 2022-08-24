@@ -201,7 +201,7 @@ public class UserHandler {
                 .bodyToMono(SignInDto.class)
                 .map(validateSignInDtoFunc(new SignInDtoValidator()))
                 .flatMap(userService::signIn)
-                .doOnSuccess(t -> getCurrentUser().doOnSuccess(a -> log.info("Sign in successfully {}", a.getPrincipal())))
+                .doOnSuccess(t -> log.info("Sign in successfully {}", t))
                 .doOnError(e -> log.error(" Failed to sign in. Error ", e))
                 .flatMap(tokenDto ->
                         ServerResponse
