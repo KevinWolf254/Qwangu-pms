@@ -3,16 +3,16 @@ package co.ke.proaktivio.qwanguapi.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
-@Document(value = "ONE_TIME_TOKEN")
-@AllArgsConstructor
-@ToString
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Document(value = "ONE_TIME_TOKEN")
 public class OneTimeToken {
     @Id
     private String id;

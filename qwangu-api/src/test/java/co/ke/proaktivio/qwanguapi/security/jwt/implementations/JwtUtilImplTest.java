@@ -19,7 +19,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -96,7 +95,7 @@ class JwtUtilImplTest {
     @Test
     void validate_returnsTrueWhenTokenHasNotExpired() {
         // when
-        Boolean isValid = util.validate(token);
+        Boolean isValid = util.isValid(token);
 
         // then
         assertThat(isValid).isTrue();

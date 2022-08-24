@@ -10,7 +10,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 @RequiredArgsConstructor
@@ -57,21 +56,21 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return !user.getAccountExpired();
+        return !user.getIsAccountExpired();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return !user.getAccountLocked();
+        return !user.getIsAccountLocked();
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return !user.getCredentialsExpired();
+        return !user.getIsCredentialsExpired();
     }
 
     @Override
     public boolean isEnabled() {
-        return user.getEnabled();
+        return user.getIsEnabled();
     }
 }

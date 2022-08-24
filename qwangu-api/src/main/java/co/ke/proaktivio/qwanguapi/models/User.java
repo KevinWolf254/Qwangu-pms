@@ -4,7 +4,6 @@ import co.ke.proaktivio.qwanguapi.pojos.Person;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -23,10 +22,10 @@ public class User {
     private String emailAddress;
     private String roleId;
     private String password;
-    private Boolean accountExpired;
-    private Boolean credentialsExpired;
-    private Boolean accountLocked;
-    private Boolean enabled;
+    private Boolean isAccountExpired;
+    private Boolean isCredentialsExpired;
+    private Boolean isAccountLocked;
+    private Boolean isEnabled;
     private LocalDateTime created;
     private LocalDateTime modified;
 

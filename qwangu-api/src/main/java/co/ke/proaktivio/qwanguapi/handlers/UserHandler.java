@@ -36,6 +36,7 @@ public class UserHandler {
                 .flatMap(userService::createAndNotify)
                 .doOnSuccess(a -> log.info(" Created {}", a))
                 .doOnError(e -> log.error(" Failed to create apartment. Error ", e))
+                .map(UserWithoutPasswordDto::new)
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/users/%s".formatted(created.getId())))
                         .body(Mono.just(new Response<>(
@@ -53,6 +54,7 @@ public class UserHandler {
                 .flatMap(dto -> userService.update(id, dto))
                 .doOnSuccess(a -> log.info(" Updated {}", a))
                 .doOnError(e -> log.error(" Failed to update user. Error ", e))
+                .map(UserWithoutPasswordDto::new)
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
@@ -75,7 +77,9 @@ public class UserHandler {
                         page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
                         pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
                         order.map(OrderType::valueOf).orElse(OrderType.DESC)
-                ).collectList()
+                )
+                .map(UserWithoutPasswordDto::new)
+                .collectList()
                 .doOnSuccess(a -> log.info(" Found {} users", a.size()))
                 .doOnError(e -> log.error(" Failed to find user. Error ", e))
                 .flatMap(results ->
@@ -114,6 +118,7 @@ public class UserHandler {
                 .flatMap(token -> userService.activate(token, id))
                 .doOnSuccess(u -> log.info(" Activated {}", u))
                 .doOnError(e -> log.error(" Failed to activate user. Error ", e))
+                .map(UserWithoutPasswordDto::new)
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
@@ -168,6 +173,7 @@ public class UserHandler {
                         .flatMap(dto -> userService.resetPassword(token, dto.getPassword())))
                 .doOnSuccess(u -> log.info(" Reset password successful for {}", u.getEmailAddress()))
                 .doOnError(e -> log.error(" Failed to reset password. Error ", e))
+                .map(UserWithoutPasswordDto::new)
                 .flatMap(user ->
                         ServerResponse
                                 .ok()
@@ -186,6 +192,7 @@ public class UserHandler {
                 .flatMap(dto -> userService.changePassword(id, dto))
                 .doOnSuccess(u -> log.info(" Changed password successful for {}", u.getEmailAddress()))
                 .doOnError(e -> log.error(" Failed to change password. Error ", e))
+                .map(UserWithoutPasswordDto::new)
                 .flatMap(user ->
                         ServerResponse
                                 .ok()
@@ -213,8 +220,8 @@ public class UserHandler {
                                         tokenDto)), Response.class));
     }
 
-    public Mono<Authentication> getCurrentUser() {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication);
-    }
+//    public Mono<Authentication> getCurrentUser() {
+//        return ReactiveSecurityContextHolder.getContext()
+//                .map(SecurityContext::getAuthentication);
+//    }
 }

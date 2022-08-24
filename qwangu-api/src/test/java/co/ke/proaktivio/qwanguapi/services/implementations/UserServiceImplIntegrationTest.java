@@ -5,34 +5,42 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.Authority;
+import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.Role;
 import co.ke.proaktivio.qwanguapi.models.User;
-import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.pojos.Person;
-import co.ke.proaktivio.qwanguapi.pojos.UserDto;
+import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
+import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
+import co.ke.proaktivio.qwanguapi.services.EmailService;
+import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
 import co.ke.proaktivio.qwanguapi.services.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.util.StringUtils;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -44,15 +52,23 @@ class UserServiceImplIntegrationTest {
     @Autowired
     private AuthorityRepository authorityRepository;
     @Autowired
-    private UserService userService;
+    private UserService underTest;
+    @Autowired
+    private OneTimeTokenService oneTimeTokenService;
     @Autowired
     private OneTimeTokenRepository oneTimeTokenRepository;
+    @Autowired
+    private PasswordEncoder encoder;
+    @Autowired
+    private JwtUtil jwtUtil;
     @Autowired
     private ReactiveMongoTemplate template;
     @MockBean
     private BootstrapConfig bootstrapConfig;
     @MockBean
     private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
+    @MockBean
+    private EmailService emailService;
 
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
@@ -62,7 +78,7 @@ class UserServiceImplIntegrationTest {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
 
-    Mono<Void> deleteAll() {
+    private Mono<Void> deleteAll() {
         return userRepository.deleteAll()
                 .doOnSuccess($ -> System.out.println("---- Deleted all users!"))
                 .then(roleRepository.deleteAll())
@@ -70,6 +86,7 @@ class UserServiceImplIntegrationTest {
                 .then(authorityRepository.deleteAll())
                 .doOnSuccess($ -> System.out.println("---- Deleted all authorities!"));
     }
+
     @Test
     @DisplayName("createAndNotify rollsBack when a runtime exception occurs")
     void createAndNotify() {
@@ -93,10 +110,10 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(System.out::println)
                 .flatMap(authResult -> roleRepository.save(role))
                 .doOnSuccess(r -> System.out.println("---- Saved " + r))
-                .flatMap(roleResult -> userService.create(dto))
+                .flatMap(roleResult -> underTest.create(dto))
                 .doOnSuccess(u -> System.out.println("---- Saved " + u));
 
-        Mono<User> userCreateWithEmailError = userService
+        Mono<User> userCreateWithEmailError = underTest
                 .createAndNotify(dto2)
                 .doOnError(System.out::println);
 
@@ -149,7 +166,7 @@ class UserServiceImplIntegrationTest {
                         .doOnSuccess(System.out::println))
                 .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
-                .flatMap(roleResult -> userService.create(dto))
+                .flatMap(roleResult -> underTest.create(dto))
                 .doOnSuccess(System.out::println);
 
         // then
@@ -171,7 +188,7 @@ class UserServiceImplIntegrationTest {
         Mono<User> user = template
                 .dropCollection(Role.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table Role!"))
-                .then(userService
+                .then(underTest
                         .create(dto)
                         .doOnError(System.out::println));
 
@@ -198,13 +215,13 @@ class UserServiceImplIntegrationTest {
         // when
         Mono<User> user = deleteAll()
                 .then(authorityRepository.save(authority))
-                .doOnSuccess(a -> System.out.println("---- Created: " +a))
+                .doOnSuccess(a -> System.out.println("---- Created: " + a))
                 .then(roleRepository.save(role))
-                .doOnSuccess(a -> System.out.println("---- Created: " +a))
-                .then(userService.create(dto))
-                .doOnSuccess(a -> System.out.println("---- Created: " +a))
-                .then(userService.create(dto))
-                .doOnSuccess(a -> System.out.println("---- Created: " +a));
+                .doOnSuccess(a -> System.out.println("---- Created: " + a))
+                .then(underTest.create(dto))
+                .doOnSuccess(a -> System.out.println("---- Created: " + a))
+                .then(underTest.create(dto))
+                .doOnSuccess(a -> System.out.println("---- Created: " + a));
 
         // then
         StepVerifier
@@ -245,7 +262,7 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(System.out::println)
                 .flatMap(roleResult -> template.save(userEntity, "USER"))
                 .doOnSuccess(System.out::println)
-                .flatMap(userResult -> userService.update(id, dto))
+                .flatMap(userResult -> underTest.update(id, dto))
                 .doOnSuccess(System.out::println);
 
         // then
@@ -287,7 +304,7 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(System.out::println)
                 .flatMap(roleResult -> template.save(userEntity, "USER"))
                 .doOnSuccess(System.out::println)
-                .flatMap(userResult -> userService.update(id, dto))
+                .flatMap(userResult -> underTest.update(id, dto))
                 .doOnError(System.out::println);
 
         // then
@@ -331,7 +348,7 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(System.out::println)
                 .flatMap(roleResult -> template.save(userEntity, "USER"))
                 .doOnSuccess(System.out::println)
-                .flatMap(userResult -> userService.update(id, dto))
+                .flatMap(userResult -> underTest.update(id, dto))
                 .doOnError(System.out::println);
 
         // then
@@ -361,7 +378,7 @@ class UserServiceImplIntegrationTest {
                 .thenMany(Flux
                         .just(userEntity, userEntity2))
                 .flatMap(entity -> template.save(entity, "USER"))
-                .thenMany(userService.findPaginated(Optional.empty(),
+                .thenMany(underTest.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
                         OrderType.ASC))
                 .doOnNext(System.out::println);
@@ -380,7 +397,7 @@ class UserServiceImplIntegrationTest {
         Flux<User> saved = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
-                .thenMany(userService.findPaginated(Optional.empty(),
+                .thenMany(underTest.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
                         OrderType.ASC))
                 .doOnError(a -> System.out.println("---- Found no users!"));
@@ -412,7 +429,7 @@ class UserServiceImplIntegrationTest {
                         .just(userEntity, userEntity2))
                 .flatMap(entity -> template.save(entity, "USER"))
                 .doOnNext(u -> System.out.printf("---- Created %s%n", u))
-                .flatMap(user -> userService.deleteById(user.getId()))
+                .flatMap(user -> underTest.deleteById(user.getId()))
                 .doOnNext(b -> System.out.println("---- Deleted user!"));
 
         // then
@@ -428,19 +445,174 @@ class UserServiceImplIntegrationTest {
     void delete_returnsCustomNotFoundException_whenUsersDoNotExist() {
         // given
         String id = "1";
-
         // when
         Mono<Boolean> deleted = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
-                .then(userService.deleteById(id))
+                .then(underTest.deleteById(id))
                 .doOnError(System.out::println);
-
         // then
         StepVerifier
                 .create(deleted)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
                         e.getMessage().equalsIgnoreCase("User with id %s does not exist!".formatted(id)))
                 .verify();
+    }
+
+    @Test
+    void activate_returnsUser_whenSuccessful() {
+        // given
+        String token = UUID.randomUUID().toString();
+        Person person = new Person("John", "Doe", "Doe");
+        User user = new User(null, person, "person@gmail.com", "1", null,
+                false, false, false, false, LocalDateTime.now(), null);
+        // when
+        Mono<User> activateUser = deleteAll()
+                .then(oneTimeTokenRepository.deleteAll()
+                        .doOnSuccess($ -> System.out.println("---- Deleted all tokens!")))
+                .then(userRepository.save(user))
+                .doOnSuccess(u -> System.out.println("---- Created: " + u))
+                .flatMap(u -> oneTimeTokenService.create(u.getId(), token)
+                        .doOnSuccess(ott -> System.out.println("---- Created: " + ott))
+                        .flatMap(ott -> underTest.activate(token, u.getId())))
+                .doOnSuccess(ott -> System.out.println("---- Result: " + ott));
+
+        // then
+        StepVerifier.create(activateUser)
+                .expectNextMatches(User::getIsEnabled)
+                .verifyComplete();
+
+        // when
+        Mono<List<OneTimeToken>> listOfOneTimeTokens = activateUser
+                .thenMany(oneTimeTokenRepository.findAll())
+                .collectList()
+                .doOnSuccess(u -> System.out.printf("---- Found %s one time tokens %n", u.size()));
+        // then
+        StepVerifier
+                .create(listOfOneTimeTokens)
+                .expectNextMatches(List::isEmpty)
+                .verifyComplete();
+    }
+
+    @Test
+    void signIn_returnsTokenDto_whenSuccessful() {
+        LocalDateTime now = LocalDateTime.now();
+        var password = "12345";
+        Person person = new Person("John", "Doe", "Doe");
+        String emailAddress = "person@gmail.com";
+        User user = new User(null, person, emailAddress, null, password,
+                false, false, false, true, now,
+                null);
+        var role = new Role(null, "ADMIN", now, null);
+        var authority = new Authority(null, "USER", true, true, true, true,
+                true, null, now, null);
+        // when
+        Mono<TokenDto> signIn = deleteAll()
+                .then(userRepository.save(user))
+                .doOnSuccess(u -> System.out.println("---- Created " + u))
+                .doOnSuccess(u -> u.setPassword(encoder.encode(u.getPassword()))).subscribeOn(Schedulers.parallel())
+                .doOnSuccess(u -> System.out.println("---- Encrypted password for " + u))
+                .flatMap(u -> roleRepository.save(role)
+                        .doOnSuccess(r -> System.out.println("---- Created " + r))
+                        .flatMap(r -> {
+                            authority.setRoleId(r.getId());
+                            return authorityRepository.save(authority)
+                                    .doOnSuccess(a -> System.out.println("---- Created " + a))
+                                    .flatMap($ -> {
+                                        u.setRoleId(r.getId());
+                                        return userRepository.save(u);
+                                    });
+                        })
+                )
+                .doOnSuccess(u -> System.out.println("---- Updated role for " + u))
+                .then(underTest.signIn(new SignInDto(emailAddress, password)))
+                .doOnSuccess(u -> System.out.println("---- Result " + u));
+        // then
+        StepVerifier
+                .create(signIn)
+                .expectNextMatches(ut -> StringUtils.hasText(ut.getToken()) && jwtUtil.isValid(ut.getToken()))
+                .verifyComplete();
+    }
+
+    @Test
+    void changePassword_returnsUser_whenSuccessful() {
+        LocalDateTime now = LocalDateTime.now();
+        var password = "12345";
+        String newPassword = "A1234567";
+        Person person = new Person("John", "Doe", "Doe");
+        String emailAddress = "person@gmail.com";
+        User user = new User(null, person, emailAddress, "1", password,
+                false, false, false, true, now,
+                null);
+        // when
+        Mono<User> changePassword = deleteAll()
+                .then(userRepository.save(user))
+                .doOnSuccess(u -> System.out.println("---- Created " + u))
+                .doOnSuccess(u -> u.setPassword(encoder.encode(u.getPassword()))).subscribeOn(Schedulers.parallel())
+                .doOnSuccess(u -> System.out.println("---- Encrypted password for " + u))
+                .flatMap(u -> userRepository.save(u))
+                .doOnSuccess(u -> System.out.println("---- Updated " + u))
+                .flatMap(u -> underTest.changePassword(u.getId(), new PasswordDto(password, newPassword)))
+                .doOnSuccess(u -> System.out.println("---- Result " + u));
+        // then
+        StepVerifier
+                .create(changePassword)
+                .expectNextMatches(u -> encoder.matches(newPassword, u.getPassword()))
+                .verifyComplete();
+
+
+    }
+
+    @Test
+    void resetPassword_returnUser_whenSuccessful() {
+        LocalDateTime now = LocalDateTime.now();
+        var password = "12345";
+        String newPassword = "A1234567";
+        Person person = new Person("John", "Doe", "Doe");
+        String emailAddress = "person@gmail.com";
+        User user = new User(null, person, emailAddress, null, password,
+                false, false, false, true, now,
+                null);
+        var token = UUID.randomUUID().toString();
+
+        // when
+        Mono<User> resetPassword = deleteAll()
+                .then(userRepository.save(user))
+                .doOnSuccess(u -> System.out.println("---- Created " + u))
+                .flatMap(u -> oneTimeTokenService.create(u.getId(), token))
+                .doOnSuccess(u -> System.out.println("---- Created " + u))
+                .then(underTest.resetPassword(token, newPassword))
+                .doOnSuccess(u -> System.out.println("---- Result " + u));
+        // then
+        StepVerifier
+                .create(resetPassword)
+                .expectNextMatches(u -> encoder.matches(newPassword, u.getPassword()))
+                .verifyComplete();
+    }
+
+    @Test
+    void sendResetPassword_whenSuccessful() {
+        LocalDateTime now = LocalDateTime.now();
+        var password = "12345";
+        String id = "A1234567";
+        Person person = new Person("John", "Doe", "Doe");
+        String emailAddress = "person@gmail.com";
+        User user = new User(id, person, emailAddress, null, password,
+                false, false, false, true, now,
+                null);
+        // when
+        Mockito.when(emailService.send(Mockito.any(Email.class))).thenReturn(Mono.just(true));
+        Flux<OneTimeToken> resetPassword = deleteAll()
+                .then(userRepository.save(user))
+                .doOnSuccess(u -> System.out.println("---- Created " + u))
+                .then(underTest.sendResetPassword(new EmailDto(emailAddress)))
+                .thenMany(oneTimeTokenRepository.findAll())
+                .doOnNext(ott -> System.out.println("---- Found " +ott));
+
+        // then
+        StepVerifier
+                .create(resetPassword)
+                .expectNextMatches(ott -> ott.getUserId().equals(id))
+                .verifyComplete();
     }
 }

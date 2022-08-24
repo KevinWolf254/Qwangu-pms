@@ -57,7 +57,7 @@ public class JwtUtilImpl implements JwtUtil {
     }
 
     @Override
-    public Boolean validate(String token) {
+    public Boolean isValid(String token) {
         return !isTokenExpired(token);
     }
 

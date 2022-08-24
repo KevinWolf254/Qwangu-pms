@@ -3,9 +3,9 @@ package co.ke.proaktivio.qwanguapi.pojos;
 import co.ke.proaktivio.qwanguapi.models.User;
 import lombok.*;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDto {
     private Person person;
     private String emailAddress;

@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.security;
 
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -73,7 +74,7 @@ class CustomServerSecurityContextRepositoryImplTest {
     }
 
     @Test
-    void load_returnsMonoOfEmpty_whenAuthorizationHeaderHasNoValue() {
+    void load_returnsJwtException_whenAuthorizationHeaderHasNoValue() {
         // given
         MockServerHttpRequest.BaseBuilder<?> requestBuilder = MockServerHttpRequest
                 .get("/");
@@ -85,12 +86,13 @@ class CustomServerSecurityContextRepositoryImplTest {
         // then
         StepVerifier
                 .create(sscr.load(exchange))
-                .expectNextCount(0)
-                .verifyComplete();
+                .expectErrorMatches(e -> e instanceof JwtException &&
+                        e.getMessage().equals("Bearer required!"))
+                .verify();
     }
 
     @Test
-    void load_returnsMonoOfEmpty_whenAuthorizationHeaderHasBearerWithNoToken() {
+    void load_returnsJwtException_whenAuthorizationHeaderHasBearerWithNoToken() {
         // given
         MockServerHttpRequest.BaseBuilder<?> requestBuilder = MockServerHttpRequest
                 .get("/");
@@ -102,7 +104,8 @@ class CustomServerSecurityContextRepositoryImplTest {
         // then
         StepVerifier
                 .create(sscr.load(exchange))
-                .expectNextCount(0)
-                .verifyComplete();
+                .expectErrorMatches(e -> e instanceof JwtException &&
+                        e.getMessage().equals("Bearer required!") || e.getMessage().equals("Token required!"))
+                .verify();
     }
 }

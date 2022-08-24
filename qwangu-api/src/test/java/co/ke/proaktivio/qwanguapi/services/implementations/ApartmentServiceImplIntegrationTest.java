@@ -52,6 +52,9 @@ class ApartmentServiceImplIntegrationTest {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
 
+    //    TODO ADD ON VM OPTIONS
+    //-XX:+AllowRedefinitionToAddDeleteMethods
+
     private Mono<Void> deleteAll() {
         return apartmentRepository.deleteAll()
                 .doOnSuccess($ -> System.out.println("---- Deleted all Apartments!"));

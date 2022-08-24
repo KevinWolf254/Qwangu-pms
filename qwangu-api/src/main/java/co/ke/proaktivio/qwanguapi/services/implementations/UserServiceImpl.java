@@ -88,51 +88,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> activate(String token, String userId) {
-        return oneTimeTokenService.find(token, userId)
-                .filter(t -> t.getExpiration().isAfter(LocalDateTime.now()) || t.getExpiration().isEqual(LocalDateTime.now()))
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token has expired! Contact administrator.")))
-                .flatMap(ott -> userRepository.findById(userId)
-                        .switchIfEmpty(Mono.error(new CustomBadRequestException("User could not be found!")))
-                        .flatMap(user -> {
-                            user.setModified(LocalDateTime.now());
-                            user.setEnabled(true);
-                            return userRepository.save(user);
-                        })
-                        .map(user -> {
-                            oneTimeTokenRepository.deleteById(ott.getId());
-                            return user;
-                        })
-                );
-    }
-
-    @Override
-    public Mono<TokenDto> signIn(SignInDto signInDto) {
-        String emailAddress = signInDto.getUsername();
-        String password = signInDto.getPassword();
-        return userRepository
-                .findOne(Example.of(new User(emailAddress)))
-                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                .flatMap(user -> Mono
-                        .just(encoder.matches(password, user.getPassword())).subscribeOn(Schedulers.parallel())
-                        .filter(passwordsMatch -> passwordsMatch)
-                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                        .flatMap($ -> roleRepository
-                                .findById(user.getRoleId())
-                                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                                .flatMap(role -> authorityService.findByRoleId(role.getId())
-                                        .collectList()
-                                        .map(authorities -> jwtUtil.generateToken(user, role, authorities)))
-                                .filter(StringUtils::hasText)
-                                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
-                                .flatMap(token -> userTokenService.create(new UserTokenDto(emailAddress, token))
-                                        .map(UserToken::getToken))
-                                .map(TokenDto::new)
-                        )
-                );
-    }
-
-    @Override
     public Mono<User> update(String id, UserDto dto) {
         String emailAddress = dto.getEmailAddress();
         String roleId = dto.getRoleId();
@@ -178,11 +133,56 @@ public class UserServiceImpl implements UserService {
                 .map(DeleteResult::wasAcknowledged);
     }
 
-    // TODO - CREATE PASSWORD_SERVICE
+    @Override
+    public Mono<User> activate(String token, String userId) {
+        return oneTimeTokenService.find(token, userId)
+                .filter(t -> t.getExpiration().isAfter(LocalDateTime.now()) || t.getExpiration().isEqual(LocalDateTime.now()))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token has expired! Contact administrator.")))
+                .flatMap(ott -> userRepository.findById(userId)
+                        .switchIfEmpty(Mono.error(new CustomBadRequestException("User could not be found!")))
+                        .doOnSuccess(user -> {
+                            user.setModified(LocalDateTime.now());
+                            user.setIsEnabled(true);
+                        })
+                        .flatMap(userRepository::save)
+                        .flatMap(user -> oneTimeTokenRepository.deleteById(ott.getId())
+                                    .then(Mono.just(user)))
+                );
+    }
+
+    @Override
+    public Mono<TokenDto> signIn(SignInDto signInDto) {
+        String emailAddress = signInDto.getUsername();
+        String password = signInDto.getPassword();
+        return userRepository
+                .findOne(Example.of(new User(emailAddress)))
+                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                .filter(user -> user.getIsEnabled() && !user.getIsAccountLocked() && !user.getIsCredentialsExpired() &&
+                        !user.getIsAccountExpired())
+                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Account could be disabled! Contact Administrator!")))
+                .flatMap(user -> Mono
+                        .just(encoder.matches(password, user.getPassword())).subscribeOn(Schedulers.parallel())
+                        .filter(passwordsMatch -> passwordsMatch)
+                        .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                        .flatMap($ -> roleRepository
+                                .findById(user.getRoleId())
+                                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                                .flatMap(role -> authorityService.findByRoleId(role.getId())
+                                        .collectList()
+                                        .map(authorities -> jwtUtil.generateToken(user, role, authorities)))
+                                .filter(StringUtils::hasText)
+                                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                                .flatMap(token -> userTokenService.create(new UserTokenDto(emailAddress, token))
+                                        .map(UserToken::getToken))
+                                .map(TokenDto::new)
+                        )
+                );
+    }
+
+    // TODO - CREATE USER_PASSWORD_SERVICE
     @Override
     public Mono<User> changePassword(String userId, PasswordDto dto) {
-        return userRepository
-                .findById(userId)
+        return userRepository.findById(userId)
                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("User with id %s does not exist!".formatted(userId))))
                 .flatMap(user -> Mono.just(encoder.matches(dto.getCurrentPassword(), user.getPassword()))
                         .filter(passwordMatch -> passwordMatch)
@@ -202,7 +202,7 @@ public class UserServiceImpl implements UserService {
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token has expired! Contact administrator.")))
                 .flatMap(ott -> userRepository.findById(ott.getUserId())
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("User could not be found!")))
-                        .filter(User::getEnabled)
+                        .filter(User::getIsEnabled)
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("User is disabled! Contact administrator.")))
                         .map(user -> {
                             user.setPassword(encoder.encode(password));

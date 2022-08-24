@@ -25,7 +25,7 @@ public class CustomReactiveAuthenticationManagerImpl implements CustomReactiveAu
         String token = authentication.getCredentials().toString();
         String username = jwtUtil.getUsername(token);
         return Mono
-                .just(jwtUtil.validate(token))
+                .just(jwtUtil.isValid(token))
                 .filter(isValid -> isValid)
                 .flatMap($ -> userTokenService.exists(username, token))
                 .filter(isCurrent -> isCurrent)
