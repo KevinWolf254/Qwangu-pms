@@ -112,8 +112,8 @@ class UserConfigsTest {
                 .jsonPath("$.data.person.surname").isEqualTo("Doe")
                 .jsonPath("$.data.emailAddress").isEqualTo(emailAddress)
                 .jsonPath("$.data.roleId").isEqualTo(roleId)
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -375,8 +375,8 @@ class UserConfigsTest {
                 .jsonPath("$.data.person.surname").isEqualTo("Doe")
                 .jsonPath("$.data.emailAddress").isEqualTo(emailAddress)
                 .jsonPath("$.data.roleId").isEqualTo(roleId)
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isNotEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isNotEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -608,8 +608,8 @@ class UserConfigsTest {
                 .jsonPath("$.data.[0].person.otherNames").isEqualTo("Doe")
                 .jsonPath("$.data.[0].person.surname").isEqualTo("Doe")
                 .jsonPath("$.data.[0].roleId").isEqualTo(roleId)
-                .jsonPath("$.data.[0].created").isNotEmpty()
-                .jsonPath("$.data.[0].modified").isEmpty()
+                .jsonPath("$.data.[0].createdOn").isNotEmpty()
+                .jsonPath("$.data.[0].modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
     }
 

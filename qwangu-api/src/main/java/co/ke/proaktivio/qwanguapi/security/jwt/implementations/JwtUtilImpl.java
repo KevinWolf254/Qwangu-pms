@@ -64,8 +64,19 @@ public class JwtUtilImpl implements JwtUtil {
     @Override
     public String generateToken(User user, Role role, List<Authority> authorities) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("user", mapUser(user));
         claims.put("authorities", generateAuthorities(role, authorities));
         return generate(claims, user.getEmailAddress());
+    }
+
+    private Map<String, Object> mapUser(User user) {
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("fullNames", user.getPerson());
+        userMap.put("isAccountExpired", user.getIsAccountExpired());
+        userMap.put("isCredentialsExpired", user.getIsCredentialsExpired());
+        userMap.put("isAccountLocked", user.getIsAccountLocked());
+        userMap.put("isEnabled", user.getIsEnabled());
+        return userMap;
     }
 
     private Set<String> generateAuthorities(Role role, List<Authority> authorities) {

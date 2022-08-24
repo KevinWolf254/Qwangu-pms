@@ -84,7 +84,9 @@ class UserServiceImplIntegrationTest {
                 .then(roleRepository.deleteAll())
                 .doOnSuccess($ -> System.out.println("---- Deleted all roles!"))
                 .then(authorityRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("---- Deleted all authorities!"));
+                .doOnSuccess($ -> System.out.println("---- Deleted all authorities!"))
+                .then(oneTimeTokenRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("---- Deleted all tokens!"));
     }
 
     @Test

@@ -21,8 +21,8 @@ public class UserWithoutPasswordDto {
     private Boolean isCredentialsExpired;
     private Boolean isAccountLocked;
     private Boolean isEnabled;
-    private LocalDateTime created;
-    private LocalDateTime modified;
+    private LocalDateTime createdOn;
+    private LocalDateTime modifiedOn;
 
     public UserWithoutPasswordDto(User user) {
         this.id = user.getId();
@@ -33,7 +33,7 @@ public class UserWithoutPasswordDto {
         this.isCredentialsExpired = user.getIsCredentialsExpired();
         this.isAccountLocked = user.getIsAccountLocked();
         this.isEnabled = user.getIsEnabled();
-        this.created = user.getCreated();
-        this.modified = user.getModified();
+        this.createdOn = user.getCreatedOn();
+        this.modifiedOn = user.getModifiedOn();
     }
 }

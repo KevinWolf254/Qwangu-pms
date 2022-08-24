@@ -26,8 +26,8 @@ public class User {
     private Boolean isCredentialsExpired;
     private Boolean isAccountLocked;
     private Boolean isEnabled;
-    private LocalDateTime created;
-    private LocalDateTime modified;
+    private LocalDateTime createdOn;
+    private LocalDateTime modifiedOn;
 
     public User(String emailAddress) {
         this.emailAddress = emailAddress;

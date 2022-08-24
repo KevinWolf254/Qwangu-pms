@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService {
                 .flatMap(user -> {
                     user.setPerson(dto.getPerson());
                     user.setRoleId(roleId);
-                    user.setModified(LocalDateTime.now());
+                    user.setModifiedOn(LocalDateTime.now());
                     return template.save(user, "USER");
                 });
     }
@@ -141,7 +141,7 @@ public class UserServiceImpl implements UserService {
                 .flatMap(ott -> userRepository.findById(userId)
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("User could not be found!")))
                         .doOnSuccess(user -> {
-                            user.setModified(LocalDateTime.now());
+                            user.setModifiedOn(LocalDateTime.now());
                             user.setIsEnabled(true);
                         })
                         .flatMap(userRepository::save)

@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 @Configuration
 public class BootstrapConfig {
     Person person = new Person("John", "David", "Doe");
-    Mono<User> user = Mono.just(new User(null, person, "johnDoe@email.com", null, null, false,
+    Mono<User> user = Mono.just(new User(null, person, "johnDoe@email.com", null, "ABc1234!", false,
             false, false, true, LocalDateTime.now(), null));
 
     Mono<Role> superAdminRole = Mono.just(new Role(null, "SUPER_ADMIN", LocalDateTime.now(), null));
@@ -82,61 +83,13 @@ public class BootstrapConfig {
                                     .flatMap($ -> user
                                             .doOnSuccess(u -> u.setRoleId(r.getId())))
                             )
+                    .doOnSuccess(u -> {
+                        u.setPassword(encoder.encode(u.getPassword()));
+                        log.info(" Encoded password {}", u.getPassword());
+                    }).subscribeOn(Schedulers.parallel())
                     .flatMap(userRepository::save)
                     .doOnSuccess(u -> log.info(" Created {}", u))
                     .subscribe();
-
-//            deleteAll(userRepository, roleRepository, authorityRepository)
-//                    .then(superAdminRole)
-//                    .flatMap(roleRepository::save)
-//                    .doOnSuccess(r -> log.info(" Created {}", r))
-//                    .flatMap(role -> superAdminAuthorities
-//                            .doOnNext(authority -> authority.setRoleId(role.getId()))
-//                            .flatMap(authorityRepository::save)
-//                            .doOnNext(a -> log.info(" Created {}", a))
-//                            .collectList()
-//                            .then(user)
-//                            .doOnSuccess(u -> u.setRoleId(role.getId())))
-//                    .flatMap(userRepository::save)
-//                    .doOnSuccess(a -> log.info(" Created {}", a))
-//                    .subscribe();
         };
     }
-
-//    public CommandLineRunner init(UserRepository userRepository, RoleRepository roleRepository,
-//                                  AuthorityRepository authorityRepository, PasswordEncoder encoder) {
-//        return args -> {
-//            userRepository.findAll().collectList()
-//                    .filter(List::isEmpty)
-//                    .map($ -> {
-//                        user.setPassword(encoder.encode("12345678"));
-//                        return user;
-//                    })
-//                    .flatMap(userRepository::save)
-//                    .filter(Objects::nonNull)
-//                    .doOnSuccess(r -> log.info(" Created: " + r))
-//                    .flatMapMany(savedUser -> roleRepository.findAll().collectList()
-//                            .filter(List::isEmpty)
-//                            .map($ -> adminRole)
-//                            .flatMapMany(admin -> roleRepository
-//                                    .save(admin)
-//                                    .doOnSuccess(r -> System.out.println(" Created: " + r))
-//                                    .flatMapMany(savedAdmin -> adminAuthorities
-//                                            .map(authority -> {
-//                                                authority.setRoleId(savedAdmin.getId());
-//                                                return authority;
-//                                            })
-//                                            .doOnNext(r -> System.out.println(" Created: " + r))
-//                                            .flatMap(authorityRepository::save)
-//                                            .map($ -> {
-//                                                savedUser.setRoleId(savedUser.getId());
-//                                                return savedUser;
-//                                            })
-//                                            .flatMap(userRepository::save)
-//                                            .doOnNext(r -> System.out.println(" Updated: " + r))
-//                                    )
-//                            ))
-//                    .subscribe();
-//        };
-//    }
 }

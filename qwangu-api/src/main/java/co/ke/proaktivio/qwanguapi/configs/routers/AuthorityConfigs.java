@@ -22,7 +22,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Configuration
 public class AuthorityConfigs {
 
-//    @Bean
+    @Bean
 //    @RouterOperations(
 //            {
 //                    @RouterOperation(

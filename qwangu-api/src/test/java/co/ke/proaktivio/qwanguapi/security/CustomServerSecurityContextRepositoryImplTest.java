@@ -58,7 +58,7 @@ class CustomServerSecurityContextRepositoryImplTest {
     }
 
     @Test
-    void load_returnsMonoOfEmpty_whenAuthorizationHeaderDoesNotExist() {
+    void load_returnsJwtException_whenAuthorizationHeaderDoesNotExist() {
         // given
         MockServerHttpRequest.BaseBuilder<?> requestBuilder = MockServerHttpRequest
                 .get("/");
@@ -69,8 +69,9 @@ class CustomServerSecurityContextRepositoryImplTest {
         // then
         StepVerifier
                 .create(sscr.load(exchange))
-                .expectNextCount(0)
-                .verifyComplete();
+                .expectErrorMatches(e -> e instanceof JwtException &&
+                        e.getMessage().equals("Bearer required!"))
+                .verify();
     }
 
     @Test
