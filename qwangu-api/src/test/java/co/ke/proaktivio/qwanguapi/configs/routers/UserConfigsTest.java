@@ -350,7 +350,7 @@ class UserConfigsTest {
         Person person = new Person("John", "Doe", "Doe");
         UserDto dto = new UserDto(person, emailAddress, roleId);
         User user = new User(id, person, emailAddress, roleId, null, false, false,
-                false, true, LocalDateTime.now(), null, null ,null);
+                false, true, LocalDateTime.now(), null, LocalDateTime.now() ,null);
 
         //when
         Mockito.when(userService.update(id, dto)).thenReturn(Mono.just(user));
@@ -585,7 +585,7 @@ class UserConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/users")
-                        .queryParam("id", id)
+                        .queryParam("userId", id)
                         .queryParam("emailAddress", emailAddress)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -640,7 +640,7 @@ class UserConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/users")
-                        .queryParam("id", id)
+                        .queryParam("userId", id)
                         .queryParam("emailAddress", emailAddress)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -687,7 +687,7 @@ class UserConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/users")
-                        .queryParam("id", id)
+                        .queryParam("userId", id)
                         .queryParam("emailAddress", emailAddress)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)

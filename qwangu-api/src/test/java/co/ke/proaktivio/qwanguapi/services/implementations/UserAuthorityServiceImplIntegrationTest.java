@@ -52,7 +52,7 @@ class UserAuthorityServiceImplIntegrationTest {
                                 true, true, "1", LocalDateTime.now(), null, null, null),
                         new UserAuthority(null, "APARTMENTS", true, true, true, true,
                                 true, "1", LocalDateTime.now(), null, null, null))
-                .flatMap(a -> template.save(a, "AUTHORITY"))
+                .flatMap(a -> template.save(a, "USER_AUTHORITY"))
                 .thenMany(authorityService.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
                         OrderType.ASC));

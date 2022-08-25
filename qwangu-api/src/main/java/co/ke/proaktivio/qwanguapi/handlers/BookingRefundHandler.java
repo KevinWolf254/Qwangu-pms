@@ -44,7 +44,7 @@ public class BookingRefundHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("refundId");
         Optional<String> receivableId = request.queryParam("receivableId");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
@@ -67,7 +67,7 @@ public class BookingRefundHandler {
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("refundId");
         return bookingRefundService
                 .deleteById(id)
                 .flatMap(result ->

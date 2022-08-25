@@ -47,7 +47,7 @@ public class ApartmentHandler {
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("apartmentId");
         return request.bodyToMono(ApartmentDto.class)
                 .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
                 .flatMap(dto -> apartmentService.update(id, dto))
@@ -64,7 +64,7 @@ public class ApartmentHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("apartmentId");
         Optional<String> name = request.queryParam("name");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
@@ -89,7 +89,7 @@ public class ApartmentHandler {
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("apartmentId");
         return apartmentService.deleteById(id)
                 .doOnSuccess($ -> log.info(" Deleted apartment"))
                 .doOnError(e -> log.error(" Failed to delete apartment. Error ", e))

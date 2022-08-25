@@ -40,7 +40,7 @@ public class TenantConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "id"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "tenantId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "mobileNumber"),
                                             @Parameter(in = ParameterIn.QUERY, name = "emailAddress"),
                                             @Parameter(in = ParameterIn.QUERY, name = "page"),
@@ -67,7 +67,7 @@ public class TenantConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/tenants/{id}",
+                            path = "/v1/tenants/{tenantId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.PUT, beanClass = TenantHandler.class, beanMethod = "update",
                             operation = @Operation(
@@ -81,11 +81,11 @@ public class TenantConfigs {
                                             @ApiResponse(responseCode = "404", description = "Tenant was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "tenantId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/tenants/{id}",
+                            path = "/v1/tenants/{tenantId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.DELETE, beanClass = TenantHandler.class, beanMethod = "delete",
                             operation = @Operation(
@@ -98,7 +98,7 @@ public class TenantConfigs {
                                             @ApiResponse(responseCode = "404", description = "Tenant was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "tenantId")}
                             )
                     )
             }
@@ -108,8 +108,8 @@ public class TenantConfigs {
                 .path("v1/tenants", builder -> builder
                         .GET(handler::find)
                         .POST(handler::create)
-                        .PUT("/{id}", handler::update)
-                        .DELETE("/{id}", handler::delete)
+                        .PUT("/{tenantId}", handler::update)
+                        .DELETE("/{tenantId}", handler::delete)
                 ).build();
     }
 }

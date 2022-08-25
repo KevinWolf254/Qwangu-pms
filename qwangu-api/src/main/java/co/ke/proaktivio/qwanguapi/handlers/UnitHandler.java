@@ -45,7 +45,7 @@ public class UnitHandler {
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("unitId");
         return request.bodyToMono(UnitDto.class)
                 .map(validateUnitDtoFunc(new UnitDtoValidator()))
                 .flatMap(dto -> unitService.update(id, dto))
@@ -77,7 +77,7 @@ public class UnitHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("unitId");
         Optional<String> status = request.queryParam("status");
         Optional<String> accountNo = request.queryParam("accountNo");
         Optional<String> type = request.queryParam("type");
@@ -149,7 +149,7 @@ public class UnitHandler {
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("unitId");
         return unitService.deleteById(id)
                 .flatMap(result ->
                         ServerResponse

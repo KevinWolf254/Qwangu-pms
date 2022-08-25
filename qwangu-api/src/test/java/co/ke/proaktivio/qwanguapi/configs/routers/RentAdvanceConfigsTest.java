@@ -58,7 +58,7 @@ class RentAdvanceConfigsTest {
     private final LocalDateTime now = LocalDateTime.now();
     private final String advanceId = "1";
     private final RentAdvance advance = new RentAdvance(advanceId, RentAdvance.Status.RELEASED, "Details!", "1",
-            "1", today, null, null, null, null);
+            "1", today, LocalDateTime.now(), null, LocalDateTime.now(), null);
 
     @Test
     @DisplayName("create returns unauthorised when user is not authenticated status 401")
@@ -79,7 +79,8 @@ class RentAdvanceConfigsTest {
     void create_returnsRentAdvance_status201() {
         // given
         var advance = new RentAdvance("1", RentAdvance.Status.HOLDING, null,
-                "1", "1", null, null, null, null, null);
+                "1", "1", null, LocalDateTime.now(), null, null,
+                null);
         var dto = new RentAdvanceDto(RentAdvance.Status.HOLDING, "1", "1");
 
         //when
@@ -120,7 +121,7 @@ class RentAdvanceConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/advances/{id}",id)
+                .uri("/v1/advances/{advanceId}",id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -137,7 +138,7 @@ class RentAdvanceConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/advances/{id}",advanceId)
+                .uri("/v1/advances/{advanceId}",advanceId)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), UpdateRentAdvanceDto.class)
                 .exchange()
@@ -167,7 +168,7 @@ class RentAdvanceConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/apartments")
-                        .queryParam("id", 1)
+                        .queryParam("advanceId", 1)
                         .queryParam("status", RentAdvance.Status.HOLDING.getState())
                         .queryParam("occupationId", 1)
                         .queryParam("paymentId", 1)
@@ -209,7 +210,7 @@ class RentAdvanceConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/advances")
-                        .queryParam("id", advanceId)
+                        .queryParam("advanceId", advanceId)
                         .queryParam("status", status)
                         .queryParam("occupationId", occupationId)
                         .queryParam("paymentId", paymentId)
@@ -248,7 +249,7 @@ class RentAdvanceConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/advances/{id}", id)
+                .uri("/v1/advances/{advanceId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -265,7 +266,7 @@ class RentAdvanceConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/advances/{id}", id)
+                .uri("/v1/advances/{advanceId}", id)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")

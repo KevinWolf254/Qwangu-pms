@@ -40,7 +40,7 @@ public class BookingRefundConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "id"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "refundId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "receivableId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "page"),
                                             @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
@@ -66,7 +66,7 @@ public class BookingRefundConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/refunds/{id}",
+                            path = "/v1/refunds/{refundId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.DELETE, beanClass = BookingRefundHandler.class, beanMethod = "delete",
                             operation = @Operation(
@@ -79,7 +79,7 @@ public class BookingRefundConfigs {
                                             @ApiResponse(responseCode = "404", description = "Refund were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "refundId")}
                             )
                     ),
             }
@@ -89,7 +89,7 @@ public class BookingRefundConfigs {
                 .path("v1/refunds", builder -> builder
                         .GET(handler::find)
                         .POST(handler::create)
-                        .DELETE("/{id}", handler::delete)
+                        .DELETE("/{refundId}", handler::delete)
                 ).build();
     }
 }

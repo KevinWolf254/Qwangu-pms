@@ -16,11 +16,11 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class AuthorityHandler {
+public class UserAuthorityHandler {
     private final AuthorityService authorityService;
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("authorityId");
         Optional<String> name = request.queryParam("name");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");

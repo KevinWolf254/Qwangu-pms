@@ -9,9 +9,6 @@ import co.ke.proaktivio.qwanguapi.validators.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -47,7 +44,7 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("userId");
         return request
                 .bodyToMono(UserDto.class)
                 .map(validateUserDtoFunc(new UserDtoValidator()))
@@ -66,7 +63,7 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("userId");
         Optional<String> emailAddress = request.queryParam("emailAddress");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
@@ -93,7 +90,7 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("userId");
         return userService
                 .deleteById(id)
                 .doOnSuccess($ -> log.info(" Deleted apartment"))
@@ -109,7 +106,7 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> activate(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("userId");
         Optional<String> tokenOpt = request.queryParam("token");
         return Mono.just(tokenOpt)
                 .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
@@ -185,7 +182,7 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> changePassword(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("userId");
         return request
                 .bodyToMono(PasswordDto.class)
                 .map(validatePasswordDtoFunc(new PasswordDtoValidator()))
@@ -219,9 +216,4 @@ public class UserHandler {
                                         HttpStatus.OK.value(),true, "Signed in successfully.",
                                         tokenDto)), Response.class));
     }
-
-//    public Mono<Authentication> getCurrentUser() {
-//        return ReactiveSecurityContextHolder.getContext()
-//                .map(SecurityContext::getAuthentication);
-//    }
 }

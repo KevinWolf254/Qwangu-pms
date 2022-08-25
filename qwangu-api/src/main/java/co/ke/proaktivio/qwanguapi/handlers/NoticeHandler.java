@@ -42,7 +42,7 @@ public class NoticeHandler {
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("noticeId");
         return request.bodyToMono(UpdateNoticeDto.class)
                 .map(validateUpdateNoticeDtoFunc(new UpdateNoticeDtoValidator()))
                 .flatMap(dto -> noticeService.update(id, dto))
@@ -57,7 +57,7 @@ public class NoticeHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("noticeId");
         Optional<String> isActive = request.queryParam("isActive");
         Optional<String> occupationId = request.queryParam("occupationId");
         Optional<String> page = request.queryParam("page");
@@ -88,7 +88,7 @@ public class NoticeHandler {
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("noticeId");
         return noticeService.deleteById(id)
                 .flatMap(result ->
                         ServerResponse

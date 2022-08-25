@@ -4,7 +4,7 @@ import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.handlers.AuthorityHandler;
+import co.ke.proaktivio.qwanguapi.handlers.UserAuthorityHandler;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {AuthorityConfigs.class, AuthorityHandler.class, SecurityConfig.class,
+@ContextConfiguration(classes = {UserAuthorityConfigs.class, UserAuthorityHandler.class, SecurityConfig.class,
         GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 class UserAuthorityConfigsTest {
     @Autowired
@@ -112,7 +112,7 @@ class UserAuthorityConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/authorities")
-                        .queryParam("id", id)
+                        .queryParam("authorityId", id)
                         .queryParam("name", name)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -136,7 +136,7 @@ class UserAuthorityConfigsTest {
                 .jsonPath("$.data.[0].update").isEqualTo(true)
                 .jsonPath("$.data.[0].delete").isEqualTo(true)
                 .jsonPath("$.data.[0].authorize").isEqualTo(true)
-                .jsonPath("$.data.[0].created").isNotEmpty()
+                .jsonPath("$.data.[0].createdOn").isNotEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -166,7 +166,7 @@ class UserAuthorityConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/authorities")
-                        .queryParam("id", id)
+                        .queryParam("authorityId", id)
                         .queryParam("name", name)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -213,7 +213,7 @@ class UserAuthorityConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/authorities")
-                        .queryParam("id", id)
+                        .queryParam("authorityId", id)
                         .queryParam("name", name)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)

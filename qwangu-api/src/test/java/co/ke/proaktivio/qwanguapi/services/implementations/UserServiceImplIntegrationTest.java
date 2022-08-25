@@ -163,13 +163,12 @@ class UserServiceImplIntegrationTest {
                 .then(template
                         .dropCollection(UserAuthority.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
-                .then(template
-                        .save(userAuthority, "AUTHORITY")
-                        .doOnSuccess(System.out::println))
-                .flatMap(authResult -> template.save(role, "ROLE"))
-                .doOnSuccess(System.out::println)
+                .then(authorityRepository.save(userAuthority))
+                        .doOnSuccess(a -> System.out.println("---- Created " + a))
+                .flatMap(authResult -> roleRepository.save(role))
+                .doOnSuccess(a -> System.out.println("---- Created " + a))
                 .flatMap(roleResult -> underTest.create(dto))
-                .doOnSuccess(System.out::println);
+                .doOnSuccess(a -> System.out.println("---- Created " + a));
 
         // then
         StepVerifier
@@ -243,7 +242,7 @@ class UserServiceImplIntegrationTest {
         UserDto dto = new UserDto(person, emailAddress, "1");
         User userEntity = new User(id, person, emailAddress, "1", null, false,
                 false, false, true, LocalDateTime.now(), null,
-                null ,null);
+                null, null);
 
         UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
                 true, "1", LocalDateTime.now(), null, null, null);
@@ -253,21 +252,18 @@ class UserServiceImplIntegrationTest {
         Mono<User> user = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
-                .then(template
-                        .dropCollection(UserRole.class)
-                        .doOnSuccess(t -> System.out.println("---- Dropped table Role!")))
-                .then(template
-                        .dropCollection(UserAuthority.class)
-                        .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
-                .then(template
-                        .save(userAuthority, "AUTHORITY")
-                        .doOnSuccess(System.out::println))
-                .flatMap(authResult -> template.save(role, "ROLE"))
+                .then(template.dropCollection(UserRole.class))
+                .doOnSuccess(t -> System.out.println("---- Dropped table Role!"))
+                .then(template.dropCollection(UserAuthority.class))
+                .doOnSuccess(t -> System.out.println("---- Dropped table Authority!"))
+                .then(authorityRepository.save(userAuthority))
                 .doOnSuccess(System.out::println)
-                .flatMap(roleResult -> template.save(userEntity, "USER"))
-                .doOnSuccess(System.out::println)
+                .flatMap(authResult -> roleRepository.save(role))
+                .doOnSuccess(a -> System.out.println("---- Created " + a))
+                .flatMap(roleResult -> userRepository.save(userEntity))
+                .doOnSuccess(a -> System.out.println("---- Created " + a))
                 .flatMap(userResult -> underTest.update(id, dto))
-                .doOnSuccess(System.out::println);
+                .doOnSuccess(a -> System.out.println("---- Created " + a));
 
         // then
         StepVerifier
@@ -285,7 +281,7 @@ class UserServiceImplIntegrationTest {
         Person person = new Person("John", "Doe", "Doe");
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, roleId);
-        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
+        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
         UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
         UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
@@ -295,18 +291,16 @@ class UserServiceImplIntegrationTest {
         Mono<User> user = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
+                .then(template.dropCollection(UserRole.class))
+                        .doOnSuccess(t -> System.out.println("---- Dropped table Role!"))
                 .then(template
-                        .dropCollection(UserRole.class)
-                        .doOnSuccess(t -> System.out.println("---- Dropped table Role!")))
-                .then(template
-                        .dropCollection(UserAuthority.class)
-                        .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
-                .then(template
-                        .save(userAuthority, "AUTHORITY")
+                        .dropCollection(UserAuthority.class))
+                        .doOnSuccess(t -> System.out.println("---- Dropped table Authority!"))
+                .then(authorityRepository.save(userAuthority)
                         .doOnSuccess(System.out::println))
-                .flatMap(authResult -> template.save(role, "ROLE"))
+                .flatMap(authResult -> roleRepository.save(role))
                 .doOnSuccess(System.out::println)
-                .flatMap(roleResult -> template.save(userEntity, "USER"))
+                .flatMap(roleResult -> userRepository.save(userEntity))
                 .doOnSuccess(System.out::println)
                 .flatMap(userResult -> underTest.update(id, dto))
                 .doOnError(System.out::println);
@@ -329,7 +323,7 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         String emailAddress1 = "goblin@gmail.com";
         UserDto dto = new UserDto(person, emailAddress1, roleId);
-        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
+        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
 
         UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
         UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
@@ -339,18 +333,15 @@ class UserServiceImplIntegrationTest {
         Mono<User> user = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
-                .then(template
-                        .dropCollection(UserRole.class)
-                        .doOnSuccess(t -> System.out.println("---- Dropped table Role!")))
-                .then(template
-                        .dropCollection(UserAuthority.class)
-                        .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
-                .then(template
-                        .save(userAuthority, "AUTHORITY")
-                        .doOnSuccess(System.out::println))
-                .flatMap(authResult -> template.save(role, "ROLE"))
+                .then(template.dropCollection(UserRole.class))
+                .doOnSuccess(t -> System.out.println("---- Dropped table Role!"))
+                .then(template.dropCollection(UserAuthority.class))
+                .doOnSuccess(t -> System.out.println("---- Dropped table Authority!"))
+                .then(authorityRepository.save(userAuthority))
                 .doOnSuccess(System.out::println)
-                .flatMap(roleResult -> template.save(userEntity, "USER"))
+                .flatMap(authResult -> roleRepository.save(role))
+                .doOnSuccess(System.out::println)
+                .flatMap(roleResult -> userRepository.save(userEntity))
                 .doOnSuccess(System.out::println)
                 .flatMap(userResult -> underTest.update(id, dto))
                 .doOnError(System.out::println);
@@ -369,11 +360,11 @@ class UserServiceImplIntegrationTest {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
-        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
+        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
 
         String id2 = "2";
         Person person2 = new Person("Jane", "Doe", "Doe");
-        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
+        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
 
         //when
         Flux<User> saved = template
@@ -419,11 +410,11 @@ class UserServiceImplIntegrationTest {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
-        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
+        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
 
         String id2 = "2";
         Person person2 = new Person("Jane", "Doe", "Doe");
-        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
+        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
 
         // when
         Flux<Boolean> deleted = template
@@ -469,7 +460,7 @@ class UserServiceImplIntegrationTest {
         String token = UUID.randomUUID().toString();
         Person person = new Person("John", "Doe", "Doe");
         User user = new User(null, person, "person@gmail.com", "1", null,
-                false, false, false, false, LocalDateTime.now(), null, null ,null);
+                false, false, false, false, LocalDateTime.now(), null, null, null);
         // when
         Mono<User> activateUser = deleteAll()
                 .then(oneTimeTokenRepository.deleteAll()
@@ -506,7 +497,7 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         User user = new User(null, person, emailAddress, null, password,
                 false, false, false, true, now,
-                null, null ,null);
+                null, null, null);
         var role = new UserRole(null, "ADMIN", now, null, null, null);
         var authority = new UserAuthority(null, "USER", true, true, true, true,
                 true, null, now, null, null, null);
@@ -547,7 +538,7 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         User user = new User(null, person, emailAddress, "1", password,
                 false, false, false, true, now,
-                null, null ,null);
+                null, null, null);
         // when
         Mono<User> changePassword = deleteAll()
                 .then(userRepository.save(user))
@@ -576,7 +567,7 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         User user = new User(null, person, emailAddress, null, password,
                 false, false, false, true, now,
-                null, null ,null);
+                null, null, null);
         var token = UUID.randomUUID().toString();
 
         // when
@@ -603,7 +594,7 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         User user = new User(id, person, emailAddress, null, password,
                 false, false, false, true, now,
-                null, null ,null);
+                null, null, null);
         // when
         Mockito.when(emailService.send(Mockito.any(Email.class))).thenReturn(Mono.just(true));
         Flux<OneTimeToken> resetPassword = deleteAll()
@@ -611,7 +602,7 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(u -> System.out.println("---- Created " + u))
                 .then(underTest.sendResetPassword(new EmailDto(emailAddress)))
                 .thenMany(oneTimeTokenRepository.findAll())
-                .doOnNext(ott -> System.out.println("---- Found " +ott));
+                .doOnNext(ott -> System.out.println("---- Found " + ott));
 
         // then
         StepVerifier

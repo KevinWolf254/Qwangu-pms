@@ -16,12 +16,12 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class RoleHandler {
+public class UserRoleHandler {
     private final RoleService roleService;
 
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("userRoleId");
         Optional<String> name = request.queryParam("name");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");

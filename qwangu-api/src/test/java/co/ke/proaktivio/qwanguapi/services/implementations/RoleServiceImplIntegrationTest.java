@@ -49,7 +49,7 @@ class RoleServiceImplIntegrationTest {
         //when
         Flux<UserRole> saved = Flux.just(new UserRole(null, "ADMIN", LocalDateTime.now(), null, null, null),
                         new UserRole(null, "SUPERVISOR", LocalDateTime.now(), null, null, null))
-                .flatMap(a -> template.save(a, "ROLE"))
+                .flatMap(a -> template.save(a, "USER_ROLE"))
                 .thenMany(roleService.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
                         OrderType.ASC));

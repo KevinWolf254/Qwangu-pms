@@ -42,7 +42,7 @@ public class ApartmentConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "id"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "apartmentId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "name"),
                                             @Parameter(in = ParameterIn.QUERY, name = "page"),
                                             @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
@@ -68,7 +68,7 @@ public class ApartmentConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/apartments/{id}",
+                            path = "/v1/apartments/{apartmentId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.PUT, beanClass = ApartmentHandler.class, beanMethod = "update",
                             operation = @Operation(
@@ -82,11 +82,11 @@ public class ApartmentConfigs {
                                             @ApiResponse(responseCode = "404", description = "Apartment was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "apartmentId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/apartments/{id}",
+                            path = "/v1/apartments/{apartmentId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.DELETE, beanClass = ApartmentHandler.class, beanMethod = "delete",
                             operation = @Operation(
@@ -99,7 +99,7 @@ public class ApartmentConfigs {
                                             @ApiResponse(responseCode = "404", description = "Apartment was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "apartmentId")}
                             )
                     )
             }
@@ -109,8 +109,8 @@ public class ApartmentConfigs {
                 .path("v1/apartments", builder -> builder
                         .GET(handler::find)
                         .POST(handler::create)
-                        .PUT("/{id}", handler::update)
-                        .DELETE("/{id}", handler::delete)
+                        .PUT("/{apartmentId}", handler::update)
+                        .DELETE("/{apartmentId}", handler::delete)
                 ).build();
     }
 }

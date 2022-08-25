@@ -108,7 +108,7 @@ class BookingRefundConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/refunds")
-                        .queryParam("id", 1)
+                        .queryParam("refundId", 1)
                         .queryParam("receivableId", "1")
                         .queryParam("page", 1)
                         .queryParam("pageSize", 10)
@@ -145,7 +145,7 @@ class BookingRefundConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/refunds")
-                        .queryParam("id", id)
+                        .queryParam("refundId", id)
                         .queryParam("receivableId", receivableId)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -181,7 +181,7 @@ class BookingRefundConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/refunds/{id}", id)
+                .uri("/v1/refunds/{refundId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -198,7 +198,7 @@ class BookingRefundConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/refunds/{id}", id)
+                .uri("/v1/refunds/{refundId}", id)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")

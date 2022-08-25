@@ -101,7 +101,7 @@ class OccupationConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.status").isEqualTo(Occupation.Status.CURRENT.getState())
-                .jsonPath("$.data.ended").isEmpty()
+                .jsonPath("$.data.endedOn").isEmpty()
                 .jsonPath("$.data.tenantId").isEqualTo(tenantId)
                 .jsonPath("$.data.unitId").isEqualTo(unitId)
                 .jsonPath("$.data.createdOn").isNotEmpty()
@@ -135,7 +135,7 @@ class OccupationConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/occupations/{id}", id)
+                .uri("/v1/occupations/{occupationId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -157,7 +157,7 @@ class OccupationConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/occupations/{id}", id)
+                .uri("/v1/occupations/{occupationId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), OccupationDto.class)
                 .exchange()
@@ -170,7 +170,7 @@ class OccupationConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.status").isEqualTo(Occupation.Status.CURRENT.getState())
-                .jsonPath("$.data.ended").isEmpty()
+                .jsonPath("$.data.endedOn").isEmpty()
                 .jsonPath("$.data.tenantId").isEqualTo("1")
                 .jsonPath("$.data.unitId").isEqualTo("1")
                 .jsonPath("$.data.createdOn").isNotEmpty()
@@ -182,7 +182,7 @@ class OccupationConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/occupations/{id}", id)
+                .uri("/v1/occupations/{occupationId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dtoNotValid), OccupationDto.class)
                 .exchange()
@@ -207,7 +207,7 @@ class OccupationConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/occupations")
-                        .queryParam("id", id)
+                        .queryParam("occupationId", id)
                         .queryParam("status", "CURRENT")
                         .queryParam("unitId", unitId)
                         .queryParam("tenantId", tenantId)
@@ -244,7 +244,7 @@ class OccupationConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/occupations")
-                        .queryParam("id", id)
+                        .queryParam("occupationId", id)
                         .queryParam("status", "CURRENT")
                         .queryParam("unitId", unitId)
                         .queryParam("tenantId", tenantId)
@@ -256,7 +256,7 @@ class OccupationConfigsTest {
         Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
                 uriBuilder
                         .path("/v1/occupations")
-                        .queryParam("id", id)
+                        .queryParam("occupationId", id)
                         .queryParam("status", "NOT_TYPE")
                         .queryParam("unitId", unitId)
                         .queryParam("tenantId", tenantId)
@@ -290,7 +290,7 @@ class OccupationConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
                 .jsonPath("$.data.[0].status").isEqualTo(Occupation.Status.CURRENT.getState())
-                .jsonPath("$.data.[0].ended").isEmpty()
+                .jsonPath("$.data.[0].endedOn").isEmpty()
                 .jsonPath("$.data.[0].tenantId").isEqualTo("1")
                 .jsonPath("$.data.[0].unitId").isEqualTo("1")
                 .jsonPath("$.data.[0].createdOn").isNotEmpty()
@@ -322,7 +322,7 @@ class OccupationConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/occupations/{id}", id)
+                .uri("/v1/occupations/{occupationId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -338,7 +338,7 @@ class OccupationConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/occupations/{id}", id)
+                .uri("/v1/occupations/{occupationId}", id)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")

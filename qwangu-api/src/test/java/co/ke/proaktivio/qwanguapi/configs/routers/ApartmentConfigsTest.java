@@ -253,7 +253,7 @@ class ApartmentConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/apartments/{id}",id)
+                .uri("/v1/apartments/{apartmentId}",id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()
@@ -284,7 +284,7 @@ class ApartmentConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/apartments/{id}",id)
+                .uri("/v1/apartments/{apartmentId}",id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()
@@ -310,7 +310,7 @@ class ApartmentConfigsTest {
 
         // then
         client.put()
-                .uri("/v1/apartments/{id}", "1")
+                .uri("/v1/apartments/{apartmentId}", "1")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()
@@ -338,7 +338,7 @@ class ApartmentConfigsTest {
 
         //then
         client.put()
-                .uri("/v1/apartments/%s".formatted(id))
+                .uri("/v1/apartments/{apartmentId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()
@@ -366,7 +366,7 @@ class ApartmentConfigsTest {
 
         //then
         client.put()
-                .uri("/v1/apartments/%s".formatted(id))
+                .uri("/v1/apartments/{apartmentId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), ApartmentDto.class)
                 .exchange()
@@ -433,7 +433,7 @@ class ApartmentConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/apartments")
-                        .queryParam("id", id)
+                        .queryParam("apartmentId", id)
                         .queryParam("name", name)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -482,7 +482,7 @@ class ApartmentConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/apartments")
-                        .queryParam("id", id)
+                        .queryParam("apartmentId", id)
                         .queryParam("name", name)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -528,7 +528,7 @@ class ApartmentConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/apartments")
-                        .queryParam("id", id)
+                        .queryParam("apartmentId", id)
                         .queryParam("name", name)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -578,7 +578,7 @@ class ApartmentConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/apartments/{id}", id)
+                .uri("/v1/apartments/{apartmentId}", id)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")
@@ -603,7 +603,7 @@ class ApartmentConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/apartments/{id}", id)
+                .uri("/v1/apartments/{apartmentId}", id)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
@@ -629,7 +629,7 @@ class ApartmentConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/apartments/{id}", id)
+                .uri("/v1/apartments/{apartmentId}", id)
                 .exchange()
                 .expectStatus().isEqualTo(500)
                 .expectBody()

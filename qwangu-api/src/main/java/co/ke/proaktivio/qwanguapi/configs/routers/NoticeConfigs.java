@@ -41,7 +41,7 @@ public class NoticeConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "id"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "noticeId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "isActive"),
                                             @Parameter(in = ParameterIn.QUERY, name = "occupationId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
@@ -67,7 +67,7 @@ public class NoticeConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/notices/{id}",
+                            path = "/v1/notices/{noticeId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.PUT, beanClass = NoticeHandler.class, beanMethod = "update",
                             operation = @Operation(
@@ -82,11 +82,11 @@ public class NoticeConfigs {
                                             @ApiResponse(responseCode = "404", description = "Notice were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "noticeId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/notices/{id}",
+                            path = "/v1/notices/{noticeId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.DELETE, beanClass = NoticeHandler.class, beanMethod = "delete",
                             operation = @Operation(
@@ -99,7 +99,7 @@ public class NoticeConfigs {
                                             @ApiResponse(responseCode = "404", description = "Notice were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "noticeId")}
                             )
                     )
             }
@@ -109,8 +109,8 @@ public class NoticeConfigs {
                 .path("v1/notices", builder -> builder
                         .GET(handler::find)
                         .POST(handler::create)
-                        .PUT("/{id}", handler::update)
-                        .DELETE("/{id}", handler::delete)
+                        .PUT("/{noticeId}", handler::update)
+                        .DELETE("/{noticeId}", handler::delete)
                 ).build();
     }
 }

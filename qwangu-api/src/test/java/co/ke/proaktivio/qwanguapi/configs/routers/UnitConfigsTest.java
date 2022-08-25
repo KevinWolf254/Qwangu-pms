@@ -380,7 +380,7 @@ public class UnitConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/units")
-                        .queryParam("id", id)
+                        .queryParam("unitId", id)
                         .queryParam("status", "VACANT")
                         .queryParam("accountNo", accountNo)
                         .queryParam("type", "APARTMENT_UNIT")

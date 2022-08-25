@@ -39,7 +39,7 @@ public class UserConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "id"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "userId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "emailAddress"),
                                             @Parameter(in = ParameterIn.QUERY, name = "page"),
                                             @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
@@ -65,7 +65,7 @@ public class UserConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/users/{id}",
+                            path = "/v1/users/{userId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.PUT, beanClass = UserHandler.class, beanMethod = "update",
                             operation = @Operation(
@@ -77,11 +77,11 @@ public class UserConfigs {
                                             @ApiResponse(responseCode = "400", description = "User already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/users/{id}",
+                            path = "/v1/users/{userId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.DELETE, beanClass = UserHandler.class, beanMethod = "delete",
                             operation = @Operation(
@@ -94,11 +94,11 @@ public class UserConfigs {
                                             @ApiResponse(responseCode = "404", description = "User was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/users/{id}/activate",
+                            path = "/v1/users/{userId}/activate",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.GET, beanClass = UserHandler.class, beanMethod = "activate",
                             operation = @Operation(
@@ -110,7 +110,7 @@ public class UserConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.PATH, name = "id"),
+                                            @Parameter(in = ParameterIn.PATH, name = "userId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "token")
                                     }
                             )
@@ -150,7 +150,7 @@ public class UserConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/users/{id}/changePassword",
+                            path = "/v1/users/{userId}/changePassword",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "changePassword",
                             operation = @Operation(
@@ -162,7 +162,7 @@ public class UserConfigs {
                                             @ApiResponse(responseCode = "400", description = "User id not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")}
                             )
                     ),
                     @RouterOperation(
@@ -187,13 +187,13 @@ public class UserConfigs {
         return route()
                 .path("v1", builder -> builder
                         .path("users", b -> b
-                                .GET("/{id}/activate", handler::activate)
+                                .GET("/{userId}/activate", handler::activate)
                                 .GET(handler::find)
                                 .POST("/sendResetPassword", handler::sendResetPassword)
-                                .POST("/{id}/changePassword", handler::changePassword)
+                                .POST("/{userId}/changePassword", handler::changePassword)
                                 .POST(handler::create)
-                                .PUT("/{id}", handler::update)
-                                .DELETE("/{id}", handler::delete)
+                                .PUT("/{userId}", handler::update)
+                                .DELETE("/{userId}", handler::delete)
                         )
                         .path("signIn", b -> b
                                 .POST(handler::signIn))

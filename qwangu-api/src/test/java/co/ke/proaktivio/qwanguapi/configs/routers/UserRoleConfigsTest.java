@@ -5,7 +5,7 @@ import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
-import co.ke.proaktivio.qwanguapi.handlers.RoleHandler;
+import co.ke.proaktivio.qwanguapi.handlers.UserRoleHandler;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.RoleService;
@@ -40,9 +40,9 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {RoleConfigs.class, RoleHandler.class, SecurityConfig.class,
+@ContextConfiguration(classes = {UserRoleConfigs.class, UserRoleHandler.class, SecurityConfig.class,
         GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
-class RoleConfigsTest {
+class UserRoleConfigsTest {
     @Autowired
     private ApplicationContext context;
     @Autowired
@@ -69,7 +69,7 @@ class RoleConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/roles")
-                        .queryParam("id", 1)
+                        .queryParam("userRoleId", 1)
                         .queryParam("name", "name")
                         .queryParam("page", 1)
                         .queryParam("pageSize", 10)
@@ -85,7 +85,7 @@ class RoleConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("Find returns a Flux of roles")
+    @DisplayName("find returns a Flux of roles")
     void find_returnsFluxOfRoles_status200() {
         // given
         String page = "1";
@@ -111,7 +111,7 @@ class RoleConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/roles")
-                        .queryParam("id", id)
+                        .queryParam("userRoleId", id)
                         .queryParam("name", name)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -130,7 +130,7 @@ class RoleConfigsTest {
                 .jsonPath("$.data").isArray()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
                 .jsonPath("$.data.[0].name").isEqualTo(name)
-                .jsonPath("$.data.[0].created").isNotEmpty()
+                .jsonPath("$.data.[0].createdOn").isNotEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -160,7 +160,7 @@ class RoleConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/roles")
-                        .queryParam("id", id)
+                        .queryParam("userRoleId", id)
                         .queryParam("name", name)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
@@ -207,7 +207,7 @@ class RoleConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/roles")
-                        .queryParam("id", id)
+                        .queryParam("userRoleId", id)
                         .queryParam("name", name)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)

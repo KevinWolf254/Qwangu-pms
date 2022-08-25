@@ -134,7 +134,7 @@ class NoticeConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/notices/{id}", id)
+                .uri("/v1/notices/{noticeId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -155,7 +155,7 @@ class NoticeConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/notices/{id}", id)
+                .uri("/v1/notices/{noticeId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), UpdateNoticeDto.class)
                 .exchange()
@@ -179,7 +179,7 @@ class NoticeConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/notices/{id}", id)
+                .uri("/v1/notices/{noticeId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dtoNotValid), CreateNoticeDto.class)
                 .exchange()
@@ -203,7 +203,7 @@ class NoticeConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/notices")
-                        .queryParam("id", id)
+                        .queryParam("noticeId", id)
                         .queryParam("isActive", true)
                         .queryParam("occupationId", occupationId)
                         .queryParam("page", 1)
@@ -238,7 +238,7 @@ class NoticeConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/notices")
-                        .queryParam("id", id)
+                        .queryParam("noticeId", id)
                         .queryParam("isActive", "true")
                         .queryParam("occupationId", occupationId)
                         .queryParam("page", 1)
@@ -305,7 +305,7 @@ class NoticeConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/notices/{id}", id)
+                .uri("/v1/notices/{noticeId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -321,7 +321,7 @@ class NoticeConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/notices/{id}", id)
+                .uri("/v1/notices/{noticeId}", id)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")

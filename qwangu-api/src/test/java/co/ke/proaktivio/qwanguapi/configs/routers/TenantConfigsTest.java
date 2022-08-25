@@ -133,7 +133,7 @@ class TenantConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/tenants/{id}", id)
+                .uri("/v1/tenants/{tenantId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -155,7 +155,7 @@ class TenantConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/tenants/{id}", id)
+                .uri("/v1/tenants/{tenantId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), TenantDto.class)
                 .exchange()
@@ -179,7 +179,7 @@ class TenantConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/tenants/{id}", id)
+                .uri("/v1/tenants/{tenantId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dtoNotValid), TenantDto.class)
                 .exchange()
@@ -205,7 +205,7 @@ class TenantConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/tenants")
-                        .queryParam("id", id)
+                        .queryParam("tenantId", id)
                         .queryParam("mobileNumber", mobileNumber)
                         .queryParam("emailAddress", emailAddress)
                         .queryParam("page", 1)
@@ -240,7 +240,7 @@ class TenantConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/tenants")
-                        .queryParam("id", id)
+                        .queryParam("tenantId", id)
                         .queryParam("mobileNumber", mobileNumber)
                         .queryParam("emailAddress", emailAddress)
                         .queryParam("page", page)
@@ -289,7 +289,7 @@ class TenantConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/tenants/{id}", id)
+                .uri("/v1/tenants/{tenantId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -305,7 +305,7 @@ class TenantConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/tenants/{id}", id)
+                .uri("/v1/tenants/{tenantId}", id)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")

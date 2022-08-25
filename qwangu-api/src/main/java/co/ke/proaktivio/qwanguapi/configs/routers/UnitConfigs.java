@@ -41,7 +41,7 @@ public class UnitConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "id"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "unitId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "status"),
                                             @Parameter(in = ParameterIn.QUERY, name = "accountNo"),
                                             @Parameter(in = ParameterIn.QUERY, name = "identifier"),
@@ -88,7 +88,7 @@ public class UnitConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/units/{id}",
+                            path = "/v1/units/{unitId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.PUT, beanClass = UnitHandler.class, beanMethod = "update",
                             operation = @Operation(
@@ -102,11 +102,11 @@ public class UnitConfigs {
                                             @ApiResponse(responseCode = "404", description = "Unit was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "unitId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/units/{id}",
+                            path = "/v1/units/{unitId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.DELETE, beanClass = UnitHandler.class, beanMethod = "delete",
                             operation = @Operation(
@@ -119,7 +119,7 @@ public class UnitConfigs {
                                             @ApiResponse(responseCode = "404", description = "Unit was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "unitId")}
                             )
                     )
             }
@@ -130,8 +130,8 @@ public class UnitConfigs {
                         .GET(handler::find)
                         .GET("/occupations", handler::findByOccupationIds)
                         .POST(handler::create)
-                        .PUT("/{id}", handler::update)
-                        .DELETE("/{id}", handler::delete)
+                        .PUT("/{unitId}", handler::update)
+                        .DELETE("/{unitId}", handler::delete)
                 ).build();
     }
 }

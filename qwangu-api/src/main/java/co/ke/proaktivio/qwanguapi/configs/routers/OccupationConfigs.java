@@ -40,7 +40,7 @@ public class OccupationConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "id"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "occupationId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "status"),
                                             @Parameter(in = ParameterIn.QUERY, name = "unitId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "tenantId"),
@@ -68,7 +68,7 @@ public class OccupationConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/occupations/{id}",
+                            path = "/v1/occupations/{occupationId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.PUT, beanClass = OccupationHandler.class, beanMethod = "update",
                             operation = @Operation(
@@ -82,11 +82,11 @@ public class OccupationConfigs {
                                             @ApiResponse(responseCode = "404", description = "Occupation was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "occupationId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/occupations/{id}",
+                            path = "/v1/occupations/{occupationId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.DELETE, beanClass = OccupationHandler.class, beanMethod = "delete",
                             operation = @Operation(
@@ -99,7 +99,7 @@ public class OccupationConfigs {
                                             @ApiResponse(responseCode = "404", description = "Occupation was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "occupationId")}
                             )
                     )
             }
@@ -109,8 +109,8 @@ public class OccupationConfigs {
                 .path("v1/occupations", builder -> builder
                         .GET(handler::find)
                         .POST(handler::create)
-                        .PUT("/{id}", handler::update)
-                        .DELETE("/{id}", handler::delete)
+                        .PUT("/{occupationId}", handler::update)
+                        .DELETE("/{occupationId}", handler::delete)
                 ).build();
     }
 }

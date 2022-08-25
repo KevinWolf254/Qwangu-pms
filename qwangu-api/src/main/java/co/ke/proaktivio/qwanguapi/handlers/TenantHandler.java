@@ -42,7 +42,7 @@ public class TenantHandler {
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("tenantId");
         return request
                 .bodyToMono(TenantDto.class)
                 .map(validateTenantDtoFunc(new TenantDtoValidator()))
@@ -58,7 +58,7 @@ public class TenantHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("tenantId");
         Optional<String> mobileNumber = request.queryParam("mobileNumber");
         Optional<String> emailAddress = request.queryParam("emailAddress");
         Optional<String> page = request.queryParam("page");
@@ -87,7 +87,7 @@ public class TenantHandler {
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("tenantId");
         return tenantService.deleteById(id)
                 .flatMap(result ->
                         ServerResponse

@@ -43,7 +43,7 @@ public class RentAdvanceConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "id"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "advanceId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "status"),
                                             @Parameter(in = ParameterIn.QUERY, name = "occupationId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "paymentId"),
@@ -71,7 +71,7 @@ public class RentAdvanceConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/advances/{id}",
+                            path = "/v1/advances/{advanceId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.PUT, beanClass = RentAdvanceHandler.class, beanMethod = "update",
                             operation = @Operation(
@@ -85,11 +85,11 @@ public class RentAdvanceConfigs {
                                             @ApiResponse(responseCode = "404", description = "Advance was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "advanceId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/advances/{id}",
+                            path = "/v1/advances/{advanceId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.DELETE, beanClass = RentAdvanceHandler.class, beanMethod = "delete",
                             operation = @Operation(
@@ -102,7 +102,7 @@ public class RentAdvanceConfigs {
                                             @ApiResponse(responseCode = "404", description = "Advance was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "id")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "advanceId")}
                             )
                     )
             }
@@ -112,8 +112,8 @@ public class RentAdvanceConfigs {
                 .path("v1/advances", builder -> builder
                         .GET(handler::find)
                         .POST(handler::create)
-                        .PUT("/{id}", handler::update)
-                        .DELETE("/{id}", handler::delete)
+                        .PUT("/{advanceId}", handler::update)
+                        .DELETE("/{advanceId}", handler::delete)
                 ).build();
     }
 }

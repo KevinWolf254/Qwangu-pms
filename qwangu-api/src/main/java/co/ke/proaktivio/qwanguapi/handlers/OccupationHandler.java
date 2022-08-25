@@ -45,7 +45,7 @@ public class OccupationHandler {
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("occupationId");
         return request
                 .bodyToMono(OccupationDto.class)
                 .map(validateOccupationDtoFunc(new OccupationDtoValidator()))
@@ -61,7 +61,7 @@ public class OccupationHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("occupationId");
         Optional<String> status = request.queryParam("status");
         Optional<String> unitId = request.queryParam("unitId");
         Optional<String> tenantId = request.queryParam("tenantId");
@@ -94,7 +94,7 @@ public class OccupationHandler {
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("occupationId");
         return occupationService
                 .deleteById(id)
                 .flatMap(result ->

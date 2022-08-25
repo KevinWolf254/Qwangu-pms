@@ -49,7 +49,7 @@ public class RentAdvanceHandler {
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("advanceId");
         return request
                 .bodyToMono(UpdateRentAdvanceDto.class)
                 .map(validateUpdateRentAdvanceDtoFunc(new UpdateRentAdvanceDtoValidator()))
@@ -65,7 +65,7 @@ public class RentAdvanceHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("id");
+        Optional<String> id = request.queryParam("advanceId");
         Optional<String> status = request.queryParam("status");
         Optional<String> occupationId = request.queryParam("occupationId");
         Optional<String> paymentId = request.queryParam("paymentId");
@@ -98,7 +98,7 @@ public class RentAdvanceHandler {
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("id");
+        String id = request.pathVariable("advanceId");
         return rentAdvanceService
                 .deleteById(id)
                 .flatMap(result ->
