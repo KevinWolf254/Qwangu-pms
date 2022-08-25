@@ -45,7 +45,7 @@ class EmailGeneratorImplTest {
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
         String emailAddress = "person@gmail.com";
-        User user = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
+        User user = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
         var token = UUID.randomUUID().toString();
         // when
         Email email = emailGenerator.generateAccountActivationEmail(user, token);
@@ -85,7 +85,7 @@ class EmailGeneratorImplTest {
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
         String emailAddress = "person@gmail.com";
-        User user = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
+        User user = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
         var token = UUID.randomUUID().toString();
         // when
         Email email = emailGenerator.generatePasswordForgottenEmail(user, token);

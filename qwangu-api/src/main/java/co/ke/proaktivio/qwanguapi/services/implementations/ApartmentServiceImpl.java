@@ -16,12 +16,10 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,7 +37,7 @@ public class ApartmentServiceImpl implements ApartmentService {
                 .exists(query, Apartment.class)
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name))))
-                .map($ -> new Apartment(null, name, LocalDateTime.now(), null))
+                .map($ -> new Apartment(name))
                 .flatMap(template::save);
     }
 
@@ -55,7 +53,7 @@ public class ApartmentServiceImpl implements ApartmentService {
                                 .formatted(apartmentName))))
                         .map($ -> {
                             apartment.setName(dto.getName());
-                            apartment.setModified(LocalDateTime.now());
+                            apartment.setModifiedOn(LocalDateTime.now());
                             return apartment;
                         }))
                 .flatMap(apartmentRepository::save);

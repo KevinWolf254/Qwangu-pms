@@ -6,7 +6,7 @@ import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.RoleHandler;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.RoleService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -92,7 +92,7 @@ class RoleConfigsTest {
         String id = "1";
         String name = "ADMIN";
         LocalDateTime now = LocalDateTime.now();
-        var role = new Role("1", name, now, null);
+        var role = new UserRole("1", name, now, null, null, null);
 
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");

@@ -59,16 +59,34 @@ public class OccupationServiceImpl implements OccupationService {
                                 .flatMap(occupation -> noticeService.findByOccupationIdAndIsActive(occupation.getId(),
                                         occupation.getStatus().equals(Occupation.Status.CURRENT)))
                                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Notice does not exist!")))
-                                .then(Mono.just(new Occupation(null, dto.getStatus(), dto.getStarted(), dto.getEnded(),
-                                        dto.getTenantId(),
-                                        dto.getUnitId(), LocalDateTime.now(), null)));
+                                .then(Mono.just(
+//                                        new Occupation(null, dto.getStatus(), dto.getStarted(), dto.getEnded(),
+//                                        dto.getTenantId(),
+//                                        dto.getUnitId(), LocalDateTime.now(), null)
+                                        new Occupation.OccupationBuilder()
+                                                .status(dto.getStatus())
+                                                .startedOn(dto.getStarted())
+                                                .endedOn(dto.getEnded())
+                                                .tenantId(dto.getTenantId())
+                                                .unitId(dto.getUnitId())
+                                                .build()
+                                ));
                     }
                     return template.exists(occupationUnAvailable, Occupation.class)
                             .filter(exists -> !exists)
                             .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Occupation already exists!")))
-                            .then(Mono.just(new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(),
-                                    dto.getEnded(), dto.getTenantId(), dto.getUnitId(), LocalDateTime.now(),
-                                    null)));
+                            .then(Mono.just(
+//                                    new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(),
+//                                    dto.getEnded(), dto.getTenantId(), dto.getUnitId(), LocalDateTime.now(),
+//                                    null))
+                                    new Occupation.OccupationBuilder()
+                                            .status(Occupation.Status.CURRENT)
+                                            .startedOn(dto.getStarted())
+                                            .endedOn(dto.getEnded())
+                                            .tenantId(dto.getTenantId())
+                                            .unitId(dto.getUnitId())
+                                            .build()
+                            ));
                 })
                 .flatMap(occupationRepository::save);
     }
@@ -96,9 +114,9 @@ public class OccupationServiceImpl implements OccupationService {
                         if (dto.getStatus() != null)
                             o.setStatus(dto.getStatus());
                         if ((dto.getStarted() != null))
-                            o.setStarted(dto.getStarted());
+                            o.setStartedOn(dto.getStarted());
                         if (dto.getEnded() != null)
-                            o.setEnded(dto.getEnded());
+                            o.setEndedOn(dto.getEnded());
                         o.setModifiedOn(LocalDateTime.now());
                         return o;
                     })
@@ -112,9 +130,9 @@ public class OccupationServiceImpl implements OccupationService {
                     if (dto.getStatus() != null)
                         o.setStatus(dto.getStatus());
                     if ((dto.getStarted() != null))
-                        o.setStarted(dto.getStarted());
+                        o.setStartedOn(dto.getStarted());
                     if (dto.getEnded() != null)
-                        o.setEnded(dto.getEnded());
+                        o.setEndedOn(dto.getEnded());
                     o.setModifiedOn(LocalDateTime.now());
                     return o;
                 })

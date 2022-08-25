@@ -125,14 +125,31 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "BOOKTE34", "", "49197.00", "", "254708374147",
                 "John", "", "Doe", LocalDateTime.now(), null);
-        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT,
-                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
-                null, "1");
+//        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT,
+//                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
+//                null, "1");
+        var unit = new Unit.UnitBuilder()
+                .status(Unit.Status.OCCUPIED)
+                .booked(false)
+                .accountNo("TE34")
+                .type(Unit.Type.APARTMENT_UNIT)
+                .identifier(Unit.Identifier.B)
+                .floorNo(2)
+                .noOfBedrooms(2)
+                .noOfBathrooms(1)
+                .advanceInMonths(2)
+                .currency(Unit.Currency.KES)
+                .rentPerMonth(BigDecimal.valueOf(27000))
+                .securityPerMonth(BigDecimal.valueOf(510))
+                .garbagePerMonth(BigDecimal.valueOf(300))
+                .apartmentId("1").build();
+        unit.setId("1");
+
         var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null,
-                "1", "1", LocalDateTime.now(), null);
+                "1", "1", LocalDateTime.now(), null, null, null);
         var notice = new Notice("1", true, now, today.plusDays(40), now, null,
-                "1");
+                null, null, "1");
 
         // when
         Mono<Payment> processBookingPayment = unitRepository.deleteAll()
@@ -169,12 +186,29 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
     void processRent() {
         // given
         LocalDateTime now = LocalDateTime.now();
-        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE3489", Unit.Type.APARTMENT_UNIT,
-                Unit.Identifier.A, 2, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
-                null, "1");
+//        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE3489", Unit.Type.APARTMENT_UNIT,
+//                Unit.Identifier.A, 2, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
+//                null, "1");
+
+        var unit = new Unit.UnitBuilder()
+                .status(Unit.Status.OCCUPIED)
+                .booked(false)
+                .accountNo("TE3489")
+                .type(Unit.Type.APARTMENT_UNIT)
+                .identifier(Unit.Identifier.A)
+                .floorNo(2)
+                .noOfBedrooms(2)
+                .noOfBathrooms(1)
+                .advanceInMonths(2)
+                .currency(Unit.Currency.KES)
+                .rentPerMonth(BigDecimal.valueOf(27000))
+                .securityPerMonth(BigDecimal.valueOf(500))
+                .garbagePerMonth(BigDecimal.valueOf(300))
+                .apartmentId("1").build();
+        unit.setId("1");
         var occupation = new Occupation("1", Occupation.Status.CURRENT, now, null,
-                "1", unit.getId(), now, null);
+                "1", unit.getId(), now, null, null, null);
         var occupationTransaction = new OccupationTransaction("1", OccupationTransaction.Type.DEBIT,
                 BigDecimal.valueOf(5000), BigDecimal.ZERO, BigDecimal.valueOf(5000), occupation.getId(), null,
                 "1", null);
@@ -183,12 +217,28 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 "TE3489", "", "49197.00", "", "254708374147",
                 "John", "", "Doe", LocalDateTime.now(), null);
 
-        var unit2 = new Unit("2", Unit.Status.OCCUPIED, false, "TE3490", Unit.Type.APARTMENT_UNIT,
-                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
-                null, "1");
+//        var unit2 = new Unit("2", Unit.Status.OCCUPIED, false, "TE3490", Unit.Type.APARTMENT_UNIT,
+//                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
+//                null, "1");
+        var unit2 = new Unit.UnitBuilder()
+                .status(Unit.Status.OCCUPIED)
+                .booked(false)
+                .accountNo("TE3490")
+                .type(Unit.Type.APARTMENT_UNIT)
+                .identifier(Unit.Identifier.B)
+                .floorNo(2)
+                .noOfBedrooms(2)
+                .noOfBathrooms(1)
+                .advanceInMonths(2)
+                .currency(Unit.Currency.KES)
+                .rentPerMonth(BigDecimal.valueOf(27000))
+                .securityPerMonth(BigDecimal.valueOf(500))
+                .garbagePerMonth(BigDecimal.valueOf(300))
+                .apartmentId("1").build();
+        unit2.setId("2");
         var occupation2 = new Occupation("2", Occupation.Status.CURRENT, now, null, "2", unit2.getId(),
-                now, null);
+                now, null, null, null);
         var payment2 = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "TE3490", "", "49197.00", "", "254708374147",

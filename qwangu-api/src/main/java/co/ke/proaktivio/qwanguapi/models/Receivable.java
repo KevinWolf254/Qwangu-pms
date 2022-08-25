@@ -1,7 +1,9 @@
 package co.ke.proaktivio.qwanguapi.models;
 
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -23,7 +25,9 @@ public class Receivable {
     private BigDecimal securityAmount;
     private BigDecimal garbageAmount;
     private Map<String, BigDecimal> otherAmounts;
+    @CreatedDate
     private LocalDateTime createdOn;
+    @LastModifiedDate
     private LocalDateTime modifiedOn;
 
     @Getter

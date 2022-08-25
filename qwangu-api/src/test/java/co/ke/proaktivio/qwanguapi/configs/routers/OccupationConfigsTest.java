@@ -78,7 +78,8 @@ class OccupationConfigsTest {
         String unitId = "1";
         LocalDateTime now = LocalDateTime.now();
         var dto = new OccupationDto(Occupation.Status.CURRENT, now, null, tenantId, unitId);
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, now, null, tenantId, unitId, now, null);
+        var occupation = new Occupation("1", Occupation.Status.CURRENT, now, null,
+                tenantId, unitId, now, null, null, null);
         var dtoNotValid = new OccupationDto(null, null, null, null, null);
 
         // when
@@ -146,7 +147,8 @@ class OccupationConfigsTest {
         // given
         var id = "1";
         var dto = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1");
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
+        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null,
+                "1", "1", LocalDateTime.now(), null, null, null);
         var dtoNotValid = new OccupationDto(null, null, null, null, null);
 
         // when
@@ -236,7 +238,8 @@ class OccupationConfigsTest {
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1", LocalDateTime.now(), null);
+        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null,
+                "1", "1", LocalDateTime.now(), null, null, null);
 
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder

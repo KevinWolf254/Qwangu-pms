@@ -48,7 +48,7 @@ class BookingRefundServiceImplIntegrationTest {
     private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
 
     private final BookingRefund bookingRefund = new BookingRefund(null, BigDecimal.valueOf(10000), "Details!", "1",
-            LocalDateTime.now(), null);
+            LocalDateTime.now(), null, null, null);
 
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName
@@ -111,7 +111,7 @@ class BookingRefundServiceImplIntegrationTest {
     void findPaginated() {
         //given
         var bookingRefund2 = new BookingRefund(null, BigDecimal.valueOf(20000), "Details!", "1",
-                LocalDateTime.now(), null);
+                LocalDateTime.now(), null, null, null);
 
         // when
         Flux<BookingRefund> findAll = deleteAll()

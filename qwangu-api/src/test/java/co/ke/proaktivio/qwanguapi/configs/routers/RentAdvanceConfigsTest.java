@@ -58,7 +58,7 @@ class RentAdvanceConfigsTest {
     private final LocalDateTime now = LocalDateTime.now();
     private final String advanceId = "1";
     private final RentAdvance advance = new RentAdvance(advanceId, RentAdvance.Status.RELEASED, "Details!", "1",
-            "1", now, now, today);
+            "1", today, null, null, null, null);
 
     @Test
     @DisplayName("create returns unauthorised when user is not authenticated status 401")
@@ -79,7 +79,7 @@ class RentAdvanceConfigsTest {
     void create_returnsRentAdvance_status201() {
         // given
         var advance = new RentAdvance("1", RentAdvance.Status.HOLDING, null,
-                "1", "1", LocalDateTime.now(), null, null);
+                "1", "1", null, null, null, null, null);
         var dto = new RentAdvanceDto(RentAdvance.Status.HOLDING, "1", "1");
 
         //when

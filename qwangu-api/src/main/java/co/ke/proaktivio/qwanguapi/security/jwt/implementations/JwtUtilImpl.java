@@ -1,8 +1,8 @@
 package co.ke.proaktivio.qwanguapi.security.jwt.implementations;
 
 import co.ke.proaktivio.qwanguapi.configs.properties.JwtPropertiesConfig;
-import co.ke.proaktivio.qwanguapi.models.Authority;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserAuthority;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
@@ -62,7 +62,7 @@ public class JwtUtilImpl implements JwtUtil {
     }
 
     @Override
-    public String generateToken(User user, Role role, List<Authority> authorities) {
+    public String generateToken(User user, UserRole role, List<UserAuthority> authorities) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("user", mapUser(user));
         claims.put("authorities", generateAuthorities(role, authorities));
@@ -79,7 +79,7 @@ public class JwtUtilImpl implements JwtUtil {
         return userMap;
     }
 
-    private Set<String> generateAuthorities(Role role, List<Authority> authorities) {
+    private Set<String> generateAuthorities(UserRole role, List<UserAuthority> authorities) {
         Set<String> userAuthorities = new HashSet<>();
         userAuthorities.add("ROLE_" + role.getName());
         authorities.forEach(authority -> {

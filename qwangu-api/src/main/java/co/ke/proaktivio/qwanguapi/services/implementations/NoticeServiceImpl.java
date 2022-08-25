@@ -41,8 +41,14 @@ public class NoticeServiceImpl implements NoticeService {
                 .filter(occupation -> occupation.getStatus().equals(Occupation.Status.CURRENT))
                 .switchIfEmpty(Mono.error(new
                         CustomBadRequestException("Can not create notice of occupation that is not active!")))
-                .then(Mono.just(new Notice(null, true, dto.getNotifiedOn(), dto.getVacatingOn(),
-                        LocalDateTime.now(), null, dto.getOccupationId())))
+                .then(Mono.just(
+                        new Notice.NoticeBuilder()
+                                .isActive(true)
+                                .notifiedOn(dto.getNotifiedOn())
+                                .vacatingOn(dto.getVacatingOn())
+                                .occupationId(dto.getOccupationId())
+                                .build()
+                ))
                 .flatMap(noticeRepository::save);
     }
 

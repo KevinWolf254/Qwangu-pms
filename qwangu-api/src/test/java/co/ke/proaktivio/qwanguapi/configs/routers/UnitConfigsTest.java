@@ -77,17 +77,49 @@ public class UnitConfigsTest {
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
                 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
                 BigDecimal.valueOf(300), "1");
-        var unit = new Unit("1", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
-                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
-                null, "1");
+//        var unit = new Unit("1", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
+//                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
+//                null, "1");
+        var unit = new Unit.UnitBuilder()
+                .status(Unit.Status.VACANT)
+                .booked(false)
+                .accountNo("TE99")
+                .type(Unit.Type.APARTMENT_UNIT)
+                .identifier(Unit.Identifier.A)
+                .floorNo(0)
+                .noOfBedrooms(2)
+                .noOfBathrooms(1)
+                .advanceInMonths(2)
+                .currency(Unit.Currency.KES)
+                .rentPerMonth(BigDecimal.valueOf(25000))
+                .securityPerMonth(BigDecimal.valueOf(500))
+                .garbagePerMonth(BigDecimal.valueOf(300))
+                .apartmentId("1").build();
+        unit.setId("1");
+        unit.setCreatedOn(LocalDateTime.now());
         var dtoNonApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
                 2, 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
                 BigDecimal.valueOf(500), BigDecimal.valueOf(300), null);
-        var unitNonApartment = new Unit("2", Unit.Status.VACANT, false, "TE99", Unit.Type.MAISONETTES,
-                null, 0, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), LocalDateTime.now(),
-                null, null);
+//        var unitNonApartment = new Unit("2", Unit.Status.VACANT, false, "TE99", Unit.Type.MAISONETTES,
+//                null, 0, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), LocalDateTime.now(),
+//                null, null);
+        var unitNonApartment = new Unit.UnitBuilder()
+                .status(Unit.Status.VACANT)
+                .booked(false)
+                .accountNo("TE99")
+                .type(Unit.Type.MAISONETTES)
+                .floorNo(0)
+                .noOfBedrooms(2)
+                .noOfBathrooms(1)
+                .advanceInMonths(2)
+                .currency(Unit.Currency.KES)
+                .rentPerMonth(BigDecimal.valueOf(25000))
+                .securityPerMonth(BigDecimal.valueOf(500))
+                .garbagePerMonth(BigDecimal.valueOf(300)).build();
+        unitNonApartment.setId("2");
+        unitNonApartment.setCreatedOn(LocalDateTime.now());
         var dtoFailsValidation = new UnitDto(null, null, null, null, null, null,
                 null, null, null, null, null, null);
         var dtoApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, null, null, null, null,
@@ -224,11 +256,26 @@ public class UnitConfigsTest {
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
                 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
                 BigDecimal.valueOf(300), "1");
-        var unit = new Unit(id, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
-                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
-                null, "1");
-
+//        var unit = new Unit(id, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
+//                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
+//                null, "1");
+        var unit = new Unit.UnitBuilder()
+                .status(Unit.Status.VACANT)
+                .booked(false)
+                .accountNo("TE99")
+                .type(Unit.Type.APARTMENT_UNIT)
+                .identifier(Unit.Identifier.A)
+                .floorNo(0)
+                .noOfBedrooms(2)
+                .noOfBathrooms(1)
+                .advanceInMonths(2)
+                .currency(Unit.Currency.KES)
+                .rentPerMonth(BigDecimal.valueOf(25000))
+                .securityPerMonth(BigDecimal.valueOf(500))
+                .garbagePerMonth(BigDecimal.valueOf(300)).build();
+        unit.setId(id);
+        unit.setCreatedOn(LocalDateTime.now());
         // when
         when(unitService.update(id, dto)).thenReturn(Mono.just(unit));
 
@@ -309,10 +356,26 @@ public class UnitConfigsTest {
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
-        var unit = new Unit(id, Unit.Status.VACANT, false, accountNo, type, identifier,
-                floorNo, noOfBedrooms, noOfBathrooms, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
-                null, apartmentId);
+//        var unit = new Unit(id, Unit.Status.VACANT, false, accountNo, type, identifier,
+//                floorNo, noOfBedrooms, noOfBathrooms, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
+//                null, apartmentId);
+        var unit = new Unit.UnitBuilder()
+                .status(Unit.Status.VACANT)
+                .booked(false)
+                .accountNo(accountNo)
+                .type(type)
+                .identifier(identifier)
+                .floorNo(floorNo)
+                .noOfBedrooms(noOfBedrooms)
+                .noOfBathrooms(noOfBathrooms)
+                .advanceInMonths(2)
+                .currency(Unit.Currency.KES)
+                .rentPerMonth(BigDecimal.valueOf(25000))
+                .securityPerMonth(BigDecimal.valueOf(500))
+                .garbagePerMonth(BigDecimal.valueOf(300))
+                .apartmentId(apartmentId).build();
+        unit.setId(id);
 
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder

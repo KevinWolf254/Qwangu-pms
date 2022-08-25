@@ -86,7 +86,7 @@ class UserConfigsTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
         UserDto dto = new UserDto(person, emailAddress, roleId);
-        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
+        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null, null ,null);
 
         //when
         Mockito.when(userService.createAndNotify(dto)).thenReturn(Mono.just(user));
@@ -349,7 +349,8 @@ class UserConfigsTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
         UserDto dto = new UserDto(person, emailAddress, roleId);
-        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), LocalDateTime.now());
+        User user = new User(id, person, emailAddress, roleId, null, false, false,
+                false, true, LocalDateTime.now(), null, null ,null);
 
         //when
         Mockito.when(userService.update(id, dto)).thenReturn(Mono.just(user));
@@ -562,7 +563,7 @@ class UserConfigsTest {
         String roleId = "1";
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null);
+        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
 
         String page = "1";
         String pageSize = "10";
@@ -954,7 +955,7 @@ class UserConfigsTest {
         String roleId = "1";
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null);
+        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
 
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
@@ -1049,7 +1050,7 @@ class UserConfigsTest {
         String roleId = "1";
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null);
+        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
         Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
                 uriBuilder
                         .path("/v1/users/%s/activate".formatted(id))
@@ -1193,7 +1194,7 @@ class UserConfigsTest {
         String roleId = "1";
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
-        var user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null);
+        var user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/resetPassword")

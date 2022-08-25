@@ -58,6 +58,21 @@ class OccupationServiceImplIntegrationTest {
     public static void overrideProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
+    private Unit unit = new Unit.UnitBuilder()
+            .status(Unit.Status.VACANT)
+            .booked(false)
+            .accountNo("TE99")
+            .type(Unit.Type.APARTMENT_UNIT)
+            .identifier(Unit.Identifier.B)
+            .floorNo(2)
+            .noOfBedrooms(2)
+            .noOfBathrooms(1)
+            .advanceInMonths(2)
+            .currency(Unit.Currency.KES)
+            .rentPerMonth(BigDecimal.valueOf(27000))
+            .securityPerMonth(BigDecimal.valueOf(510))
+            .garbagePerMonth(BigDecimal.valueOf(300))
+            .apartmentId("1").build();
 
     @Test
     void create() {
@@ -70,15 +85,17 @@ class OccupationServiceImplIntegrationTest {
         var dtoTenantIdNotExist = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null,
                 "6", unitId);
         var tenant = new Tenant(tenantId, "John", "middle", "Doe", "0700000000",
-                "person@gmail.com", LocalDateTime.now(), null);
+                "person@gmail.com", LocalDateTime.now(), null, null, null);
         var tenantActive = new Tenant("1", "John", "middle", "Doe",
-                "0700000000", "person@gmail.com", LocalDateTime.now(), null);
-        var unit = new Unit(unitId, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
-                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
-                null, "1");
+                "0700000000", "person@gmail.com", LocalDateTime.now(), null, null, null);
+//        var unit = new Unit(unitId, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
+//                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
+//                null, "1");
+        unit.setId(unitId);
+
         var occupationActive = new Occupation(null, Occupation.Status.CURRENT, LocalDateTime.now(), null,
-                "1", unitId, LocalDateTime.now(), null);
+                "1", unitId, LocalDateTime.now(), null, null, null);
         // when
         Mono<Occupation> createOccupation = unitRepository
                 .deleteAll()
@@ -139,15 +156,17 @@ class OccupationServiceImplIntegrationTest {
         String tenantId = "13";
         var dto = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId);
         var occupation = new Occupation(id, Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId,
-                LocalDateTime.now(), null);
+                LocalDateTime.now(), null, null,  null);
         var occupationThatIsActive = new Occupation("2", Occupation.Status.CURRENT, LocalDateTime.now(), null,
-                "14", unitId, LocalDateTime.now(), null);
+                "14", unitId, LocalDateTime.now(), null, null, null);
         var tenant = new Tenant(tenantId, "John", "middle", "Doe", "0700000000",
-                "person@gmail.com", LocalDateTime.now(), null);
-        var unit = new Unit(unitId, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
-                Unit.Identifier.B,2, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
-                null, "1");
+                "person@gmail.com", LocalDateTime.now(), null, null, null);
+//        var unit = new Unit(unitId, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
+//                Unit.Identifier.B,2, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
+//                null, "1");
+
+        unit.setId(unitId);
         var dtoToDiActivate = new OccupationDto(Occupation.Status.PREVIOUS, LocalDateTime.now(), null, tenantId,
                 unitId);
 
@@ -201,9 +220,9 @@ class OccupationServiceImplIntegrationTest {
         String unitId = "1";
         String tenantId= "1";
         var occupation = new Occupation(id, Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId,
-                LocalDateTime.now(), null);
+                LocalDateTime.now(), null, null, null);
         var occupation2 = new Occupation("2", Occupation.Status.CURRENT, LocalDateTime.now(), null, "2",
-                "2", LocalDateTime.now(), null);
+                "2", LocalDateTime.now(), null, null, null);
 
         //when
         Flux<Occupation> findOccupation = occupationRepository
@@ -249,7 +268,7 @@ class OccupationServiceImplIntegrationTest {
         String unitId = "1";
         String tenantId= "1";
         var occupation = new Occupation(id, Occupation.Status.CURRENT, LocalDateTime.now(), null, tenantId, unitId,
-                LocalDateTime.now(), null);
+                LocalDateTime.now(), null, null, null);
 
         // then
         Mono<Boolean> createThenDelete = occupationRepository

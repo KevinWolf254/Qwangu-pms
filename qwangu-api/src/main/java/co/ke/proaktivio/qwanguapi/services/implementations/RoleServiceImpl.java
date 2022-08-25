@@ -1,12 +1,8 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Authority;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
-import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
-import co.ke.proaktivio.qwanguapi.services.AuthorityService;
 import co.ke.proaktivio.qwanguapi.services.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +22,7 @@ public class RoleServiceImpl implements RoleService {
     private final ReactiveMongoTemplate template;
 
     @Override
-    public Flux<Role> findPaginated(Optional<String> optionalId, Optional<String> optionalApartmentName, int page, int pageSize, OrderType order) {
+    public Flux<UserRole> findPaginated(Optional<String> optionalId, Optional<String> optionalApartmentName, int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
@@ -36,7 +32,7 @@ public class RoleServiceImpl implements RoleService {
         optionalApartmentName.ifPresent(s -> query.addCriteria(Criteria.where("name").is(s)));
         query.with(pageable)
                 .with(sort);
-        return template.find(query, Role.class)
+        return template.find(query, UserRole.class)
                 .switchIfEmpty(Flux.error(new CustomNotFoundException("Roles were not found!")));
     }
 }

@@ -4,9 +4,9 @@ import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
-import co.ke.proaktivio.qwanguapi.models.Authority;
+import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
@@ -97,9 +97,9 @@ class UserServiceImplIntegrationTest {
         UserDto dto = new UserDto(person, "john.doe@gmail.com", "1");
         UserDto dto2 = new UserDto(person, "john.doe1@gmail.com", "1");
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
-                true, "1", LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
+        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
+                true, "1", LocalDateTime.now(), null, null, null);
+        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
         // when
         Mono<User> create = userRepository.deleteAll()
@@ -108,7 +108,7 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all Roles!"))
                 .then(authorityRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Authorities!"))
-                .then(authorityRepository.save(authority))
+                .then(authorityRepository.save(userAuthority))
                 .doOnSuccess(System.out::println)
                 .flatMap(authResult -> roleRepository.save(role))
                 .doOnSuccess(r -> System.out.println("---- Saved " + r))
@@ -149,22 +149,22 @@ class UserServiceImplIntegrationTest {
         Person person = new Person("John", "Doe", "Doe");
         UserDto dto = new UserDto(person, "person@gmail.com", "1");
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true, true,
-                "1", LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
+        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true, true,
+                "1", LocalDateTime.now(), null, null, null);
+        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
         // when
         Mono<User> user = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
                 .then(template
-                        .dropCollection(Role.class)
+                        .dropCollection(UserRole.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Role!")))
                 .then(template
-                        .dropCollection(Authority.class)
+                        .dropCollection(UserAuthority.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
                 .then(template
-                        .save(authority, "AUTHORITY")
+                        .save(userAuthority, "AUTHORITY")
                         .doOnSuccess(System.out::println))
                 .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
@@ -188,7 +188,7 @@ class UserServiceImplIntegrationTest {
 
         // when
         Mono<User> user = template
-                .dropCollection(Role.class)
+                .dropCollection(UserRole.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table Role!"))
                 .then(underTest
                         .create(dto)
@@ -210,13 +210,13 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, "1");
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
-                true, "1", LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
+        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
+                true, "1", LocalDateTime.now(), null, null, null);
+        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
         // when
         Mono<User> user = deleteAll()
-                .then(authorityRepository.save(authority))
+                .then(authorityRepository.save(userAuthority))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
                 .then(roleRepository.save(role))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
@@ -241,24 +241,26 @@ class UserServiceImplIntegrationTest {
         Person person = new Person("John", "Doe", "Doe");
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, "1");
-        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
+        User userEntity = new User(id, person, emailAddress, "1", null, false,
+                false, false, true, LocalDateTime.now(), null,
+                null ,null);
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
-                true, "1", LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
+        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
+                true, "1", LocalDateTime.now(), null, null, null);
+        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
         // when
         Mono<User> user = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
                 .then(template
-                        .dropCollection(Role.class)
+                        .dropCollection(UserRole.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Role!")))
                 .then(template
-                        .dropCollection(Authority.class)
+                        .dropCollection(UserAuthority.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
                 .then(template
-                        .save(authority, "AUTHORITY")
+                        .save(userAuthority, "AUTHORITY")
                         .doOnSuccess(System.out::println))
                 .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
@@ -283,24 +285,24 @@ class UserServiceImplIntegrationTest {
         Person person = new Person("John", "Doe", "Doe");
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, roleId);
-        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
-        Role role = new Role("1", "ADMIN", LocalDateTime.now(), null);
+        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
+        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
-                true, "1", LocalDateTime.now(), null);
+        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
+                true, "1", LocalDateTime.now(), null, null, null);
 
         // when
         Mono<User> user = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
                 .then(template
-                        .dropCollection(Role.class)
+                        .dropCollection(UserRole.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Role!")))
                 .then(template
-                        .dropCollection(Authority.class)
+                        .dropCollection(UserAuthority.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
                 .then(template
-                        .save(authority, "AUTHORITY")
+                        .save(userAuthority, "AUTHORITY")
                         .doOnSuccess(System.out::println))
                 .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
@@ -327,24 +329,24 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         String emailAddress1 = "goblin@gmail.com";
         UserDto dto = new UserDto(person, emailAddress1, roleId);
-        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null);
+        User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
 
-        Role role = new Role(roleId, "ADMIN", LocalDateTime.now(), null);
-        Authority authority = new Authority("1", "ADMIN_USERS", true, true, true, true,
-                true, roleId, LocalDateTime.now(), null);
+        UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
+        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
+                true, roleId, LocalDateTime.now(), null, null, null);
 
         // when
         Mono<User> user = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
                 .then(template
-                        .dropCollection(Role.class)
+                        .dropCollection(UserRole.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Role!")))
                 .then(template
-                        .dropCollection(Authority.class)
+                        .dropCollection(UserAuthority.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
                 .then(template
-                        .save(authority, "AUTHORITY")
+                        .save(userAuthority, "AUTHORITY")
                         .doOnSuccess(System.out::println))
                 .flatMap(authResult -> template.save(role, "ROLE"))
                 .doOnSuccess(System.out::println)
@@ -367,11 +369,11 @@ class UserServiceImplIntegrationTest {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
-        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
+        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
 
         String id2 = "2";
         Person person2 = new Person("Jane", "Doe", "Doe");
-        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
+        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
 
         //when
         Flux<User> saved = template
@@ -417,11 +419,11 @@ class UserServiceImplIntegrationTest {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
-        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
+        User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
 
         String id2 = "2";
         Person person2 = new Person("Jane", "Doe", "Doe");
-        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null);
+        User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null ,null);
 
         // when
         Flux<Boolean> deleted = template
@@ -467,7 +469,7 @@ class UserServiceImplIntegrationTest {
         String token = UUID.randomUUID().toString();
         Person person = new Person("John", "Doe", "Doe");
         User user = new User(null, person, "person@gmail.com", "1", null,
-                false, false, false, false, LocalDateTime.now(), null);
+                false, false, false, false, LocalDateTime.now(), null, null ,null);
         // when
         Mono<User> activateUser = deleteAll()
                 .then(oneTimeTokenRepository.deleteAll()
@@ -504,10 +506,10 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         User user = new User(null, person, emailAddress, null, password,
                 false, false, false, true, now,
-                null);
-        var role = new Role(null, "ADMIN", now, null);
-        var authority = new Authority(null, "USER", true, true, true, true,
-                true, null, now, null);
+                null, null ,null);
+        var role = new UserRole(null, "ADMIN", now, null, null, null);
+        var authority = new UserAuthority(null, "USER", true, true, true, true,
+                true, null, now, null, null, null);
         // when
         Mono<TokenDto> signIn = deleteAll()
                 .then(userRepository.save(user))
@@ -545,7 +547,7 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         User user = new User(null, person, emailAddress, "1", password,
                 false, false, false, true, now,
-                null);
+                null, null ,null);
         // when
         Mono<User> changePassword = deleteAll()
                 .then(userRepository.save(user))
@@ -574,7 +576,7 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         User user = new User(null, person, emailAddress, null, password,
                 false, false, false, true, now,
-                null);
+                null, null ,null);
         var token = UUID.randomUUID().toString();
 
         // when
@@ -601,7 +603,7 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         User user = new User(id, person, emailAddress, null, password,
                 false, false, false, true, now,
-                null);
+                null, null ,null);
         // when
         Mockito.when(emailService.send(Mockito.any(Email.class))).thenReturn(Mono.just(true));
         Flux<OneTimeToken> resetPassword = deleteAll()

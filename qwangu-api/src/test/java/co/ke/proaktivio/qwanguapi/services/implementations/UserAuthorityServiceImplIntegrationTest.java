@@ -3,7 +3,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
-import co.ke.proaktivio.qwanguapi.models.Authority;
+import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.AuthorityService;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +26,7 @@ import java.util.Optional;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class AuthorityServiceImplIntegrationTest {
+class UserAuthorityServiceImplIntegrationTest {
     @Autowired
     private ReactiveMongoTemplate template;
     @Autowired
@@ -48,10 +48,10 @@ class AuthorityServiceImplIntegrationTest {
     @DisplayName("findPaginated returns a flux of authorities when successful")
     void findPaginated_ReturnsFluxOfAuthorities_WhenSuccessful() {
         //when
-        Flux<Authority> saved = Flux.just(new Authority(null, "USERS", true, true, true,
-                                true, true, "1", LocalDateTime.now(), null),
-                        new Authority(null, "APARTMENTS", true, true, true, true,
-                                true, "1", LocalDateTime.now(), null))
+        Flux<UserAuthority> saved = Flux.just(new UserAuthority(null, "USERS", true, true, true,
+                                true, true, "1", LocalDateTime.now(), null, null, null),
+                        new UserAuthority(null, "APARTMENTS", true, true, true, true,
+                                true, "1", LocalDateTime.now(), null, null, null))
                 .flatMap(a -> template.save(a, "AUTHORITY"))
                 .thenMany(authorityService.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
@@ -66,7 +66,7 @@ class AuthorityServiceImplIntegrationTest {
     @DisplayName("findPaginated returns a CustomNotFoundException when none exist!")
     void findPaginated_ReturnsCustomNotFoundException_WhenNoAuthoritiesExist() {
         //when
-        Flux<Authority> saved = template.dropCollection(Authority.class)
+        Flux<UserAuthority> saved = template.dropCollection(UserAuthority.class)
                 .doOnSuccess(e -> System.out.println("----Dropped authority table successfully!"))
                 .thenMany(authorityService.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,

@@ -3,7 +3,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.RoleService;
 import org.junit.jupiter.api.DisplayName;
@@ -47,8 +47,8 @@ class RoleServiceImplIntegrationTest {
     @DisplayName("find paginated returns a flux of roles when successful")
     void findPaginated_ReturnsFluxOfAuthorities_WhenSuccessful() {
         //when
-        Flux<Role> saved = Flux.just(new Role(null, "ADMIN", LocalDateTime.now(), null),
-                        new Role(null, "SUPERVISOR", LocalDateTime.now(), null))
+        Flux<UserRole> saved = Flux.just(new UserRole(null, "ADMIN", LocalDateTime.now(), null, null, null),
+                        new UserRole(null, "SUPERVISOR", LocalDateTime.now(), null, null, null))
                 .flatMap(a -> template.save(a, "ROLE"))
                 .thenMany(roleService.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,
@@ -66,7 +66,7 @@ class RoleServiceImplIntegrationTest {
         // given
 
         //when
-        Flux<Role> saved = template.dropCollection(Role.class)
+        Flux<UserRole> saved = template.dropCollection(UserRole.class)
                 .doOnSuccess(e -> System.out.println("----Dropped role table successfully!"))
                 .thenMany(roleService.findPaginated(Optional.empty(),
                         Optional.empty(), 1, 10,

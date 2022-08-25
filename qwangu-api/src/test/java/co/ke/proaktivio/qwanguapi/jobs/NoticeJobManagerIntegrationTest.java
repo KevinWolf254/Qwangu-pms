@@ -42,19 +42,36 @@ class NoticeJobManagerIntegrationTest {
     }
     private final LocalDateTime now = LocalDateTime.now();
     private final LocalDate today = LocalDate.now();
-    private final Unit unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT,
-            Unit.Identifier.A, 2, 2, 1, 2, Unit.Currency.KES,
-            BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), now, null, "1");
+//    private final Unit unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT,
+//            Unit.Identifier.A, 2, 2, 1, 2, Unit.Currency.KES,
+//            BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), now, null, "1");
+    private Unit unit = new Unit.UnitBuilder()
+            .status(Unit.Status.OCCUPIED)
+            .booked(false)
+            .accountNo("TE34")
+            .type(Unit.Type.APARTMENT_UNIT)
+            .identifier(Unit.Identifier.A)
+            .floorNo(2)
+            .noOfBedrooms(2)
+            .noOfBathrooms(1)
+            .advanceInMonths(2)
+            .currency(Unit.Currency.KES)
+            .rentPerMonth(BigDecimal.valueOf(27000))
+            .securityPerMonth(BigDecimal.valueOf(510))
+            .garbagePerMonth(BigDecimal.valueOf(300))
+            .apartmentId("1").build();
+
     private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(),
-            null, "1", "1", now, null);
+            null, "1", "1", now, null, null, null);
     private final Tenant tenant = new Tenant("1", "John", "middle", "Doe",
-            "0700000000", "person@gmail.com", now, null);
+            "0700000000", "person@gmail.com", now, null, null, null);
     private final Notice notice = new Notice("1", true, now.minusDays(30), today.minusDays(1),
-            now, null, "1");
+            now, null, null, null, "1");
 
     @Test
     void vacate() {
         // when
+        unit.setId("1");
         Flux<Notice> vacate = unitRepository.save(unit)
                 .doOnSuccess(u -> System.out.println("---- Saved: " +u))
                 .then(tenantRepository.save(tenant))

@@ -1,7 +1,7 @@
 package co.ke.proaktivio.qwanguapi.configs;
 
-import co.ke.proaktivio.qwanguapi.models.Authority;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserAuthority;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
@@ -23,37 +23,37 @@ import java.time.LocalDateTime;
 public class BootstrapConfig {
     Person person = new Person("John", "David", "Doe");
     Mono<User> user = Mono.just(new User(null, person, "johnDoe@email.com", null, "ABc1234!", false,
-            false, false, true, LocalDateTime.now(), null));
+            false, false, true, null, null, null, null));
 
-    Mono<Role> superAdminRole = Mono.just(new Role(null, "SUPER_ADMIN", LocalDateTime.now(), null));
+    Mono<UserRole> superAdminRole = Mono.just(new UserRole.RoleBuilder().setName("SUPER_ADMIN").build());
 
-    Flux<Authority> superAdminAuthorities = Flux.just(
-            new Authority(null, "APARTMENT", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "UNIT", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "OCCUPATION", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "TENANT", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "NOTICE", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "PAYMENT", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "OCCUPATION_TRANSACTION", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "ADVANCE", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "RECEIVABLE", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "REFUND", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "USER", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "USER_ROLE", true, true, true, true, true,
-                    null, LocalDateTime.now(), null),
-            new Authority(null, "USER_AUTHORITY", true, true, true, true, true,
-                    null, LocalDateTime.now(), null)
+    Flux<UserAuthority> superAdminAuthorities = Flux.just(
+            new UserAuthority(null, "APARTMENT", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "UNIT", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "OCCUPATION", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "TENANT", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "NOTICE", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "PAYMENT", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "OCCUPATION_TRANSACTION", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "ADVANCE", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "RECEIVABLE", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "REFUND", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "USER", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "USER_ROLE", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null),
+            new UserAuthority(null, "USER_AUTHORITY", true, true, true, true, true,
+                    null, LocalDateTime.now(), null, null, null)
     );
 
     private Mono<Void> deleteAll(UserRepository userRepository, RoleRepository roleRepository,

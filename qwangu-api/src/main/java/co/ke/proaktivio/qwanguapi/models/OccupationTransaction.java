@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.models;
 
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -22,6 +23,7 @@ public class OccupationTransaction {
     private String occupationId;
     private String receivableId;
     private String paymentId;
+    @CreatedDate
     private LocalDateTime createdOn;
 
     @Getter

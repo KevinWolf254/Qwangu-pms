@@ -79,7 +79,8 @@ class NoticeConfigsTest {
         // given
         var dto = new CreateNoticeDto(now, today.plusDays(30), "1");
         var dtoNotValid = new CreateNoticeDto(null ,null, null);
-        var notice = new Notice("1", true, now, today.plusDays(40), now, null, "1");
+        var notice = new Notice("1", true, now, today.plusDays(40), now, null, null,
+                null, "1");
         // when
         when(noticeService.create(dto)).thenReturn(Mono.just(notice));
         // then
@@ -146,7 +147,8 @@ class NoticeConfigsTest {
         var id = "1";
         var dto = new UpdateNoticeDto(true, now, today.plusDays(30));
         var dtoNotValid = new UpdateNoticeDto(null ,null, null);
-        var notice = new Notice("1", true, now, today.plusDays(40), now, now, "1");
+        var notice = new Notice("1", true, now, today.plusDays(40), now,
+                null, now, null, "1");
 
         // when
         when(noticeService.update(id, dto)).thenReturn(Mono.just(notice));
@@ -225,7 +227,8 @@ class NoticeConfigsTest {
         // given
         var id = "1";
         var occupationId = "1";
-        var notice = new Notice("1", true, now, today.plusDays(40), now, now, "1");
+        var notice = new Notice("1", true, now, today.plusDays(40), now, null, now, null,
+                "1");
         String page = "1";
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");

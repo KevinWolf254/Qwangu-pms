@@ -71,7 +71,7 @@ class ApartmentServiceImplIntegrationTest {
                 .expectNextMatches(apartment ->
                         StringUtils.hasText(apartment.getId()) &&
                                 StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(name) &&
-                                apartment.getCreated() != null && StringUtils.hasText(apartment.getCreated().toString()))
+                                apartment.getCreatedOn() != null && StringUtils.hasText(apartment.getCreatedOn().toString()))
                 .verifyComplete();
     }
 
@@ -106,7 +106,7 @@ class ApartmentServiceImplIntegrationTest {
         StepVerifier.create(updated)
                 .expectNextMatches(apartment -> StringUtils.hasText(apartment.getId()) &&
                         StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(updatedName) &&
-                        apartment.getModified() != null && StringUtils.hasText(apartment.getModified().toString()))
+                        apartment.getModifiedOn() != null && StringUtils.hasText(apartment.getModifiedOn().toString()))
                 .verifyComplete();
     }
 
@@ -128,11 +128,12 @@ class ApartmentServiceImplIntegrationTest {
     @DisplayName("update returns a CustomAlreadyExistsException when name already exists")
     void update_returnsCustomAlreadyExistsException_whenNameAlreadyExists() {
         // when
+        Apartment apartment01 = new Apartment(name);
+        var apartment02 = new Apartment("Luxury Apartments B");
         Mono<Apartment> saved = deleteAll()
-                .then(apartmentRepository.save(new Apartment(null, name, LocalDateTime.now(), null)))
+                .then(apartmentRepository.save(apartment01))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
-                .flatMap(apartment -> apartmentRepository.save(new Apartment(null, "Luxury Apartments B",
-                        LocalDateTime.now(), null)))
+                .flatMap(apartment -> apartmentRepository.save(apartment02))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
                 .flatMap(a -> apartmentService.update(a.getId(), dto));
 

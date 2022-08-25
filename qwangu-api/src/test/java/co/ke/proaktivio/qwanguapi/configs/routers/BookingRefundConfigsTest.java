@@ -51,7 +51,7 @@ class BookingRefundConfigsTest {
     private ServerSecurityContextRepository contextRepository;
 
     private final BookingRefund bookingRefund = new BookingRefund("1", BigDecimal.valueOf(15000), "QVERDFDEERERT is transactionID", "1",
-            LocalDateTime.now(), null);
+            LocalDateTime.now(), null, null, null);
 
     @Test
     @DisplayName("create returns unauthorised when user is not authenticated status 401")

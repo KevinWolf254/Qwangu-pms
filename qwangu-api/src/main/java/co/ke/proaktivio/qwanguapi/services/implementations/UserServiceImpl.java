@@ -4,7 +4,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.models.UserToken;
 import co.ke.proaktivio.qwanguapi.pojos.*;
@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
                 .map($ -> {
                     LocalDateTime now = LocalDateTime.now();
                     return new User(null, dto.getPerson(), emailAddress, dto.getRoleId(), null,
-                            false, false, false, false, now, null);
+                            false, false, false, false, null, null, null, null);
                 })
                 .flatMap(userRepository::save);
     }
@@ -95,7 +95,7 @@ public class UserServiceImpl implements UserService {
         Query query = new Query()
                 .addCriteria(Criteria.where("emailAddress").is(emailAddress).and("id").is(id));
 
-        return template.findById(roleId, Role.class)
+        return template.findById(roleId, UserRole.class)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Role with id %s does not exist!".formatted(roleId))))
                 .flatMap(role -> template.findOne(query, User.class))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s and email address %s does not exist!"

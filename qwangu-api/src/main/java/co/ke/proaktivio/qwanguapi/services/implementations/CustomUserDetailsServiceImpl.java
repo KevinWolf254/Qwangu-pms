@@ -1,15 +1,13 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.CustomUserDetails;
-import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.services.AuthorityService;
 import co.ke.proaktivio.qwanguapi.services.CustomUserDetailsService;
-import co.ke.proaktivio.qwanguapi.services.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,8 +15,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +30,7 @@ public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
                 .flatMap(user -> {
                     if (StringUtils.hasText(user.getRoleId()))
                         return roleRepository
-                                .findOne(Example.of(new Role(user.getRoleId())))
+                                .findOne(Example.of(new UserRole(user.getRoleId())))
                                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username))))
                                 .flatMap(role -> authorityService
                                         .findByRoleId(role.getId())

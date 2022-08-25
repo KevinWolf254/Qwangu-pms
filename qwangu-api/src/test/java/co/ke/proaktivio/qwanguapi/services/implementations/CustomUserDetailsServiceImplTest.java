@@ -1,8 +1,8 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Authority;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserAuthority;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
@@ -23,10 +23,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 class CustomUserDetailsServiceImplTest {
@@ -46,16 +42,16 @@ class CustomUserDetailsServiceImplTest {
         String username = "person@gmail.com";
         LocalDateTime now = LocalDateTime.now();
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User(id, person, username, "1", null, false, false, false, true, now, null);
+        User user = new User(id, person, username, "1", null, false, false, false, true, now, null, null ,null);
 
         String roleName = "ADMIN";
-        var role = new Role("1", roleName, now, null);
+        var role = new UserRole("1", roleName, now, null, null, null);
         String authorityName = "APARTMENT";
-        var authority = new Authority("1", authorityName, true, true, true, true,
-                true, "1", LocalDateTime.now(), null);
+        var authority = new UserAuthority("1", authorityName, true, true, true, true,
+                true, "1", LocalDateTime.now(), null, null, null);
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(username)))).thenReturn(Mono.just(user));
-        Mockito.when(roleRepository.findOne(Example.of(new Role(user.getRoleId())))).thenReturn(Mono.just(role));
+        Mockito.when(roleRepository.findOne(Example.of(new UserRole(user.getRoleId())))).thenReturn(Mono.just(role));
         Mockito.when(authorityService.findByRoleId("1")).thenReturn(Flux.just(authority));
         // then
         Mono<UserDetails> request = customUserDetailsService.findByUsername(username)
@@ -102,7 +98,7 @@ class CustomUserDetailsServiceImplTest {
         String username = "person@gmail.com";
         LocalDateTime now = LocalDateTime.now();
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User(id, person, username, null, null, false, false, false, true, now, null);
+        User user = new User(id, person, username, null, null, false, false, false, true, now, null, null ,null);
 
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(username))))
@@ -133,13 +129,13 @@ class CustomUserDetailsServiceImplTest {
         String username = "person@gmail.com";
         LocalDateTime now = LocalDateTime.now();
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User(id, person, username, "1", null, false, false, false, true, now, null);
+        User user = new User(id, person, username, "1", null, false, false, false, true, now, null, null ,null);
 
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(username))))
                 .thenReturn(Mono.just(user));
 
-        Mockito.when(roleRepository.findOne(Example.of(new Role(user.getRoleId()))))
+        Mockito.when(roleRepository.findOne(Example.of(new UserRole(user.getRoleId()))))
                 .thenReturn(Mono.empty());
 
         // then

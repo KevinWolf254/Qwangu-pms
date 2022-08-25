@@ -57,8 +57,13 @@ public class BookingRefundServiceImpl implements BookingRefundService {
                 })
                 .switchIfEmpty(Mono.error(
                         new CustomBadRequestException("Amount to be refunded cannot be greater than the amount paid!")))
-                .map(receivable -> new BookingRefund(null, dto.getAmount(), dto.getRefundDetails(),
-                        receivable.getId(), LocalDateTime.now(), null))
+                .map(receivable ->
+                        new BookingRefund.BookingRefundBuilder()
+                                .amount(dto.getAmount())
+                                .refundDetails(dto.getRefundDetails())
+                                .receivableId(dto.getReceivableId())
+                                .build()
+                )
                 .flatMap(bookingRefundRepository::save);
     }
 

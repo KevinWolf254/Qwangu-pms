@@ -1,7 +1,7 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Authority;
+import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.AuthorityService;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +22,13 @@ public class AuthorityServiceImpl implements AuthorityService {
     private final ReactiveMongoTemplate template;
 
     @Override
-    public Flux<Authority> findByRoleId(String roleId) {
+    public Flux<UserAuthority> findByRoleId(String roleId) {
         return template.find(new Query()
-                .addCriteria(Criteria.where("roleId").is(roleId)), Authority.class);
+                .addCriteria(Criteria.where("roleId").is(roleId)), UserAuthority.class);
     }
 
     @Override
-    public Flux<Authority> findPaginated(Optional<String> optionalId, Optional<String> optionalApartmentName, int page, int pageSize, OrderType order) {
+    public Flux<UserAuthority> findPaginated(Optional<String> optionalId, Optional<String> optionalApartmentName, int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
@@ -38,7 +38,7 @@ public class AuthorityServiceImpl implements AuthorityService {
         optionalApartmentName.ifPresent(s -> query.addCriteria(Criteria.where("name").is(s)));
         query.with(pageable)
                 .with(sort);
-        return template.find(query, Authority.class)
+        return template.find(query, UserAuthority.class)
                 .switchIfEmpty(Flux.error(new CustomNotFoundException("Authorities were not found!")));
     }
 }

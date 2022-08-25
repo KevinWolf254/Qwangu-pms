@@ -78,7 +78,8 @@ class TenantConfigsTest {
         String mobileNumber = "0700000000";
         String emailAddress = "person@gmail.com";
         var dto = new TenantDto("John", "Doe", "Doe", mobileNumber, emailAddress);
-        var tenant = new Tenant(id, "John", "Doe", "Doe", mobileNumber, emailAddress, LocalDateTime.now(), null);
+        var tenant = new Tenant(id, "John", "Doe", "Doe", mobileNumber, emailAddress,
+                LocalDateTime.now(), null, null, null);
         var dtoNotValid = new TenantDto(null, null, null, "07", "person@");
         // when
         when(tenantService.create(dto)).thenReturn(Mono.just(tenant));
@@ -146,7 +147,8 @@ class TenantConfigsTest {
         String mobileNumber = "0700000000";
         String emailAddress = "person@gmail.com";
         var dto = new TenantDto("John", "Doe", "Doe", mobileNumber, emailAddress);
-        var tenant = new Tenant(id, "John", "Doe", "Doe", mobileNumber, emailAddress, LocalDateTime.now(), null);
+        var tenant = new Tenant(id, "John", "Doe", "Doe", mobileNumber, emailAddress,
+                LocalDateTime.now(), null, null, null);
         var dtoNotValid = new TenantDto(null, null, null, null, null);
         // when
         when(tenantService.update(id, dto)).thenReturn(Mono.just(tenant));
@@ -233,7 +235,8 @@ class TenantConfigsTest {
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
-        var tenant = new Tenant(id, "John", "Doe", "Doe", mobileNumber, emailAddress, LocalDateTime.now(), null);
+        var tenant = new Tenant(id, "John", "Doe", "Doe", mobileNumber, emailAddress,
+                LocalDateTime.now(), null, null, null);
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/tenants")

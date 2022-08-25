@@ -43,9 +43,18 @@ public class TenantServiceImpl implements TenantService {
                 .exists(query, Tenant.class)
                 .filter(exits -> !exits)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Tenant already exists!")))
-                .then(Mono.just( new Tenant(null, dto.getFirstName(), dto.getMiddleName(), dto.getSurname(),
-                                dto.getMobileNumber(), dto.getEmailAddress(),
-                        LocalDateTime.now(), null)))
+                .then(Mono.just(
+//                        new Tenant(null, dto.getFirstName(), dto.getMiddleName(), dto.getSurname(),
+//                                dto.getMobileNumber(), dto.getEmailAddress(),
+//                        LocalDateTime.now(), null)
+                        new Tenant.TenantBuilder()
+                                .firstName(dto.getFirstName())
+                                .middleName(dto.getMiddleName())
+                                .surname(dto.getSurname())
+                                .mobileNumber(dto.getMobileNumber())
+                                .emailAddress(dto.getEmailAddress())
+                                .build()
+                ))
                 .flatMap(tenantRepository::save);
     }
 

@@ -1,7 +1,7 @@
 package co.ke.proaktivio.qwanguapi.pojos;
 
-import co.ke.proaktivio.qwanguapi.models.Authority;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserAuthority;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -15,15 +15,15 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
     private final User user;
-    private final Role role;
-    private final List<Authority> authorities;
+    private final UserRole role;
+    private final List<UserAuthority> authorities;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return generateSimpleGrantedAuthorities(authorities);
     }
 
-    private Set<SimpleGrantedAuthority> generateSimpleGrantedAuthorities(List<Authority> authorities) {
+    private Set<SimpleGrantedAuthority> generateSimpleGrantedAuthorities(List<UserAuthority> authorities) {
         Set<SimpleGrantedAuthority> userAuthorities = new HashSet<>();
         authorities.forEach(authority -> {
             String name = authority.getName();

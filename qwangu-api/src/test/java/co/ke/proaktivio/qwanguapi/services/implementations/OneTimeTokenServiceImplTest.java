@@ -40,7 +40,7 @@ class OneTimeTokenServiceImplTest {
         Person person = new Person("John", "Doe", "Doe");
         String emailAddress = "person@gmail.com";
         String roleId = "1";
-        User user = new User(userId, person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
+        User user = new User(userId, person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null, null ,null);
         LocalDateTime now = LocalDateTime.now();
         String uuid = UUID.randomUUID().toString();
         OneTimeToken token = new OneTimeToken("1", uuid, now, now.plusHours(12), userId);

@@ -4,7 +4,7 @@ import co.ke.proaktivio.qwanguapi.pojos.Person;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -26,10 +26,81 @@ public class User {
     private Boolean isCredentialsExpired;
     private Boolean isAccountLocked;
     private Boolean isEnabled;
+    @CreatedDate
     private LocalDateTime createdOn;
+    @CreatedBy
+    private String createdBy;
+    @LastModifiedDate
     private LocalDateTime modifiedOn;
+    @LastModifiedBy
+    private String updatedBy;
 
     public User(String emailAddress) {
         this.emailAddress = emailAddress;
+    }
+
+    @NoArgsConstructor
+    public static class UserBuilder {
+        private Person person;
+        private String emailAddress;
+        private String roleId;
+        private String password;
+        private Boolean isAccountExpired;
+        private Boolean isCredentialsExpired;
+        private Boolean isAccountLocked;
+        private Boolean isEnabled;
+
+        public UserBuilder person(Person person) {
+            this.person = person;
+            return this;
+        }
+
+        public UserBuilder emailAddress(String emailAddress) {
+            this.emailAddress = emailAddress;
+            return this;
+        }
+
+        public UserBuilder roleId(String roleId) {
+            this.roleId = roleId;
+            return this;
+        }
+
+        public UserBuilder password(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public UserBuilder accountExpired(Boolean accountExpired) {
+            isAccountExpired = accountExpired;
+            return this;
+        }
+
+        public UserBuilder credentialsExpired(Boolean credentialsExpired) {
+            isCredentialsExpired = credentialsExpired;
+            return this;
+        }
+
+        public UserBuilder accountLocked(Boolean accountLocked) {
+            isAccountLocked = accountLocked;
+            return this;
+        }
+
+        public UserBuilder enabled(Boolean enabled) {
+            isEnabled = enabled;
+            return this;
+        }
+
+        public User build() {
+            var user = new User();
+            user.setPerson(this.person);
+            user.setEmailAddress(this.emailAddress);
+            user.setRoleId(this.roleId);
+            user.setPassword(this.password);
+            user.setIsAccountExpired(this.isAccountExpired);
+            user.setIsCredentialsExpired(this.isCredentialsExpired);
+            user.setIsAccountLocked(this.isAccountLocked);
+            user.setIsEnabled(this.isEnabled);
+            return user;
+        }
     }
 }

@@ -81,8 +81,10 @@ class TenantServiceImplIntegrationTest {
         // given
         String id = "1";
         String id2 = "2";
-        var tenant = new Tenant(id, "John", "middle", "Doe", "0700000000", "person@gmail.com", LocalDateTime.now(), null);
-        var tenant2 = new Tenant(id2, "John", "middle", "Doe", "0700000002", "person2@gmail.com", LocalDateTime.now(), null);
+        var tenant = new Tenant(id, "John", "middle", "Doe", "0700000000", "person@gmail.com",
+                LocalDateTime.now(), null, null, null);
+        var tenant2 = new Tenant(id2, "John", "middle", "Doe", "0700000002", "person2@gmail.com",
+                LocalDateTime.now(), null, null, null);
         var dto = new TenantDto("Jane", "Doe", "Doe1", "0700000000", "person@gmail.com");
         var dto2 = new TenantDto("Peter", "Doe", "Doe", "0700000002", "person2@gmail.com");
         var dto3 = new TenantDto("Peter", "Doe", "Doe", "0700000003", "person3@gmail.com");
@@ -133,8 +135,10 @@ class TenantServiceImplIntegrationTest {
         String id = "1";
         String mobileNumber = "0700000000";
         String emailAddress = "person@gmail.com";
-        var tenant = new Tenant(id, "John", "middle", "Doe", mobileNumber, emailAddress, LocalDateTime.now(), null);
-        var tenant2 = new Tenant("2", "John", "middle", "Doe", "0700000002", "person2@gmail.com", LocalDateTime.now(), null);
+        var tenant = new Tenant(id, "John", "middle", "Doe", mobileNumber, emailAddress,
+                LocalDateTime.now(), null, null, null);
+        var tenant2 = new Tenant("2", "John", "middle", "Doe", "0700000002", "person2@gmail.com",
+                LocalDateTime.now(), null, null, null);
 
         // when
         Flux<Tenant> findTenant = tenantRepository
@@ -184,7 +188,8 @@ class TenantServiceImplIntegrationTest {
         String id = "1";
         String mobileNumber = "0700000000";
         String emailAddress = "person@gmail.com";
-        var tenant = new Tenant(id, "John", "middle", "Doe", mobileNumber, emailAddress, LocalDateTime.now(), null);
+        var tenant = new Tenant(id, "John", "middle", "Doe", mobileNumber, emailAddress,
+                LocalDateTime.now(), null, null, null);
 
         // when
         Mono<Boolean> createUnitThenDelete = tenantRepository.deleteAll()

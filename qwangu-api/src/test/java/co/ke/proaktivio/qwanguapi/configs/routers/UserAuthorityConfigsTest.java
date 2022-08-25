@@ -6,7 +6,7 @@ import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.AuthorityHandler;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
-import co.ke.proaktivio.qwanguapi.models.Authority;
+import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.AuthorityService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
 @ContextConfiguration(classes = {AuthorityConfigs.class, AuthorityHandler.class, SecurityConfig.class,
         GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
-class AuthorityConfigsTest {
+class UserAuthorityConfigsTest {
     @Autowired
     private ApplicationContext context;
     @Autowired
@@ -92,8 +92,8 @@ class AuthorityConfigsTest {
         String id = "1";
         String name = "ADMIN";
         LocalDateTime now = LocalDateTime.now();
-        var authority = new Authority("1", name, true, true, true, true, true,
-                "1", now, null);
+        var authority = new UserAuthority("1", name, true, true, true, true, true,
+                "1", now, null, null, null);
 
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");

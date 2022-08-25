@@ -46,10 +46,22 @@ public class UnitServiceImpl implements UnitService {
     private Mono<Unit> createNonApartmentUnit(UnitDto dto) {
         var accountNo = RandomStringUtils.randomAlphanumeric(4);
         return Mono.just(dto)
-                .map(d -> new Unit(null, Unit.Status.VACANT, false, accountNo, dto.getType(), null, null,
-                        dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
-                        dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
-                        LocalDateTime.now(), null, null))
+//                .map(d -> new Unit(null, Unit.Status.VACANT, false, accountNo, dto.getType(), null, null,
+//                        dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
+//                        dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
+//                        LocalDateTime.now(), null, null))
+                .map(d -> new Unit.UnitBuilder()
+                        .status(Unit.Status.VACANT)
+                        .booked(false)
+                        .accountNo(accountNo)
+                        .type(d.getType())
+                        .noOfBedrooms(d.getNoOfBedrooms())
+                        .noOfBathrooms(d.getNoOfBathrooms())
+                        .advanceInMonths(d.getAdvanceInMonths())
+                        .currency(d.getCurrency())
+                        .rentPerMonth(d.getRentPerMonth())
+                        .securityPerMonth(d.getSecurityPerMonth())
+                        .garbagePerMonth(d.getGarbagePerMonth()).build())
                 .flatMap(unitRepository::save);
     }
 
@@ -71,10 +83,25 @@ public class UnitServiceImpl implements UnitService {
                 .flatMap(r -> apartmentRepository.findById(apartmentId))
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(apartmentId))))
-                .map(aprt -> new Unit(null, Unit.Status.VACANT, false, accountNo, dto.getType(), dto.getIdentifier(), dto.getFloorNo(),
-                        dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
-                        dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
-                        LocalDateTime.now(), null, aprt.getId()))
+//                .map(aprt -> new Unit(null, Unit.Status.VACANT, false, accountNo, dto.getType(), dto.getIdentifier(), dto.getFloorNo(),
+//                        dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
+//                        dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
+//                        LocalDateTime.now(), null, aprt.getId()))
+                .map(apartment -> new Unit.UnitBuilder()
+                        .status(Unit.Status.VACANT)
+                        .booked(false)
+                        .accountNo(accountNo)
+                        .type(dto.getType())
+                        .identifier(dto.getIdentifier())
+                        .floorNo(dto.getFloorNo())
+                        .noOfBedrooms(dto.getNoOfBedrooms())
+                        .noOfBathrooms(dto.getNoOfBathrooms())
+                        .advanceInMonths(dto.getAdvanceInMonths())
+                        .currency(dto.getCurrency())
+                        .rentPerMonth(dto.getRentPerMonth())
+                        .securityPerMonth(dto.getSecurityPerMonth())
+                        .garbagePerMonth(dto.getGarbagePerMonth())
+                        .apartmentId(apartment.getId()).build())
                 .flatMap(unitRepository::save);
     }
 

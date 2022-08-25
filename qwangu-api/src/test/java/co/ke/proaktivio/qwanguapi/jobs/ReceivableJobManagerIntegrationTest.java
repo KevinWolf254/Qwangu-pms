@@ -53,18 +53,50 @@ class ReceivableJobManagerIntegrationTest {
         // given
         LocalDateTime now = LocalDateTime.now();
         var currentOccupation = new Occupation("1", Occupation.Status.CURRENT, now.minusDays(30), null,
-                "1", "1", now, null);
-        var currentUnit = new Unit("1", Unit.Status.OCCUPIED, false, "TE99", Unit.Type.APARTMENT_UNIT,
-                Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
-                null, "1");
+                "1", "1", now, null, null, null);
+//        new Unit("1", Unit.Status.OCCUPIED, false, "TE99", Unit.Type.APARTMENT_UNIT,
+//                Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
+//                null, "1");
+        var currentUnit = new Unit.UnitBuilder()
+                .status(Unit.Status.OCCUPIED)
+                .booked(false)
+                .accountNo("TE99")
+                .type(Unit.Type.APARTMENT_UNIT)
+                .identifier(Unit.Identifier.A)
+                .floorNo(1)
+                .noOfBedrooms(2)
+                .noOfBathrooms(1)
+                .advanceInMonths(2)
+                .currency(Unit.Currency.KES)
+                .rentPerMonth(BigDecimal.valueOf(27000))
+                .securityPerMonth(BigDecimal.valueOf(500))
+                .garbagePerMonth(BigDecimal.valueOf(300))
+                .apartmentId("1").build();
+        currentUnit.setId("1");
 
         var bookedOccupation = new Occupation("2", Occupation.Status.BOOKED, now, null,
-                "2", "2", now, null);
-        var bookedUnit = new Unit("2", Unit.Status.VACANT, false, "TE100", Unit.Type.APARTMENT_UNIT,
-                Unit.Identifier.B, 1, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now, null,
-                "1");
+                "2", "2", now, null, null, null);
+//        var bookedUnit = new Unit("2", Unit.Status.VACANT, false, "TE100", Unit.Type.APARTMENT_UNIT,
+//                Unit.Identifier.B, 1, 2, 1, 2, Unit.Currency.KES,
+//                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now, null,
+//                "1");
+        var bookedUnit = new Unit.UnitBuilder()
+                .status(Unit.Status.VACANT)
+                .booked(false)
+                .accountNo("TE100")
+                .type(Unit.Type.APARTMENT_UNIT)
+                .identifier(Unit.Identifier.B)
+                .floorNo(1)
+                .noOfBedrooms(2)
+                .noOfBathrooms(1)
+                .advanceInMonths(2)
+                .currency(Unit.Currency.KES)
+                .rentPerMonth(BigDecimal.valueOf(27000))
+                .securityPerMonth(BigDecimal.valueOf(500))
+                .garbagePerMonth(BigDecimal.valueOf(300))
+                .apartmentId("1").build();
+        bookedUnit.setId("2");
 
         var occupationTransaction = new OccupationTransaction(null, OccupationTransaction.Type.DEBIT,
                 BigDecimal.valueOf(5000), BigDecimal.ZERO, BigDecimal.valueOf(5000), "1", "1",

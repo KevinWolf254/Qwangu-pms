@@ -1,22 +1,30 @@
 package co.ke.proaktivio.qwanguapi.models;
 
 import lombok.*;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
-@Document(value = "APARTMENT")
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
 @Data
+@NoArgsConstructor
+@Document(value = "APARTMENT")
 public class Apartment {
     @Id
     private String id;
     @Indexed(unique = true)
     private String name;
-    private LocalDateTime created;
-    private LocalDateTime modified;
+    @CreatedDate
+    private LocalDateTime createdOn;
+    @CreatedBy
+    private String createdBy;
+    @LastModifiedDate
+    private LocalDateTime modifiedOn;
+    @LastModifiedBy
+    private String updatedBy;
+
+    public Apartment(String name) {
+        this.name = name;
+    }
 }

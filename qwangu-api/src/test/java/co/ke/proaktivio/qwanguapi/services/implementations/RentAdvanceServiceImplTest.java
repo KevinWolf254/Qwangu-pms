@@ -56,9 +56,9 @@ class RentAdvanceServiceImplTest {
             "TE34", "", "49197.00", "", "254708374147",
             "John", "", "Doe", LocalDateTime.now(), null);
     private final Occupation occupation = new Occupation(null, Occupation.Status.CURRENT, LocalDateTime.now(), null,
-            "1", "1", LocalDateTime.now(), null);
+            "1", "1", LocalDateTime.now(), null, null, null);
     private final RentAdvance advance = new RentAdvance(null, RentAdvance.Status.HOLDING, null, null,
-            null, LocalDateTime.now(), null, null);
+            null, null, null, null, null, null);
 
     Mono<Void> deleteAll() {
         return paymentRepository.deleteAll()
@@ -156,7 +156,7 @@ class RentAdvanceServiceImplTest {
     void findPaginated() {
         // given
         var advance2 = new RentAdvance(null, RentAdvance.Status.HOLDING, null, null,
-                null, LocalDateTime.now(), null, null);
+                null, null, null, null, null, null);
 
         // when
         Flux<RentAdvance> findAll = deleteAll()

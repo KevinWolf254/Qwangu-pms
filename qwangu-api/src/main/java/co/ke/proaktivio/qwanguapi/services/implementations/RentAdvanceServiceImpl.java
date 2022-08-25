@@ -61,8 +61,13 @@ public class RentAdvanceServiceImpl implements RentAdvanceService {
                     }
                     return paymentRepository.save(payment);
                 })
-                .map(payment -> new RentAdvance(null, dto.getStatus(), null, occupationId,
-                        payment.getId(), LocalDateTime.now(), null, null))
+                .map(payment ->
+                        new RentAdvance.RentAdvanceBuilder()
+                                .status(dto.getStatus())
+                                .occupationId(occupationId)
+                                .paymentId(payment.getId())
+                                .build()
+                )
                 .flatMap(rentAdvanceRepository::save);
     }
 
@@ -76,7 +81,6 @@ public class RentAdvanceServiceImpl implements RentAdvanceService {
                         .error(new CustomBadRequestException("Status should be HOLDING on creation!")))
                 .map(rentAdvance -> {
                     rentAdvance.setStatus(dto.getStatus());
-                    rentAdvance.setModifiedOn(LocalDateTime.now());
                     if ((dto.getStatus().equals(RentAdvance.Status.RELEASED))) {
                         if (dto.getReturnDetails() == null || dto.getReturnDetails().trim().isEmpty() ||
                                 dto.getReturnDetails().trim().isBlank())

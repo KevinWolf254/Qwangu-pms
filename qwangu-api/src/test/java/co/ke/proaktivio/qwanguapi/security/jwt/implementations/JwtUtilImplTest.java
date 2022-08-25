@@ -1,8 +1,8 @@
 package co.ke.proaktivio.qwanguapi.security.jwt.implementations;
 
 import co.ke.proaktivio.qwanguapi.configs.properties.JwtPropertiesConfig;
-import co.ke.proaktivio.qwanguapi.models.Authority;
-import co.ke.proaktivio.qwanguapi.models.Role;
+import co.ke.proaktivio.qwanguapi.models.UserAuthority;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
@@ -31,8 +31,8 @@ class JwtUtilImplTest {
 
     private JwtUtil util;
     private String token;
-    private final Authority authority = new Authority("1", "APARTMENT", true, true, true, true,
-            true, "1", LocalDateTime.now(), null);
+    private final UserAuthority userAuthority = new UserAuthority("1", "APARTMENT", true, true, true, true,
+            true, "1", LocalDateTime.now(), null, null, null);
 
     @BeforeEach
     public void setUp() {
@@ -40,9 +40,9 @@ class JwtUtilImplTest {
         String roleId = "1";
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
-        Role role = new Role(roleId, "ADMIN", LocalDateTime.now(), null);
-        token = util.generateToken(user, role, List.of(authority));
+        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null, null ,null);
+        UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
+        token = util.generateToken(user, role, List.of(userAuthority));
         System.out.println(token);
     }
 
@@ -107,11 +107,11 @@ class JwtUtilImplTest {
         String roleId = "1";
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null);
-        Role role = new Role(roleId, "ADMIN", LocalDateTime.now(), null);
+        User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null, null ,null);
+        UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
 
         // when
-        String token = util.generateToken(user, role, List.of(authority));
+        String token = util.generateToken(user, role, List.of(userAuthority));
 
         // then
         assertThat(token).isNotEmpty();

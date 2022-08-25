@@ -68,7 +68,6 @@ class ApartmentConfigsTest {
         client
                 .post()
                 .uri("/v1/apartments")
-                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
@@ -81,7 +80,9 @@ class ApartmentConfigsTest {
         String name = "Luxury Apartments";
         var dto = new ApartmentDto(name);
         LocalDateTime now = LocalDateTime.now();
-        var apartment = new Apartment("1", name, now, null);
+        var apartment = new Apartment(name);
+        apartment.setId("1");
+        apartment.setCreatedOn(LocalDateTime.now());
 
         //when
         when(apartmentService.create(dto)).thenReturn(Mono.just(apartment));
@@ -102,8 +103,8 @@ class ApartmentConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.name").isEqualTo(name)
-                .jsonPath("$.data.created").isNotEmpty()
-                .jsonPath("$.data.modified").isEmpty()
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -241,7 +242,10 @@ class ApartmentConfigsTest {
         String id = "1";
         String name2 = "Luxury Apartments B";
         LocalDateTime now = LocalDateTime.now();
-        var apartment = new Apartment("1", name2, now, now);
+        var apartment = new Apartment(name2);
+        apartment.setId("1");
+        apartment.setCreatedOn(now);
+        apartment.setModifiedOn(now);
 
         //when
         when(apartmentService.update(id, dto)).thenReturn(Mono.just(apartment));
@@ -262,7 +266,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.name").isEqualTo(name2)
-                .jsonPath("$.data.modified").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isNotEmpty()
                 .consumeWith(System.out::println);
     }
 
@@ -395,7 +399,6 @@ class ApartmentConfigsTest {
         client
                 .put()
                 .uri(uriFunc)
-                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
@@ -409,7 +412,10 @@ class ApartmentConfigsTest {
         String id = "1";
         String name = "Luxury Apartments";
         LocalDateTime now = LocalDateTime.now();
-        var apartment = new Apartment("1",name, now, null);
+        var apartment = new Apartment(name);
+        apartment.setId("1");
+        apartment.setCreatedOn(now);
+
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
@@ -446,7 +452,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$.data").isArray()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
                 .jsonPath("$.data.[0].name").isEqualTo(name)
-                .jsonPath("$.data.[0].created").isNotEmpty()
+                .jsonPath("$.data.[0].createdOn").isNotEmpty()
                 .consumeWith(System.out::println);
     }
 
