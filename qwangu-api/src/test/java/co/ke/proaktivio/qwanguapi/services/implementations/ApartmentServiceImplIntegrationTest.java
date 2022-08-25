@@ -146,17 +146,17 @@ class ApartmentServiceImplIntegrationTest {
     @Test
     @DisplayName("find paginated returns a flux of apartments when successful")
     void findPaginated_returnsFluxOfApartments_whenSuccessful() {
-        // given
-
         //when
         Flux<Apartment> saved = deleteAll()
                 .thenMany(Flux
                         .just(new ApartmentDto("Luxury Apartments"), new ApartmentDto("Luxury Apartments B")))
                 .flatMap(a -> apartmentService.create(a))
+                .doOnNext(a -> System.out.println("---- Created " +a))
                 .thenMany(apartmentService
                         .findPaginated(Optional.empty(),
                                 Optional.empty(), 1, 10,
-                                OrderType.ASC));
+                                OrderType.ASC))
+                .doOnNext(a -> System.out.println("---- Found " +a));
 
         // then
         StepVerifier

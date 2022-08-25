@@ -77,7 +77,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
     @Test
     void validate() {
         // when
-        Mono<DarajaCustomerToBusinessResponse> validate = darajaCustomerToBusinessService.validate(dto);
+        var validate = darajaCustomerToBusinessService.validate(dto);
         // then
         StepVerifier
                 .create(validate)
@@ -88,7 +88,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
     @Test
     void confirm() {
         // when
-        Mono<DarajaCustomerToBusinessResponse> confirmRentPayment = darajaCustomerToBusinessService.confirm(dto);
+        var confirmRentPayment = darajaCustomerToBusinessService.confirm(dto);
         // then
         StepVerifier
                 .create(confirmRentPayment)
@@ -96,7 +96,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Mono<DarajaCustomerToBusinessResponse> confirmBookingPayment = darajaCustomerToBusinessService.confirm(dtoBooking);
+        var confirmBookingPayment = darajaCustomerToBusinessService.confirm(dtoBooking);
         // then
         StepVerifier
                 .create(confirmBookingPayment)
