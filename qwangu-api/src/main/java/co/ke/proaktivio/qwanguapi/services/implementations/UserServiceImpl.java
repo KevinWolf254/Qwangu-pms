@@ -15,6 +15,7 @@ import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import co.ke.proaktivio.qwanguapi.services.*;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -160,6 +162,7 @@ public class UserServiceImpl implements UserService {
                 .filter(user -> user.getIsEnabled() && !user.getIsAccountLocked() && !user.getIsCredentialsExpired() &&
                         !user.getIsAccountExpired())
                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("Account could be disabled! Contact Administrator!")))
+                .doOnSuccess(a -> log.debug(" Checks for signing in {} were successful", emailAddress))
                 .flatMap(user -> Mono
                         .just(encoder.matches(password, user.getPassword())).subscribeOn(Schedulers.parallel())
                         .filter(passwordsMatch -> passwordsMatch)
@@ -167,19 +170,22 @@ public class UserServiceImpl implements UserService {
                         .flatMap($ -> roleRepository
                                 .findById(user.getRoleId())
                                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                                .doOnSuccess(a -> log.debug(" User role {} found successfully", a.getName()))
                                 .flatMap(role -> authorityService.findByRoleId(role.getId())
                                         .collectList()
+                                        .doOnSuccess(a -> log.debug(" {} user authorities found successfully", a.size()))
                                         .map(authorities -> jwtUtil.generateToken(user, role, authorities)))
                                 .filter(StringUtils::hasText)
                                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
+                                .doOnSuccess(a -> log.info(" Token for {} generated successfully", emailAddress))
                                 .flatMap(token -> userTokenService.create(new UserTokenDto(emailAddress, token))
                                         .map(UserToken::getToken))
+                                .doOnSuccess(a -> log.debug(" Token saved on database successfully"))
                                 .map(TokenDto::new)
                         )
                 );
     }
 
-    // TODO - CREATE USER_PASSWORD_SERVICE
     @Override
     public Mono<User> changePassword(String userId, PasswordDto dto) {
         return userRepository.findById(userId)

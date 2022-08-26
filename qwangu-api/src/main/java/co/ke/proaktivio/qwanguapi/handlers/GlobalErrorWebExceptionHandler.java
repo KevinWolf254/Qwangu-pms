@@ -5,6 +5,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.jsonwebtoken.JwtException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -25,6 +26,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+@Log4j2
 @Component
 @Order(-2)
 public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
@@ -59,7 +61,8 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     HttpStatus.BAD_REQUEST.value(),
                                     false,
                                     e instanceof MailException ? "Mail could not be sent!" : e.getMessage(), null)
-                    ), Response.class);
+                    ), Response.class)
+                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
         }
         if (e instanceof CustomNotFoundException) {
             return ServerResponse
@@ -72,7 +75,8 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     HttpStatus.NOT_FOUND.value(),
                                     false,
                                     e.getMessage(), null)
-                    ), Response.class);
+                    ), Response.class)
+                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
         }
         if (e instanceof UsernameNotFoundException || e instanceof JwtException) {
             return ServerResponse
@@ -85,8 +89,8 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     HttpStatus.UNAUTHORIZED.value(),
                                     false,
                                     e.getMessage(), null)
-                    ), Response.class);
-
+                    ), Response.class)
+                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
         }
         if (e instanceof AccessDeniedException) {
             return ServerResponse
@@ -99,7 +103,8 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     HttpStatus.FORBIDDEN.value(),
                                     false,
                                     e.getMessage(), null)
-                    ), Response.class);
+                    ), Response.class)
+                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
         }
         if (e instanceof ResponseStatusException) {
             return ServerResponse
@@ -112,7 +117,8 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     ((ResponseStatusException) e).getStatus().value(),
                                     false,
                                     e.getMessage(), null)
-                    ), Response.class);
+                    ), Response.class)
+                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
         }
         return ServerResponse
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -124,6 +130,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                 false,
                                 e.getMessage(), null)
-                ), Response.class);
+                ), Response.class)
+                .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
     }
 }

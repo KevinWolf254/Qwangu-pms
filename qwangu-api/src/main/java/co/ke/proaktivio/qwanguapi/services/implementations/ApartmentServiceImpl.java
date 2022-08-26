@@ -9,6 +9,7 @@ import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,6 +23,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class ApartmentServiceImpl implements ApartmentService {
@@ -37,14 +39,17 @@ public class ApartmentServiceImpl implements ApartmentService {
                 .exists(query, Apartment.class)
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name))))
+                .doOnSuccess(a -> log.debug(" Checks for Apartment {} was successful", dto.getName()))
                 .map($ -> new Apartment(name))
-                .flatMap(template::save);
+                .flatMap(template::save)
+                .doOnSuccess(a -> log.debug(" Apartment with name {} created on database successfully", dto.getName()));
     }
 
     @Override
     public Mono<Apartment> update(String id, ApartmentDto dto) {
         String apartmentName = dto.getName();
-        return apartmentRepository.findById(id)
+        return apartmentRepository
+                .findById(id)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exists!"
                         .formatted(id))))
                 .flatMap(apartment -> exists(apartmentName)
@@ -56,7 +61,9 @@ public class ApartmentServiceImpl implements ApartmentService {
                             apartment.setModifiedOn(LocalDateTime.now());
                             return apartment;
                         }))
-                .flatMap(apartmentRepository::save);
+                .doOnSuccess(a -> log.debug(" Checks for Apartment {} was successful", dto.getName()))
+                .flatMap(apartmentRepository::save)
+                .doOnSuccess(a -> log.debug(" Apartment with name {} update on database successfully", dto.getName()));
     }
 
     public Mono<Boolean> exists(String name) {
@@ -76,7 +83,8 @@ public class ApartmentServiceImpl implements ApartmentService {
         query.with(pageable)
                 .with(sort);
         return template.find(query, Apartment.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("Apartments were not found!")));
+                .switchIfEmpty(Flux.error(new CustomNotFoundException("Apartments were not found!")))
+                .doOnComplete(() -> log.debug(" Apartments retrieved from database successfully"));
     }
 
     @Override
@@ -85,6 +93,7 @@ public class ApartmentServiceImpl implements ApartmentService {
                 .findById(id, Apartment.class)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(id))))
                 .flatMap(template::remove)
-                .map(DeleteResult::wasAcknowledged);
+                .map(DeleteResult::wasAcknowledged)
+                .doOnSuccess($ -> log.debug(" Apartment with id {} deleted from database successfully", id));
     }
 }

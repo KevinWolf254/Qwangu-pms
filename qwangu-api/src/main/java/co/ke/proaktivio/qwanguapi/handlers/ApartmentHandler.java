@@ -31,10 +31,13 @@ public class ApartmentHandler {
     private final ApartmentService apartmentService;
 
     public Mono<ServerResponse> create(ServerRequest request) {
-        return request.bodyToMono(ApartmentDto.class)
+        return request
+                .bodyToMono(ApartmentDto.class)
+                .doOnSuccess(a -> log.info(" Received request to create {}", a))
                 .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
+                .doOnSuccess(a -> log.debug(" Validation of request to create apartment was successful"))
                 .flatMap(apartmentService::create)
-                .doOnSuccess(a -> log.info(" Created {}", a))
+                .doOnSuccess(a -> log.info(" Created apartment {} successfully", a.getName()))
                 .doOnError(e -> log.error(" Failed to create apartment. Error ", e))
                 .flatMap(created ->
                         ServerResponse
@@ -43,15 +46,19 @@ public class ApartmentHandler {
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
                                         HttpStatus.CREATED.value(), true, "Apartment created successfully.",
-                                        created)), Response.class));
+                                        created)), Response.class))
+                .doOnSuccess(a -> log.debug(" Sent response with status code {} for creating apartment", a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
         String id = request.pathVariable("apartmentId");
-        return request.bodyToMono(ApartmentDto.class)
+        return request
+                .bodyToMono(ApartmentDto.class)
+                .doOnSuccess(a -> log.info(" Received request to update {}", a))
                 .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
+                .doOnSuccess(a -> log.debug(" Validation of request to update apartment was successful"))
                 .flatMap(dto -> apartmentService.update(id, dto))
-                .doOnSuccess(a -> log.info(" Updated {}", a))
+                .doOnSuccess(a -> log.info(" Updated apartment {} successfully", a.getName()))
                 .doOnError(e -> log.error(" Failed to update apartment. Error ", e))
                 .flatMap(updated ->
                         ServerResponse
@@ -60,7 +67,8 @@ public class ApartmentHandler {
                                         LocalDateTime.now().toString(),
                                         "",
                                         HttpStatus.OK.value(), true,"Apartment updated successfully.",
-                                        updated)), Response.class));
+                                        updated)), Response.class))
+                .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating apartment", a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -69,6 +77,7 @@ public class ApartmentHandler {
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
+        log.info(" Received request for querying apartments");
         return apartmentService.findPaginated(
                         id,
                         name,
@@ -76,7 +85,7 @@ public class ApartmentHandler {
                         pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
                         order.map(OrderType::valueOf).orElse(OrderType.DESC)
                 ).collectList()
-                .doOnSuccess(a -> log.info(" Found {} apartments", a.size()))
+                .doOnSuccess(a -> log.info(" Query request returned {} apartments", a.size()))
                 .doOnError(e -> log.error(" Failed to find apartment. Error ", e))
                 .flatMap(results ->
                         ServerResponse
@@ -85,13 +94,15 @@ public class ApartmentHandler {
                                         LocalDateTime.now().toString(),
                                         "",
                                         HttpStatus.OK.value(),true,"Apartments found successfully.",
-                                        results)), Response.class));
+                                        results)), Response.class))
+                .doOnSuccess(a -> log.debug(" Sent response with status code {} for querying apartment", a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
         String id = request.pathVariable("apartmentId");
+        log.info(" Received request to delete apartment with id {}", id);
         return apartmentService.deleteById(id)
-                .doOnSuccess($ -> log.info(" Deleted apartment"))
+                .doOnSuccess($ -> log.info(" Deleted apartment successfully"))
                 .doOnError(e -> log.error(" Failed to delete apartment. Error ", e))
                 .flatMap(result ->
                         ServerResponse
@@ -101,7 +112,8 @@ public class ApartmentHandler {
                                         "",
                                         HttpStatus.OK.value(),
                                         true, "Apartment with id %s deleted successfully.".formatted(id),
-                                        null)), Response.class));
+                                        null)), Response.class))
+                .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting apartment", a.rawStatusCode()));
     }
 
     private Function<ApartmentDto, ApartmentDto> validateApartmentDtoFunc(Validator validator) {
