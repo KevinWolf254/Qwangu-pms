@@ -7,6 +7,7 @@ import co.ke.proaktivio.qwanguapi.services.UnitService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.UnitDtoValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -26,6 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class UnitHandler {
@@ -33,22 +35,31 @@ public class UnitHandler {
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(UnitDto.class)
+                .doOnSuccess(a -> log.info(" Received request to create {}", a))
                 .map(validateUnitDtoFunc(new UnitDtoValidator()))
+                .doOnSuccess(a -> log.debug(" Validation of request to create unit was successful"))
                 .flatMap(unitService::create)
+                .doOnSuccess(a -> log.info(" Created unit {} successfully", a.getAccountNo()))
+                .doOnError(e -> log.error(" Failed to create unit. Error ", e))
                 .flatMap(created ->
                         ServerResponse.created(URI.create("v1/units/%s".formatted(created.getId())))
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
                                         HttpStatus.CREATED.value(),true, "Unit created successfully.",
-                                        created)), Response.class));
+                                        created)), Response.class))
+                .doOnSuccess(a -> log.debug(" Sent response with status code {} for creating unit", a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
         String id = request.pathVariable("unitId");
         return request.bodyToMono(UnitDto.class)
+                .doOnSuccess(a -> log.info(" Received request to update {}", a))
                 .map(validateUnitDtoFunc(new UnitDtoValidator()))
+                .doOnSuccess(a -> log.debug(" Validation of request to update unit was successful"))
                 .flatMap(dto -> unitService.update(id, dto))
+                .doOnSuccess(a -> log.info(" Updated unit {} successfully", a.getAccountNo()))
+                .doOnError(e -> log.error(" Failed to update unit. Error ", e))
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
@@ -56,7 +67,8 @@ public class UnitHandler {
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
                                         HttpStatus.OK.value(),true, "Unit updated successfully.",
-                                        updated)), Response.class));
+                                        updated)), Response.class))
+                .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating unit", a.rawStatusCode()));
     }
 
     private Optional<Integer> convertToInteger(Optional<String> paramOpt) {
@@ -89,17 +101,20 @@ public class UnitHandler {
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
-            if (type.isPresent() &&  !EnumUtils.isValidEnum(Unit.Type.class, type.get())) {
-                String[] arrayOfState = Stream.of(Unit.Type.values()).map(Unit.Type::getType).toArray(String[]::new);
-                String states = String.join(" or ", arrayOfState);
-                throw new CustomBadRequestException("Type should be " + states + "!");
-            }
+        log.info(" Received request for querying units");
+        if (type.isPresent() &&  !EnumUtils.isValidEnum(Unit.Type.class, type.get())) {
+            String[] arrayOfState = Stream.of(Unit.Type.values()).map(Unit.Type::getType).toArray(String[]::new);
+            String states = String.join(" or ", arrayOfState);
+            throw new CustomBadRequestException("Type should be " + states + "!");
+        }
+        log.debug(" Validation of request param Unit.Type was successful");
 
-            if (status.isPresent() &&  !EnumUtils.isValidEnum(Unit.Status.class, status.get())) {
-                String[] arrayOfState = Stream.of(Unit.Status.values()).map(Unit.Status::getState).toArray(String[]::new);
-                String states = String.join(" or ", arrayOfState);
-                throw new CustomBadRequestException("Status should be " + states + "!");
-            }
+        if (status.isPresent() &&  !EnumUtils.isValidEnum(Unit.Status.class, status.get())) {
+            String[] arrayOfState = Stream.of(Unit.Status.values()).map(Unit.Status::getState).toArray(String[]::new);
+            String states = String.join(" or ", arrayOfState);
+            throw new CustomBadRequestException("Status should be " + states + "!");
+        }
+        log.debug(" Validation of request param Unit.Status was successful");
 
             Optional<Integer> floorNoResult = convertToInteger(floorNo);
             Optional<Integer> noOfBedrooms = convertToInteger(bedrooms);
@@ -123,6 +138,8 @@ public class UnitHandler {
                             finalPageSize,
                             finalOrder
                     ).collectList()
+                    .doOnSuccess(a -> log.info(" Query request returned {} units", a.size()))
+                    .doOnError(e -> log.error(" Failed to find units. Error ", e))
                     .flatMap(results ->
                             ServerResponse
                                     .ok()
@@ -145,12 +162,16 @@ public class UnitHandler {
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
                                         HttpStatus.OK.value(),true, "Units found successfully.",
-                                        units)), Response.class));
+                                        units)), Response.class))
+                .doOnSuccess(a -> log.debug(" Sent response with status code {} for querying units", a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
         String id = request.pathVariable("unitId");
+        log.info(" Received request to delete unit with id {}", id);
         return unitService.deleteById(id)
+                .doOnSuccess($ -> log.info(" Deleted unit successfully"))
+                .doOnError(e -> log.error(" Failed to delete unit. Error ", e))
                 .flatMap(result ->
                         ServerResponse
                                 .ok()
@@ -159,7 +180,8 @@ public class UnitHandler {
                                         request.uri().getPath(),
                                         HttpStatus.OK.value(),true,
                                         "Unit with id %s deleted successfully.".formatted(id), null)),
-                                        Response.class));
+                                        Response.class))
+                .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting unit", a.rawStatusCode()));
     }
 
     private Function<UnitDto, UnitDto> validateUnitDtoFunc(Validator validator) {
