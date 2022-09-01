@@ -34,7 +34,7 @@ public class UserHandler {
                 .doOnSuccess(a -> log.debug(" Validation of request to create user was successful"))
                 .flatMap(userService::createAndNotify)
                 .doOnSuccess(a -> log.info(" Created user {} successfully", a.getEmailAddress()))
-                .doOnError(e -> log.error(" Failed to create apartment. Error ", e))
+                .doOnError(e -> log.error(" Failed to create user. Error ", e))
                 .map(UserWithoutPasswordDto::new)
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/users/%s".formatted(created.getId())))
@@ -85,7 +85,7 @@ public class UserHandler {
                 .map(UserWithoutPasswordDto::new)
                 .collectList()
                 .doOnSuccess(a -> log.info(" Query request returned {} users", a.size()))
-                .doOnError(e -> log.error(" Failed to find user. Error ", e))
+                .doOnError(e -> log.error(" Failed to find users. Error ", e))
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
