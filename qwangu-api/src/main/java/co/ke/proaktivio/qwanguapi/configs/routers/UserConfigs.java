@@ -135,7 +135,8 @@ public class UserConfigs {
                                             @ApiResponse(responseCode = "400", description = "Token is required!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.QUERY, name = "token")}
+                                    parameters = {@Parameter(in = ParameterIn.QUERY, name = "token")},
+                                    security = @SecurityRequirement(name = "")
                             )
                     ),
                     @RouterOperation(
@@ -152,7 +153,8 @@ public class UserConfigs {
                                             @ApiResponse(responseCode = "400", description = "Token is required!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.QUERY, name = "token")}
+                                    parameters = {@Parameter(in = ParameterIn.QUERY, name = "token")},
+                                    security = @SecurityRequirement(name = "")
                             )
                     ),
                     @RouterOperation(
@@ -186,7 +188,8 @@ public class UserConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "400", description = "User id not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "")
                             )
                     )
             }
