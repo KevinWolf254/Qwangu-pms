@@ -23,31 +23,31 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class UserRoleConfigs {
 
     @Bean
-    @RouterOperations(
-            {
-                    @RouterOperation(
-                            path = "/v1/roles",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = UserRoleHandler.class, beanMethod = "find",
-                            operation = @Operation(
-                                    operationId = "find",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Role found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Role were not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "userRoleId"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "name"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    }
-                            )
-                    )
-            }
-    )
+//    @RouterOperations(
+//            {
+//                    @RouterOperation(
+//                            path = "/v1/roles",
+//                            produces = MediaType.APPLICATION_JSON_VALUE,
+//                            method = RequestMethod.GET, beanClass = UserRoleHandler.class, beanMethod = "find",
+//                            operation = @Operation(
+//                                    operationId = "find",
+//                                    responses = {
+//                                            @ApiResponse(responseCode = "200", description = "Role found successfully.",
+//                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+//                                            @ApiResponse(responseCode = "404", description = "Role were not found!",
+//                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+//                                    },
+//                                    parameters = {
+//                                            @Parameter(in = ParameterIn.QUERY, name = "userRoleId"),
+//                                            @Parameter(in = ParameterIn.QUERY, name = "name"),
+//                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
+//                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
+//                                            @Parameter(in = ParameterIn.QUERY, name = "order")
+//                                    }
+//                            )
+//                    )
+//            }
+//    )
     RouterFunction<ServerResponse> roleRoute(UserRoleHandler handler) {
         return route()
                 .path("v1/roles", builder -> builder

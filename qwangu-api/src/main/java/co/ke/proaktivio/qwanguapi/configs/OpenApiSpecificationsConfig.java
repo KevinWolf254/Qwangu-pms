@@ -15,7 +15,7 @@ public class OpenApiSpecificationsConfig {
 
     @Bean
     public OpenAPI customizeOpenApi() {
-        final String securitySchemeName = "Bearer Authentication";
+        final String securitySchemeName = "Bearer authentication";
         return new OpenAPI()
                 .info(new Info().title("Qwangu API")
                         .description("Rent management application")

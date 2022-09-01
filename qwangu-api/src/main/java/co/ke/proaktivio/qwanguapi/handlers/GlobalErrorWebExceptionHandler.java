@@ -1,8 +1,6 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.exceptions.*;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.log4j.Log4j2;

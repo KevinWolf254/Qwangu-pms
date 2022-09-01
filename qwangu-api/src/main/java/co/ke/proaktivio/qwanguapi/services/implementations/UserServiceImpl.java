@@ -1,8 +1,6 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.exceptions.*;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;

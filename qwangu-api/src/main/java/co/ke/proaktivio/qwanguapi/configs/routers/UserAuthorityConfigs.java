@@ -23,31 +23,31 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class UserAuthorityConfigs {
 
     @Bean
-    @RouterOperations(
-            {
-                    @RouterOperation(
-                            path = "/v1/authorities",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = UserAuthorityHandler.class, beanMethod = "find",
-                            operation = @Operation(
-                                    operationId = "find",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Authorities found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Authorities were not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "authorityId"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "name"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    }
-                            )
-                    )
-            }
-    )
+//    @RouterOperations(
+//            {
+//                    @RouterOperation(
+//                            path = "/v1/authorities",
+//                            produces = MediaType.APPLICATION_JSON_VALUE,
+//                            method = RequestMethod.GET, beanClass = UserAuthorityHandler.class, beanMethod = "find",
+//                            operation = @Operation(
+//                                    operationId = "find",
+//                                    responses = {
+//                                            @ApiResponse(responseCode = "200", description = "Authorities found successfully.",
+//                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+//                                            @ApiResponse(responseCode = "404", description = "Authorities were not found!",
+//                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+//                                    },
+//                                    parameters = {
+//                                            @Parameter(in = ParameterIn.QUERY, name = "authorityId"),
+//                                            @Parameter(in = ParameterIn.QUERY, name = "name"),
+//                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
+//                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
+//                                            @Parameter(in = ParameterIn.QUERY, name = "order")
+//                                    }
+//                            )
+//                    )
+//            }
+//    )
     RouterFunction<ServerResponse> userAuthorityRoute(UserAuthorityHandler handler) {
         return route()
                 .path("v1/authorities", builder -> builder

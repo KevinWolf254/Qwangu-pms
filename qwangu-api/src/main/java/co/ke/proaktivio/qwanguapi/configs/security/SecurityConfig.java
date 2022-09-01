@@ -59,7 +59,7 @@ public class SecurityConfig {
 
                         "/v1/signIn",
                         "/v1/users/sendResetPassword",
-                        "/v1/token",
+                        "/v1/tokens",
                         "/v1/resetPassword"
                 ).permitAll()
                 .pathMatchers( "/v1/apartments/**").hasAnyRole("SUPER_ADMIN")
