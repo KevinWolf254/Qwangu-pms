@@ -49,9 +49,9 @@ public class UserHandler {
     public Mono<ServerResponse> update(ServerRequest request) {
         String id = request.pathVariable("userId");
         return request
-                .bodyToMono(UserDto.class)
-                .doOnSuccess(a -> log.info(" Received request to update {}", a))
-                .map(validateUserDtoFunc(new UserDtoValidator()))
+                .bodyToMono(UpdateUserDto.class)
+                .doOnSuccess(a -> log.info(" Request to update {}", a))
+                .map(validateUpdateUserDtoFunc(new UpdateUserDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to update user was successful"))
                 .flatMap(dto -> userService.update(id, dto))
                 .doOnSuccess(a -> log.info(" Updated user {} successfully", a.getEmailAddress()))
@@ -74,7 +74,7 @@ public class UserHandler {
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
-        log.info(" Received request for querying users");
+        log.info(" Request for querying users");
         return userService.findPaginated(
                         id,
                         emailAddress,
@@ -99,7 +99,7 @@ public class UserHandler {
 
     public Mono<ServerResponse> delete(ServerRequest request) {
         String id = request.pathVariable("userId");
-        log.info(" Received request to delete user with id {}", id);
+        log.info(" Request to delete user with id {}", id);
         return userService
                 .deleteById(id)
                 .doOnSuccess($ -> log.info(" Deleted user successfully"))
@@ -118,7 +118,7 @@ public class UserHandler {
     public Mono<ServerResponse> activate(ServerRequest request) {
         String id = request.pathVariable("userId");
         Optional<String> tokenOpt = request.queryParam("token");
-        log.info(" Received request to activate user with id {}", id);
+        log.info(" Request to activate user with id {}", id);
         return Mono.just(tokenOpt)
                 .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
@@ -142,7 +142,7 @@ public class UserHandler {
     public Mono<ServerResponse> sendResetPassword(ServerRequest request) {
         return request
                 .bodyToMono(EmailDto.class)
-                .doOnSuccess(a -> log.info(" Received request to create {}", a))
+                .doOnSuccess(a -> log.info(" Request to create {}", a))
                 .map(validateEmailDtoFunc(new EmailDtoValidator()))
                 .flatMap(userService::sendResetPassword)
                 .doOnSuccess($ -> log.info(" Reset password request sent"))
@@ -176,7 +176,7 @@ public class UserHandler {
     public Mono<ServerResponse> resetPassword(ServerRequest request) {
         Optional<String> tokenOpt = request.queryParam("token");
         return Mono.just(tokenOpt)
-                .doOnSuccess(a -> log.info(" Received request to reset password"))
+                .doOnSuccess(a -> log.info(" Request to reset password"))
                 .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
                 .map(Optional::get)
@@ -201,7 +201,7 @@ public class UserHandler {
         String id = request.pathVariable("userId");
         return request
                 .bodyToMono(PasswordDto.class)
-                .doOnSuccess(a -> log.info(" Received request to change password"))
+                .doOnSuccess(a -> log.info(" Request to change password"))
                 .map(validatePasswordDtoFunc(new PasswordDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to change password was successful"))
                 .flatMap(dto -> userService.changePassword(id, dto))
@@ -222,7 +222,7 @@ public class UserHandler {
     public Mono<ServerResponse> signIn(ServerRequest request) {
         return request
                 .bodyToMono(SignInDto.class)
-                .doOnSuccess(a -> log.info(" Received request to sign in {}", a.getUsername()))
+                .doOnSuccess(a -> log.info(" Request to sign in {}", a.getUsername()))
                 .map(validateSignInDtoFunc(new SignInDtoValidator()))
                 .flatMap(userService::signIn)
                 .doOnSuccess(t -> log.info("Signed in successfully"))

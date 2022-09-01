@@ -26,6 +26,20 @@ public class CustomUserHandlerValidatorUtil {
         };
     }
 
+    public static Function<UpdateUserDto, UpdateUserDto> validateUpdateUserDtoFunc(Validator validator) {
+        return userDto -> {
+            Errors errors = new BeanPropertyBindingResult(userDto, UpdateUserDto.class.getName());
+            validator.validate(userDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return userDto;
+        };
+    }
+
     public static Function<PasswordDto, PasswordDto> validatePasswordDtoFunc(Validator validator) {
         return passwordDto -> {
             Errors errors = new BeanPropertyBindingResult(passwordDto, PasswordDto.class.getName());

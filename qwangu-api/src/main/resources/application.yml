@@ -2,6 +2,8 @@ server:
   port: 3001
 
 spring:
+  profiles:
+    active: dev, swagger
   data:
     mongodb:
       database: qwangu_db

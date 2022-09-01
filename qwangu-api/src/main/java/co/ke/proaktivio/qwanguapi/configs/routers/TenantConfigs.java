@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -63,7 +64,8 @@ public class TenantConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Tenant were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -81,7 +83,8 @@ public class TenantConfigs {
                                             @ApiResponse(responseCode = "404", description = "Tenant was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "tenantId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "tenantId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -98,7 +101,8 @@ public class TenantConfigs {
                                             @ApiResponse(responseCode = "404", description = "Tenant was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "tenantId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "tenantId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     )
             }

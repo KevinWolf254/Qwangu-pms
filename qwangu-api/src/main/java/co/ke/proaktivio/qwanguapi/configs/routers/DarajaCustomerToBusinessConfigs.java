@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +36,8 @@ public class DarajaCustomerToBusinessConfigs {
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Validate successfully.",
                                                     content = @Content(schema = @Schema(implementation = DarajaCustomerToBusinessResponse.class)))
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -48,7 +50,8 @@ public class DarajaCustomerToBusinessConfigs {
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Created successfully.",
                                                     content = @Content(schema = @Schema(implementation = DarajaCustomerToBusinessResponse.class)))
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
             }

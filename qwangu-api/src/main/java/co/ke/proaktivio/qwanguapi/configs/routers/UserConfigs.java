@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -73,7 +74,7 @@ public class UserConfigs {
                             method = RequestMethod.PUT, beanClass = UserHandler.class, beanMethod = "update",
                             operation = @Operation(
                                     operationId = "update",
-                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UserDto.class))),
+                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UpdateUserDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "User updated successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
@@ -177,7 +178,9 @@ public class UserConfigs {
                             method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "signIn",
                             operation = @Operation(
                                     operationId = "signIn",
-                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SignInDto.class))),
+                                    requestBody = @RequestBody(content = @Content(
+                                            schema = @Schema(implementation = SignInDto.class)
+                                    )),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Signed in successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),

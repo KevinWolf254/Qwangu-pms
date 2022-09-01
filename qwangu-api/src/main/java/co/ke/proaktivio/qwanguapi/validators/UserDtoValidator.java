@@ -23,7 +23,7 @@ public class UserDtoValidator implements Validator {
         validateRoleId((UserDto) target, errors);
     }
 
-    private void validateEmailAddress(UserDto request, Errors errors) {
+    protected void validateEmailAddress(UserDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "emailAddress", "field.required", "Email address is required.");
         String emailAddress = request.getEmailAddress();
         if (emailAddress != null) {
@@ -36,7 +36,7 @@ public class UserDtoValidator implements Validator {
         }
     }
 
-    private void validatePerson(UserDto request, Errors errors) {
+    protected void validatePerson(UserDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "person.firstName", "field.required", "First name is required.");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "person.surname", "field.required", "Surname is required.");
         String firstName = request.getPerson().getFirstName();
@@ -62,7 +62,7 @@ public class UserDtoValidator implements Validator {
         }
     }
 
-    private void validateRoleId(UserDto request, Errors errors) {
+    protected void validateRoleId(UserDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roleId", "field.required", "Role id is required.");
         String roleId = request.getRoleId();
         if (roleId != null) {
