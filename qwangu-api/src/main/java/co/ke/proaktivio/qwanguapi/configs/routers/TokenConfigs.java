@@ -48,7 +48,7 @@ public class TokenConfigs {
 //    )
     RouterFunction<ServerResponse> routeToken(TokenHandler handler) {
         return route()
-                .path("v1/token", builder -> builder
+                .path("v1/tokens", builder -> builder
                         .GET(handler::find)
                 ).build();
     }

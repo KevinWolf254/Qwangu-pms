@@ -158,15 +158,14 @@ public class UserHandler {
                                         null)), Response.class))
                 .onErrorResume(e -> {
                     if (e instanceof CustomNotFoundException) {
-                        return Mono.error(new CustomBadRequestException("Email for password reset will be sent if email address exists."));
-//                        return ServerResponse
-//                                .ok()
-//                                .body(Mono.just(new Response<>(
-//                                        LocalDateTime.now().toString(),
-//                                        request.uri().getPath(),
-//                                        HttpStatus.BAD_REQUEST.value(),true,
-//                                        "Email for password reset will be sent if email address exists.",
-//                                        null)), Response.class);
+                        return ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.BAD_REQUEST.value(),true,
+                                        "Email for password reset will be sent if email address exists.",
+                                        null)), Response.class);
                     }
                     return Mono.error(e);
                 })

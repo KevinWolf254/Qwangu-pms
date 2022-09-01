@@ -348,7 +348,7 @@ class UserConfigsTest {
         String roleId = "1";
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
-        UserDto dto = new UserDto(person, emailAddress, roleId);
+        UpdateUserDto dto = new UpdateUserDto(person, emailAddress, roleId, true);
         User user = new User(id, person, emailAddress, roleId, null, false, false,
                 false, true, LocalDateTime.now(), null, LocalDateTime.now() ,null);
 
@@ -406,7 +406,7 @@ class UserConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required.")
+                .jsonPath("$.message").isEqualTo("Email address is required. First name is required. Surname is required. Role id is required. IsEnabled is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -436,7 +436,7 @@ class UserConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length.")
+                .jsonPath("$.message").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid. First name is required. Surname is required. First name must be at least 3 characters in length. Surname must be at least 3 characters in length. Role id is required. Role id must be at least 1 characters in length. IsEnabled is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -466,7 +466,7 @@ class UserConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length.")
+                .jsonPath("$.message").isEqualTo("First name must be at most 25 characters in length. First name must be at most 40 characters in length. Surname must be at most 25 characters in length. IsEnabled is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -496,7 +496,7 @@ class UserConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("Email address is not valid.")
+                .jsonPath("$.message").isEqualTo("Email address is not valid. IsEnabled is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -508,7 +508,7 @@ class UserConfigsTest {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
-        UserDto dto = new UserDto(person, "person@gmail.com", "1");
+        UpdateUserDto dto = new UpdateUserDto(person, "person@gmail.com", "1", true);
 
         //when
         Mockito.when(userService.update(id, dto)).thenThrow(new RuntimeException("Something happened!"));
@@ -1161,9 +1161,11 @@ class UserConfigsTest {
                 .jsonPath("$.message").isEqualTo("Email address is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
+
         // given
         var emailDto3 = new EmailDto("person@gmail.com");
         // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
         when(userService.sendResetPassword(emailDto3)).thenReturn(Mono.error(new CustomNotFoundException("")));
 
         // then

@@ -56,7 +56,7 @@ class TokenConfigsTest {
         var oneTimeToken = new OneTimeToken("1", token, now, now, "1");
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
-                        .path("/v1/token")
+                        .path("/v1/tokens")
                         .queryParam("token", token)
                         .build();
         // when
@@ -79,7 +79,7 @@ class TokenConfigsTest {
         // given
         Function<UriBuilder, URI> uriFunc1 = uriBuilder ->
                 uriBuilder
-                        .path("/v1/token")
+                        .path("/v1/tokens")
                         .queryParam("token", "")
                         .build();
         // then
