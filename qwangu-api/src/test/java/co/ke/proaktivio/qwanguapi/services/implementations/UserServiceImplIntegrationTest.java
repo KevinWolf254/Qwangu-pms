@@ -600,7 +600,7 @@ class UserServiceImplIntegrationTest {
         Flux<OneTimeToken> resetPassword = deleteAll()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created " + u))
-                .then(underTest.sendResetPassword(new EmailDto(emailAddress)))
+                .then(underTest.sendForgotPasswordEmail(new EmailDto(emailAddress)))
                 .thenMany(oneTimeTokenRepository.findAll())
                 .doOnNext(ott -> System.out.println("---- Found " + ott));
 

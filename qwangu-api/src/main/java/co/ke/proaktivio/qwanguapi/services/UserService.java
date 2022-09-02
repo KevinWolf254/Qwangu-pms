@@ -26,5 +26,5 @@ public interface UserService {
 
     Mono<Boolean> deleteById(String id);
 
-    Mono<Void> sendResetPassword(EmailDto dto);
+    Mono<Void> sendForgotPasswordEmail(EmailDto dto);
 }
