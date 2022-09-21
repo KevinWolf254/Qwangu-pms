@@ -230,7 +230,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Mono<Void> sendResetPassword(EmailDto dto) {
+    public Mono<Void> sendForgotPasswordEmail(EmailDto dto) {
         return userRepository.findOne(Example.of(new User(dto.getEmailAddress())))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Email address %s could not be found!".formatted(dto.getEmailAddress()))))
                 .flatMap(user -> {

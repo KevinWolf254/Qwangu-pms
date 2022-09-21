@@ -58,9 +58,9 @@ public class SecurityConfig {
                         "/webjars/**",
 
                         "/v1/signIn",
-                        "/v1/users/sendResetPassword",
+                        "/v1/forgotPassword",
                         "/v1/tokens",
-                        "/v1/resetPassword"
+                        "/v1/setPassword"
                 ).permitAll()
                 .pathMatchers( "/v1/apartments/**").hasAnyRole("SUPER_ADMIN")
                 .pathMatchers( "/v1/units/**").hasAnyRole("SUPER_ADMIN")
