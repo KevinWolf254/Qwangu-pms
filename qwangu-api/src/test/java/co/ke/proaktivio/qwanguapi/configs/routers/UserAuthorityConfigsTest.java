@@ -8,7 +8,7 @@ import co.ke.proaktivio.qwanguapi.handlers.UserAuthorityHandler;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.services.AuthorityService;
+import co.ke.proaktivio.qwanguapi.services.UserAuthorityService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +48,7 @@ class UserAuthorityConfigsTest {
     @Autowired
     private WebTestClient client;
     @MockBean
-    private AuthorityService authorityService;
+    private UserAuthorityService userAuthorityService;
 
     @MockBean
     private ReactiveAuthenticationManager authenticationManager;
@@ -101,8 +101,7 @@ class UserAuthorityConfigsTest {
         OrderType order = OrderType.ASC;
 
         // when
-        Mockito.when(authorityService.findPaginated(
-                Optional.of(id),
+        Mockito.when(userAuthorityService.findPaginated(
                 Optional.of(name),
                 finalPage,
                 finalPageSize,
@@ -154,8 +153,7 @@ class UserAuthorityConfigsTest {
         String order = OrderType.ASC.name();
 
         // when
-        Mockito.when(authorityService.findPaginated(
-                        Optional.of(id),
+        Mockito.when(userAuthorityService.findPaginated(
                         Optional.of(name),
                         finalPage,
                         finalPageSize,
@@ -201,8 +199,7 @@ class UserAuthorityConfigsTest {
 
         // when
         OrderType order = OrderType.ASC;
-        Mockito.when(authorityService.findPaginated(
-                        Optional.of(id),
+        Mockito.when(userAuthorityService.findPaginated(
                         Optional.of(name),
                         finalPage,
                         finalPageSize,

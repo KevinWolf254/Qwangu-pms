@@ -9,7 +9,7 @@ import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
-import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
+import co.ke.proaktivio.qwanguapi.repositories.UserAuthorityRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
@@ -50,7 +50,7 @@ class UserServiceImplIntegrationTest {
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
-    private AuthorityRepository authorityRepository;
+    private UserAuthorityRepository userAuthorityRepository;
     @Autowired
     private UserService underTest;
     @Autowired
@@ -83,7 +83,7 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess($ -> System.out.println("---- Deleted all users!"))
                 .then(roleRepository.deleteAll())
                 .doOnSuccess($ -> System.out.println("---- Deleted all roles!"))
-                .then(authorityRepository.deleteAll())
+                .then(userAuthorityRepository.deleteAll())
                 .doOnSuccess($ -> System.out.println("---- Deleted all authorities!"))
                 .then(oneTimeTokenRepository.deleteAll())
                 .doOnSuccess($ -> System.out.println("---- Deleted all tokens!"));
@@ -106,9 +106,9 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all Users!"))
                 .then(roleRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Roles!"))
-                .then(authorityRepository.deleteAll())
+                .then(userAuthorityRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Authorities!"))
-                .then(authorityRepository.save(userAuthority))
+                .then(userAuthorityRepository.save(userAuthority))
                 .doOnSuccess(System.out::println)
                 .flatMap(authResult -> roleRepository.save(role))
                 .doOnSuccess(r -> System.out.println("---- Saved " + r))
@@ -163,7 +163,7 @@ class UserServiceImplIntegrationTest {
                 .then(template
                         .dropCollection(UserAuthority.class)
                         .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
-                .then(authorityRepository.save(userAuthority))
+                .then(userAuthorityRepository.save(userAuthority))
                         .doOnSuccess(a -> System.out.println("---- Created " + a))
                 .flatMap(authResult -> roleRepository.save(role))
                 .doOnSuccess(a -> System.out.println("---- Created " + a))
@@ -215,7 +215,7 @@ class UserServiceImplIntegrationTest {
 
         // when
         Mono<User> user = deleteAll()
-                .then(authorityRepository.save(userAuthority))
+                .then(userAuthorityRepository.save(userAuthority))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
                 .then(roleRepository.save(role))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
@@ -256,7 +256,7 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Dropped table Role!"))
                 .then(template.dropCollection(UserAuthority.class))
                 .doOnSuccess(t -> System.out.println("---- Dropped table Authority!"))
-                .then(authorityRepository.save(userAuthority))
+                .then(userAuthorityRepository.save(userAuthority))
                 .doOnSuccess(System.out::println)
                 .flatMap(authResult -> roleRepository.save(role))
                 .doOnSuccess(a -> System.out.println("---- Created " + a))
@@ -296,7 +296,7 @@ class UserServiceImplIntegrationTest {
                 .then(template
                         .dropCollection(UserAuthority.class))
                         .doOnSuccess(t -> System.out.println("---- Dropped table Authority!"))
-                .then(authorityRepository.save(userAuthority)
+                .then(userAuthorityRepository.save(userAuthority)
                         .doOnSuccess(System.out::println))
                 .flatMap(authResult -> roleRepository.save(role))
                 .doOnSuccess(System.out::println)
@@ -337,7 +337,7 @@ class UserServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Dropped table Role!"))
                 .then(template.dropCollection(UserAuthority.class))
                 .doOnSuccess(t -> System.out.println("---- Dropped table Authority!"))
-                .then(authorityRepository.save(userAuthority))
+                .then(userAuthorityRepository.save(userAuthority))
                 .doOnSuccess(System.out::println)
                 .flatMap(authResult -> roleRepository.save(role))
                 .doOnSuccess(System.out::println)
@@ -511,7 +511,7 @@ class UserServiceImplIntegrationTest {
                         .doOnSuccess(r -> System.out.println("---- Created " + r))
                         .flatMap(r -> {
                             authority.setRoleId(r.getId());
-                            return authorityRepository.save(authority)
+                            return userAuthorityRepository.save(authority)
                                     .doOnSuccess(a -> System.out.println("---- Created " + a))
                                     .flatMap($ -> {
                                         u.setRoleId(r.getId());

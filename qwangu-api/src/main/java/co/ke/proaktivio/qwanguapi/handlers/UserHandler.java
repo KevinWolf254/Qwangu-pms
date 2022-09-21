@@ -68,6 +68,20 @@ public class UserHandler {
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating user", a.rawStatusCode()));
     }
 
+    public Mono<ServerResponse> findById(ServerRequest request) {
+        String id = request.pathVariable("userId");
+        return userService.findById(id)
+                .flatMap(results ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,"User found successfully.",
+                                        results)), Response.class))
+                .doOnSuccess(a -> log.info(" Sent response with status code {} for querying user by id", a.rawStatusCode()));
+    }
+
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> id = request.queryParam("userId");
         Optional<String> emailAddress = request.queryParam("emailAddress");

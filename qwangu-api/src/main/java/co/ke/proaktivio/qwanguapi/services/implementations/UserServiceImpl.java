@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder encoder;
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
-    private final AuthorityService authorityService;
+    private final UserAuthorityService userAuthorityService;
     private final ReactiveMongoTemplate template;
     private final UserTokenService userTokenService;
 
@@ -106,6 +106,14 @@ public class UserServiceImpl implements UserService {
                     user.setModifiedOn(LocalDateTime.now());
                     return template.save(user, "USER");
                 });
+    }
+
+    @Override
+    public Mono<User> findById(String userId) {
+        Query query = new Query().addCriteria(Criteria.where("id").is(userId));
+        return template.findOne(query, User.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %S was not found!"
+                        .formatted(userId))));
     }
 
     @Override
@@ -169,7 +177,7 @@ public class UserServiceImpl implements UserService {
                                 .findById(user.getRoleId())
                                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
                                 .doOnSuccess(a -> log.debug(" User role {} found successfully", a.getName()))
-                                .flatMap(role -> authorityService.findByRoleId(role.getId())
+                                .flatMap(role -> userAuthorityService.findByRoleId(role.getId())
                                         .collectList()
                                         .doOnSuccess(a -> log.debug(" {} user authorities found successfully", a.size()))
                                         .map(authorities -> jwtUtil.generateToken(user, role, authorities)))

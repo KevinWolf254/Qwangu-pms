@@ -25,7 +25,7 @@ public class UserRole {
     @LastModifiedDate
     private LocalDateTime modifiedOn;
     @LastModifiedBy
-    private String updatedBy;
+    private String modifiedBy;
 
     public UserRole(String id) {
         this.id = id;

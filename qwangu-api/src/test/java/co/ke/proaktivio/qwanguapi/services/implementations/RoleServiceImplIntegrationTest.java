@@ -5,7 +5,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.services.RoleService;
+import co.ke.proaktivio.qwanguapi.services.UserRoleService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ class RoleServiceImplIntegrationTest {
     @Autowired
     private ReactiveMongoTemplate template;
     @Autowired
-    private RoleService roleService;
+    private UserRoleService userRoleService;
     @MockBean
     private BootstrapConfig bootstrapConfig;
     @MockBean
@@ -50,8 +50,10 @@ class RoleServiceImplIntegrationTest {
         Flux<UserRole> saved = Flux.just(new UserRole(null, "ADMIN", LocalDateTime.now(), null, null, null),
                         new UserRole(null, "SUPERVISOR", LocalDateTime.now(), null, null, null))
                 .flatMap(a -> template.save(a, "USER_ROLE"))
-                .thenMany(roleService.findPaginated(Optional.empty(),
-                        Optional.empty(), 1, 10,
+                .thenMany(userRoleService.findPaginated(
+                        Optional.empty(),
+                        1,
+                        10,
                         OrderType.ASC));
 
         // then
@@ -68,8 +70,10 @@ class RoleServiceImplIntegrationTest {
         //when
         Flux<UserRole> saved = template.dropCollection(UserRole.class)
                 .doOnSuccess(e -> System.out.println("----Dropped role table successfully!"))
-                .thenMany(roleService.findPaginated(Optional.empty(),
-                        Optional.empty(), 1, 10,
+                .thenMany(userRoleService.findPaginated(
+                        Optional.empty(),
+                        1,
+                        10,
                         OrderType.ASC))
                 .doOnSubscribe(a -> System.out.println("----Found no roles!"));
 

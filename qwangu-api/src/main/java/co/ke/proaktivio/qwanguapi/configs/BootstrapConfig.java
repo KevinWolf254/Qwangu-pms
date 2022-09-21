@@ -4,7 +4,7 @@ import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
-import co.ke.proaktivio.qwanguapi.repositories.AuthorityRepository;
+import co.ke.proaktivio.qwanguapi.repositories.UserAuthorityRepository;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import lombok.extern.log4j.Log4j2;
@@ -59,8 +59,8 @@ public class BootstrapConfig {
     );
 
     private Mono<Void> deleteAll(UserRepository userRepository, RoleRepository roleRepository,
-                         AuthorityRepository authorityRepository) {
-        return authorityRepository.deleteAll()
+                         UserAuthorityRepository userAuthorityRepository) {
+        return userAuthorityRepository.deleteAll()
                 .doOnSuccess($ -> log.info(" Deleted all authorities"))
                 .then(roleRepository.deleteAll())
                 .doOnSuccess($ -> log.info(" Deleted all roles"))
@@ -70,16 +70,16 @@ public class BootstrapConfig {
 
     @Bean
     public CommandLineRunner init(UserRepository userRepository, RoleRepository roleRepository,
-                                  AuthorityRepository authorityRepository, PasswordEncoder encoder) {
+                                  UserAuthorityRepository userAuthorityRepository, PasswordEncoder encoder) {
         return args -> {
-            deleteAll(userRepository, roleRepository, authorityRepository)
+            deleteAll(userRepository, roleRepository, userAuthorityRepository)
                     .then(superAdminRole)
                     .flatMap(roleRepository::save)
                     .doOnSuccess(r -> log.info(" Created {}", r))
                     .flatMap(r -> superAdminAuthorities
                                     .doOnNext(a -> a.setRoleId(r.getId()))
                                     .collectList()
-                                    .flatMap(a -> authorityRepository.saveAll(a)
+                                    .flatMap(a -> userAuthorityRepository.saveAll(a)
                                             .doOnNext(as -> log.info(" Created {}", as))
                                             .collectList())
                                     .flatMap($ -> user

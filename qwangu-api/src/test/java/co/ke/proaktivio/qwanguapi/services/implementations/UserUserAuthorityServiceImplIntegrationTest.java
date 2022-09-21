@@ -5,7 +5,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.services.AuthorityService;
+import co.ke.proaktivio.qwanguapi.services.UserAuthorityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +26,11 @@ import java.util.Optional;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class UserAuthorityServiceImplIntegrationTest {
+class UserUserAuthorityServiceImplIntegrationTest {
     @Autowired
     private ReactiveMongoTemplate template;
     @Autowired
-    private AuthorityService authorityService;
+    private UserAuthorityService userAuthorityService;
     @MockBean
     private BootstrapConfig bootstrapConfig;
     @MockBean
@@ -53,8 +53,10 @@ class UserAuthorityServiceImplIntegrationTest {
                         new UserAuthority(null, "APARTMENTS", true, true, true, true,
                                 true, "1", LocalDateTime.now(), null, null, null))
                 .flatMap(a -> template.save(a, "USER_AUTHORITY"))
-                .thenMany(authorityService.findPaginated(Optional.empty(),
-                        Optional.empty(), 1, 10,
+                .thenMany(userAuthorityService.findPaginated(
+                        Optional.empty(),
+                        1,
+                        10,
                         OrderType.ASC));
         // then
         StepVerifier.create(saved)
@@ -68,8 +70,10 @@ class UserAuthorityServiceImplIntegrationTest {
         //when
         Flux<UserAuthority> saved = template.dropCollection(UserAuthority.class)
                 .doOnSuccess(e -> System.out.println("----Dropped authority table successfully!"))
-                .thenMany(authorityService.findPaginated(Optional.empty(),
-                        Optional.empty(), 1, 10,
+                .thenMany(userAuthorityService.findPaginated(
+                        Optional.empty(),
+                        1,
+                        10,
                         OrderType.ASC));
         // then
         StepVerifier

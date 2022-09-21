@@ -7,7 +7,7 @@ import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
-import co.ke.proaktivio.qwanguapi.services.AuthorityService;
+import co.ke.proaktivio.qwanguapi.services.UserAuthorityService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,7 +31,7 @@ class CustomUserDetailsServiceImplTest {
     @Mock
     private RoleRepository roleRepository;
     @Mock
-    private AuthorityService authorityService;
+    private UserAuthorityService userAuthorityService;
     @InjectMocks
     private CustomUserDetailsServiceImpl customUserDetailsService;
 
@@ -52,7 +52,7 @@ class CustomUserDetailsServiceImplTest {
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(username)))).thenReturn(Mono.just(user));
         Mockito.when(roleRepository.findOne(Example.of(new UserRole(user.getRoleId())))).thenReturn(Mono.just(role));
-        Mockito.when(authorityService.findByRoleId("1")).thenReturn(Flux.just(authority));
+        Mockito.when(userAuthorityService.findByRoleId("1")).thenReturn(Flux.just(authority));
         // then
         Mono<UserDetails> request = customUserDetailsService.findByUsername(username)
                 .doOnSuccess(System.out::println)

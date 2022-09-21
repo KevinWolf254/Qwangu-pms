@@ -6,7 +6,7 @@ import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.CustomUserDetails;
 import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
-import co.ke.proaktivio.qwanguapi.services.AuthorityService;
+import co.ke.proaktivio.qwanguapi.services.UserAuthorityService;
 import co.ke.proaktivio.qwanguapi.services.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
 public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final AuthorityService authorityService;
+    private final UserAuthorityService userAuthorityService;
 
     @Override
     public Mono<UserDetails> findByUsername(String username) {
@@ -32,7 +32,7 @@ public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
                         return roleRepository
                                 .findOne(Example.of(new UserRole(user.getRoleId())))
                                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Role for user %s could not be found!".formatted(username))))
-                                .flatMap(role -> authorityService
+                                .flatMap(role -> userAuthorityService
                                         .findByRoleId(role.getId())
                                         .collectList()
                                         .map(authorities -> (UserDetails) new CustomUserDetails(user, role, authorities)));

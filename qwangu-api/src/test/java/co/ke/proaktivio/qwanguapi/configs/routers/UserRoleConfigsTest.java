@@ -8,7 +8,7 @@ import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.UserRoleHandler;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.services.RoleService;
+import co.ke.proaktivio.qwanguapi.services.UserRoleService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +48,7 @@ class UserRoleConfigsTest {
     @Autowired
     private WebTestClient client;
     @MockBean
-    private RoleService roleService;
+    private UserRoleService userRoleService;
 
     @MockBean
     private ReactiveAuthenticationManager authenticationManager;
@@ -100,8 +100,7 @@ class UserRoleConfigsTest {
         OrderType order = OrderType.ASC;
 
         // when
-        Mockito.when(roleService.findPaginated(
-                Optional.of(id),
+        Mockito.when(userRoleService.findPaginated(
                 Optional.of(name),
                 finalPage,
                 finalPageSize,
@@ -148,8 +147,7 @@ class UserRoleConfigsTest {
         String order = OrderType.ASC.name();
 
         // when
-        Mockito.when(roleService.findPaginated(
-                        Optional.of(id),
+        Mockito.when(userRoleService.findPaginated(
                         Optional.of(name),
                         finalPage,
                         finalPageSize,
@@ -195,8 +193,7 @@ class UserRoleConfigsTest {
 
         // when
         OrderType order = OrderType.ASC;
-        Mockito.when(roleService.findPaginated(
-                        Optional.of(id),
+        Mockito.when(userRoleService.findPaginated(
                         Optional.of(name),
                         finalPage,
                         finalPageSize,
