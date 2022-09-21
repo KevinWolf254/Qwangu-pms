@@ -209,19 +209,20 @@ public class UserConfigs {
         return route()
                 .path("v1", builder -> builder
                         .path("users", b -> b
-                                .GET("/{userId}/activate", handler::activate)
+//                                .GET("/{userId}/activate", handler::activate)
                                 .GET("/{userId}", handler::findById)
                                 .GET(handler::find)
-                                .POST("/sendResetPassword", handler::sendResetPassword)
+//                                .POST("/sendResetPassword", handler::sendResetPassword)
                                 .POST("/{userId}/changePassword", handler::changePassword)
                                 .POST(handler::create)
                                 .PUT("/{userId}", handler::update)
                                 .DELETE("/{userId}", handler::delete)
                         )
-                        .path("signIn", b -> b
-                                .POST(handler::signIn))
-                        .path("resetPassword", b -> b
-                                .POST(handler::resetPassword)))
+//                        .path("signIn", b -> b
+//                                .POST(handler::signIn))
+//                        .path("resetPassword", b -> b
+//                                .POST(handler::resetPassword))
+                )
                 .build();
     }
 }
