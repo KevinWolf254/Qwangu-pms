@@ -18,5 +18,5 @@ public interface UserService {
     Mono<User> findById(String roleId);
     Flux<User> findPaginated(Optional<String> id, Optional<String> emailAddress, int page, int pageSize, OrderType order);
     Mono<Boolean> deleteById(String id);
-    Mono<Void> sendResetPassword(EmailDto dto);
+    Mono<Void> sendForgotPasswordEmail(EmailDto dto);
 }
