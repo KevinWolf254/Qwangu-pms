@@ -574,7 +574,6 @@ class UserConfigsTest {
         // when
         Mockito.when(userService
                 .findPaginated(
-                        Optional.of(id),
                         Optional.of(emailAddress),
                         finalPage,
                         finalPageSize,
@@ -629,7 +628,6 @@ class UserConfigsTest {
 
         // when
         Mockito.when(userService.findPaginated(
-                        Optional.of(id),
                         Optional.of(emailAddress),
                         finalPage,
                         finalPageSize,
@@ -676,7 +674,6 @@ class UserConfigsTest {
         // when
         OrderType order = OrderType.ASC;
         Mockito.when(userService.findPaginated(
-                        Optional.of(id),
                         Optional.of(emailAddress),
                         finalPage,
                         finalPageSize,

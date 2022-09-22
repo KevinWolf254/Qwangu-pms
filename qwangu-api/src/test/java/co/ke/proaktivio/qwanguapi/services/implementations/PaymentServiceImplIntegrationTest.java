@@ -68,7 +68,7 @@ class PaymentServiceImplIntegrationTest {
         // when
         Flux<Payment> saveAll = paymentRepository.saveAll(List.of(payment, payment2))
                 .doOnNext(p -> System.out.println("---- Created: " + p))
-                .thenMany(paymentService.findPaginated(Optional.empty(), Optional.empty(),
+                .thenMany(paymentService.findPaginated(Optional.empty(),
                         Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                         1, 10, OrderType.DESC))
                 .doOnNext(p -> System.out.println("---- Found: " +p));

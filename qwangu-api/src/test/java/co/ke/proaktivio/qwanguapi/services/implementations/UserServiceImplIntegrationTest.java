@@ -373,7 +373,7 @@ class UserServiceImplIntegrationTest {
                 .thenMany(Flux
                         .just(userEntity, userEntity2))
                 .flatMap(entity -> template.save(entity, "USER"))
-                .thenMany(underTest.findPaginated(Optional.empty(),
+                .thenMany(underTest.findPaginated(
                         Optional.empty(), 1, 10,
                         OrderType.ASC))
                 .doOnNext(System.out::println);
@@ -392,8 +392,9 @@ class UserServiceImplIntegrationTest {
         Flux<User> saved = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
-                .thenMany(underTest.findPaginated(Optional.empty(),
-                        Optional.empty(), 1, 10,
+                .thenMany(underTest.findPaginated(
+                        Optional.empty(),
+                        1, 10,
                         OrderType.ASC))
                 .doOnError(a -> System.out.println("---- Found no users!"));
         // then

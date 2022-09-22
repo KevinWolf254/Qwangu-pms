@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
@@ -23,7 +24,13 @@ public class PaymentServiceImpl implements PaymentService {
     private final ReactiveMongoTemplate template;
 
     @Override
-    public Flux<Payment> findPaginated(Optional<String> id, Optional<Payment.Status> status, Optional<Payment.Type> type,
+    public Mono<Payment> findById(String paymentId) {
+        return template.findById(paymentId, Payment.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Payment with id %s could not be found!".formatted(paymentId))));
+    }
+
+    @Override
+    public Flux<Payment> findPaginated(Optional<Payment.Status> status, Optional<Payment.Type> type,
                                        Optional<String> shortCode, Optional<String> referenceNo,
                                        Optional<String> mobileNumber, int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
@@ -31,7 +38,6 @@ public class PaymentServiceImpl implements PaymentService {
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
         status.ifPresent(s -> query.addCriteria(Criteria.where("status").is(s)));
         shortCode.ifPresent(i -> query.addCriteria(Criteria.where("shortCode").is(i)));
         referenceNo.ifPresent(i -> query.addCriteria(Criteria.where("referenceNo").is(i)));

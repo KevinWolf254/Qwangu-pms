@@ -117,14 +117,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Flux<User> findPaginated(Optional<String> id, Optional<String> emailAddress, int page, int pageSize,
+    public Flux<User> findPaginated(Optional<String> emailAddress, int page, int pageSize,
                                     OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        id.ifPresent(s -> query.addCriteria(Criteria.where("id").is(s)));
         emailAddress.ifPresent(s -> query.addCriteria(Criteria.where("emailAddress").is(s)));
         query.with(pageable)
                 .with(sort);

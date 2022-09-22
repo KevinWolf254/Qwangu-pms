@@ -1,7 +1,5 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UserService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -83,14 +81,12 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("userId");
         Optional<String> emailAddress = request.queryParam("emailAddress");
         Optional<String> page = request.queryParam("page");
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
         log.info(" Request for querying users");
         return userService.findPaginated(
-                        id,
                         emailAddress,
                         page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
                         pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),

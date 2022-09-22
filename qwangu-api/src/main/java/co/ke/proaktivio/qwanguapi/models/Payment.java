@@ -37,10 +37,13 @@ public class Payment {
     @LastModifiedDate
     private LocalDateTime modifiedOn;
 
+    @Getter
+    @RequiredArgsConstructor
     public enum Type{
-        MPESA_PAY_BILL,
-        MPESA_TILL,
-        PAYPAL
+        MPESA_PAY_BILL("MPESA_PAY_BILL"),
+        MPESA_TILL("MPESA_TILL"),
+        PAYPAL("PAYPAL");
+        private final String type;
     }
 
     @Getter
