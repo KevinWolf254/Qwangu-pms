@@ -3,6 +3,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
+import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.Receivable;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
@@ -45,7 +46,13 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
     }
 
     @Override
-    public Flux<OccupationTransaction> findPaginated(Optional<String> id, Optional<OccupationTransaction.Type> type,
+    public Mono<OccupationTransaction> findById(String occupationTransactionId) {
+        return template.findById(occupationTransactionId, OccupationTransaction.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("OccupationTransaction with id %s could not be found!".formatted(occupationTransactionId))));
+    }
+
+    @Override
+    public Flux<OccupationTransaction> findPaginated(Optional<OccupationTransaction.Type> type,
                                           Optional<String> occupationId, Optional<String> receivableId,
                                                      Optional<String> paymentId, int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
@@ -53,7 +60,6 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
         type.ifPresent(s -> query.addCriteria(Criteria.where("type").is(s)));
         occupationId.ifPresent(i -> query.addCriteria(Criteria.where("occupationId").is(i)));
         receivableId.ifPresent(i -> query.addCriteria(Criteria.where("receivableId").is(i)));

@@ -30,7 +30,7 @@ public class PaymentConfigs {
                     @RouterOperation(
                             path = "/v1/payments/{paymentId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = OccupationHandler.class, beanMethod = "findById",
+                            method = RequestMethod.GET, beanClass = PaymentHandler.class, beanMethod = "findById",
                             operation = @Operation(
                                     operationId = "findById",
                                     responses = {
@@ -45,7 +45,7 @@ public class PaymentConfigs {
                     @RouterOperation(
                             path = "/v1/payments",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = OccupationHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = PaymentHandler.class, beanMethod = "find",
                             operation = @Operation(
                                     operationId = "find",
                                     responses = {

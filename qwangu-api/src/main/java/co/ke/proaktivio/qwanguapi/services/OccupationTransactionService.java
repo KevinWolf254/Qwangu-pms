@@ -11,7 +11,8 @@ import java.util.Optional;
 public interface OccupationTransactionService {
     Mono<OccupationTransaction> create(OccupationTransactionDto dto);
     Mono<OccupationTransaction> findLatestByOccupationId(String occupationId);
-    Flux<OccupationTransaction> findPaginated(Optional<String> id, Optional<OccupationTransaction.Type> type,
+    Mono<OccupationTransaction> findById(String occupationTransactionId);
+    Flux<OccupationTransaction> findPaginated(Optional<OccupationTransaction.Type> type,
                                               Optional<String> occupationId, Optional<String> receivableId,
                                               Optional<String> paymentId, int page, int pageSize, OrderType order);
 }
