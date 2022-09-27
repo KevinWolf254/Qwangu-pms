@@ -52,9 +52,9 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
     }
 
     @Override
-    public Flux<OccupationTransaction> findPaginated(Optional<OccupationTransaction.Type> type,
-                                          Optional<String> occupationId, Optional<String> receivableId,
-                                                     Optional<String> paymentId, int page, int pageSize, OrderType order) {
+    public Flux<OccupationTransaction> findPaginated(Optional<OccupationTransaction.Type> type, Optional<String> occupationId,
+                                                     Optional<String> receivableId, Optional<String> paymentId, int page,
+                                                     int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
