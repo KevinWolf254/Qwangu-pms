@@ -54,7 +54,7 @@ class RentAdvanceServiceImplTest {
     private final Payment payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
             "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
             "TE34", "", "49197.00", "", "254708374147",
-            "John", "", "Doe", LocalDateTime.now(), null);
+            "John", "", "Doe");
     private final Occupation occupation = new Occupation(null, Occupation.Status.CURRENT, LocalDateTime.now(), null,
             "1", "1", LocalDateTime.now(), null, null, null);
     private final RentAdvance advance = new RentAdvance(null, RentAdvance.Status.HOLDING, null, null,
@@ -77,7 +77,7 @@ class RentAdvanceServiceImplTest {
         var payment2 = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W77",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "TE35", "", "49197.00", "", "254708374147",
-                "John", "", "Doe", LocalDateTime.now(), null);
+                "John", "", "Doe");
         var dto2 = new RentAdvanceDto(RentAdvance.Status.HOLDING, null, null);
 
         // when

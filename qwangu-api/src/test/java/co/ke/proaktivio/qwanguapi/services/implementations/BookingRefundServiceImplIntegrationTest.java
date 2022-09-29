@@ -71,8 +71,13 @@ class BookingRefundServiceImplIntegrationTest {
         // given
         Map<String, BigDecimal> otherAmounts = new HashMap<>(1);
         otherAmounts.put("booking", BigDecimal.valueOf(20000));
-        var receivable = new Receivable("1", Receivable.Type.BOOKING, LocalDate.now(), null,
-                null, null, otherAmounts, LocalDateTime.now(), null);
+        var receivable = new Receivable.ReceivableBuilder()
+                .type(Receivable.Type.BOOKING)
+                .period(LocalDate.now())
+                .otherAmounts(otherAmounts)
+                .build();
+        receivable.setId("1");
+        receivable.setCreatedOn(LocalDateTime.now());
         var dto = new BookingRefundDto(BigDecimal.valueOf(15000), "QVERDFDEERERT is transactionID",
                 "1");
 
@@ -90,8 +95,13 @@ class BookingRefundServiceImplIntegrationTest {
                 .verifyComplete();
 
         // given
-        var receivable2 = new Receivable("2", Receivable.Type.BOOKING, LocalDate.now(), null,
-                null, null, otherAmounts, LocalDateTime.now(), null);
+        var receivable2 = new Receivable.ReceivableBuilder()
+                .type(Receivable.Type.BOOKING)
+                .period(LocalDate.now())
+                .otherAmounts(otherAmounts)
+                .build();
+        receivable2.setId("2");
+        receivable2.setCreatedOn(LocalDateTime.now());
         var bookingRefundAmountGTAmountPaid = new BookingRefundDto(BigDecimal.valueOf(25000),
                 "QVERDFDEERERT is transactionID", "2");
         // when

@@ -1,8 +1,7 @@
 package co.ke.proaktivio.qwanguapi.models;
 
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -25,6 +24,24 @@ public class OccupationTransaction {
     private String paymentId;
     @CreatedDate
     private LocalDateTime createdOn;
+    @CreatedBy
+    private String createdBy;
+    @LastModifiedDate
+    private LocalDateTime modifiedOn;
+    @LastModifiedBy
+    private String modifiedBy;
+
+    public OccupationTransaction(String id, Type type, BigDecimal totalAmountOwed, BigDecimal totalAmountPaid,
+                                 BigDecimal totalAmountCarriedForward, String occupationId, String receivableId, String paymentId) {
+        this.id = id;
+        this.type = type;
+        this.totalAmountOwed = totalAmountOwed;
+        this.totalAmountPaid = totalAmountPaid;
+        this.totalAmountCarriedForward = totalAmountCarriedForward;
+        this.occupationId = occupationId;
+        this.receivableId = receivableId;
+        this.paymentId = paymentId;
+    }
 
     @Getter
     @RequiredArgsConstructor

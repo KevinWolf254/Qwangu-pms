@@ -59,11 +59,11 @@ class PaymentServiceImplIntegrationTest {
         var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "TE34", "", "49197.00", "", "254708374147",
-                "John", "", "Doe", LocalDateTime.now(), null);
+                "John", "", "Doe");
         var payment2 = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W77",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "BOOKTE34", "", "49197.00", "", "254708374147",
-                "John", "", "Doe", LocalDateTime.now(), null);
+                "John", "", "Doe");
 
         // when
         Flux<Payment> saveAll = paymentRepository.saveAll(List.of(payment, payment2))

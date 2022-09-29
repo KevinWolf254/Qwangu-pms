@@ -100,7 +100,8 @@ class ReceivableJobManagerIntegrationTest {
 
         var occupationTransaction = new OccupationTransaction(null, OccupationTransaction.Type.DEBIT,
                 BigDecimal.valueOf(5000), BigDecimal.ZERO, BigDecimal.valueOf(5000), "1", "1",
-                "1", now.minusDays(15));
+                "1");
+        occupationTransaction.setCreatedOn(now.minusDays(15));
 
         // when
         Flux<OccupationTransaction> createRentInvoices = occupationRepository.deleteAll()

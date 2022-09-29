@@ -25,7 +25,7 @@ public class Notice {
     @LastModifiedDate
     private LocalDateTime modifiedOn;
     @LastModifiedBy
-    private String updatedBy;
+    private String modifiedBy;
     private String occupationId;
 
     @NoArgsConstructor

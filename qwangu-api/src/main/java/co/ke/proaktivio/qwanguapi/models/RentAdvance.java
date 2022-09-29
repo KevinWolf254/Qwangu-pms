@@ -4,7 +4,6 @@ import lombok.*;
 import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -27,7 +26,7 @@ public class RentAdvance {
     @LastModifiedDate
     private LocalDateTime modifiedOn;
     @LastModifiedBy
-    private String updatedBy;
+    private String modifiedBy;
 
     @Getter
     @RequiredArgsConstructor

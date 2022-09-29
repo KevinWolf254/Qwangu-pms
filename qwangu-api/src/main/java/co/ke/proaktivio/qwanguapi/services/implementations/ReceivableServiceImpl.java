@@ -32,8 +32,14 @@ public class ReceivableServiceImpl implements ReceivableService {
 
     @Override
     public Mono<Receivable> create(ReceivableDto dto) {
-        return receivableRepository.save(new Receivable(null, dto.getType(), dto.getPeriod(), dto.getRentAmount(),
-                dto.getSecurityAmount(), dto.getGarbageAmount(), dto.getOtherAmounts(), LocalDateTime.now(), null));
+        return receivableRepository.save(new Receivable.ReceivableBuilder()
+                .type(dto.getType())
+                .period(dto.getPeriod())
+                .rentAmount(dto.getRentAmount())
+                .securityAmount(dto.getSecurityAmount())
+                .garbageAmount(dto.getGarbageAmount())
+                .otherAmounts(dto.getOtherAmounts())
+                .build());
     }
 
     @Override

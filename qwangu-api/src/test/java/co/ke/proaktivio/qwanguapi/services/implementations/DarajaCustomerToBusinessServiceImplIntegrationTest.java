@@ -124,7 +124,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
         var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "BOOKTE34", "", "49197.00", "", "254708374147",
-                "John", "", "Doe", LocalDateTime.now(), null);
+                "John", "", "Doe");
 //        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT,
 //                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
 //                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
@@ -211,11 +211,11 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 "1", unit.getId(), now, null, null, null);
         var occupationTransaction = new OccupationTransaction("1", OccupationTransaction.Type.DEBIT,
                 BigDecimal.valueOf(5000), BigDecimal.ZERO, BigDecimal.valueOf(5000), occupation.getId(), null,
-                "1", null);
+                "1");
         var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "TE3489", "", "49197.00", "", "254708374147",
-                "John", "", "Doe", LocalDateTime.now(), null);
+                "John", "", "Doe");
 
 //        var unit2 = new Unit("2", Unit.Status.OCCUPIED, false, "TE3490", Unit.Type.APARTMENT_UNIT,
 //                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
@@ -242,7 +242,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
         var payment2 = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "TE3490", "", "49197.00", "", "254708374147",
-                "John", "", "Doe", LocalDateTime.now(), null);
+                "John", "", "Doe");
 
         Mono<Payment> processPayments = unitRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))

@@ -1,10 +1,8 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.OccupationTransactionHandler;
-import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
-import co.ke.proaktivio.qwanguapi.pojos.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;

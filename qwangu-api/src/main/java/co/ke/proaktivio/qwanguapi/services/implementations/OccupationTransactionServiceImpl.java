@@ -34,7 +34,7 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
     public Mono<OccupationTransaction>  create(OccupationTransactionDto dto) {
         return occupationTransactionRepository.save(new OccupationTransaction(null, dto.getType(),
                 dto.getTotalAmountOwed(), dto.getTotalAmountPaid(), dto.getTotalAmountCarriedForward(), dto.getOccupationId(),
-                dto.getReceivableId(), dto.getPaymentId(), LocalDateTime.now()));
+                dto.getReceivableId(), dto.getPaymentId()));
     }
 
     @Override

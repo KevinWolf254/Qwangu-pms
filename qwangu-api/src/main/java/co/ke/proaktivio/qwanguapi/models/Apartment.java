@@ -22,7 +22,7 @@ public class Apartment {
     @LastModifiedDate
     private LocalDateTime modifiedOn;
     @LastModifiedBy
-    private String updatedBy;
+    private String modifiedBy;
 
     public Apartment(String name) {
         this.name = name;

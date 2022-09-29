@@ -25,7 +25,7 @@ public class BookingRefund {
     @LastModifiedDate
     private LocalDateTime modifiedOn;
     @LastModifiedBy
-    private String updatedBy;
+    private String modifiedBy;
 
     @NoArgsConstructor
     public static class BookingRefundBuilder {

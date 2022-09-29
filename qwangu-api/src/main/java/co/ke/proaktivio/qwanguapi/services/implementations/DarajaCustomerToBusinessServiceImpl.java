@@ -51,8 +51,7 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
                     LocalDateTime transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter).atZone(ZoneId.of("Africa/Nairobi")).toLocalDateTime();
                     return new Payment(null, Payment.Status.NEW, dto.getTransactionType().equals("Pay Bill") ? Payment.Type.MPESA_PAY_BILL : Payment.Type.MPESA_TILL, r.getTransactionId(), r.getTransactionType(), transactionTime,
                             BigDecimal.valueOf(Double.parseDouble(r.getAmount())), r.getShortCode(), r.getReferenceNumber(), r.getInvoiceNo(), r.getAccountBalance(),
-                            r.getThirdPartyId(), r.getMobileNumber(), r.getFirstName(), r.getMiddleName(), r.getLastName(),
-                            LocalDateTime.now(), null);
+                            r.getThirdPartyId(), r.getMobileNumber(), r.getFirstName(), r.getMiddleName(), r.getLastName());
                 })
                 .flatMap(paymentRepository::save)
                 .flatMap(payment -> {
@@ -131,8 +130,7 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
                         .flatMap(occupation -> occupationTransactionService
                                 .findLatestByOccupationId(occupation.getId())
                                 .switchIfEmpty(Mono.just(new OccupationTransaction(null, null, BigDecimal.ZERO,
-                                        BigDecimal.ZERO, BigDecimal.ZERO, occupation.getId(), null, "1",
-                                        null)))
+                                        BigDecimal.ZERO, BigDecimal.ZERO, occupation.getId(), null, "1")))
                                 .doOnSuccess(t -> System.out.println("---- Found: " + t))
                                 .flatMap(previousOT -> occupationTransactionService
                                         .create(new OccupationTransactionDto(OccupationTransaction.Type.CREDIT,

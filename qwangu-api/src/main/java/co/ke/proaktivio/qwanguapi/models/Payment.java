@@ -1,9 +1,7 @@
 package co.ke.proaktivio.qwanguapi.models;
 
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -34,8 +32,34 @@ public class Payment {
     private String lastName;
     @CreatedDate
     private LocalDateTime createdOn;
+    @CreatedBy
+    private String createdBy;
     @LastModifiedDate
     private LocalDateTime modifiedOn;
+    @LastModifiedBy
+    private String modifiedBy;
+
+    public Payment(String id, Status status, Type type, String transactionId, String transactionType,
+                   LocalDateTime transactionTime, BigDecimal amount, String shortCode, String referenceNo,
+                   String invoiceNo, String balance, String thirdPartyId, String mobileNumber, String firstName,
+                   String middleName, String lastName) {
+        this.id = id;
+        this.status = status;
+        this.type = type;
+        this.transactionId = transactionId;
+        this.transactionType = transactionType;
+        this.transactionTime = transactionTime;
+        this.amount = amount;
+        this.shortCode = shortCode;
+        this.referenceNo = referenceNo;
+        this.invoiceNo = invoiceNo;
+        this.balance = balance;
+        this.thirdPartyId = thirdPartyId;
+        this.mobileNumber = mobileNumber;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+    }
 
     @Getter
     @RequiredArgsConstructor

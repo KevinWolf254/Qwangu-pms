@@ -44,8 +44,7 @@ public class ReceivableJobManager {
                         .doOnSuccess(t -> System.out.println("---- Found: " +t))
                         .flatMap(unit -> occupationTransactionService.findLatestByOccupationId(occupation.getId())
                                 .switchIfEmpty(Mono.just(new OccupationTransaction(null, null, BigDecimal.ZERO,
-                                        BigDecimal.ZERO, BigDecimal.ZERO, occupation.getId(), null,"1",
-                                         null)))
+                                        BigDecimal.ZERO, BigDecimal.ZERO, occupation.getId(), null,"1")))
                                 .doOnSuccess(t -> System.out.println("---- Found: " +t))
                                 .flatMap(previousOccupationTransaction -> receivableService
                                         .create(new ReceivableDto(Receivable.Type.RENT, LocalDate.now(),

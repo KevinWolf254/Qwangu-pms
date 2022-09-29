@@ -36,7 +36,7 @@ public class Unit {
     @LastModifiedDate
     private LocalDateTime modifiedOn;
     @LastModifiedBy
-    private String updatedBy;
+    private String modifiedBy;
     private String apartmentId;
 
     @Getter

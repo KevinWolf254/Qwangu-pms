@@ -33,7 +33,7 @@ public class User {
     @LastModifiedDate
     private LocalDateTime modifiedOn;
     @LastModifiedBy
-    private String updatedBy;
+    private String modifiedBy;
 
     public User(String emailAddress) {
         this.emailAddress = emailAddress;
