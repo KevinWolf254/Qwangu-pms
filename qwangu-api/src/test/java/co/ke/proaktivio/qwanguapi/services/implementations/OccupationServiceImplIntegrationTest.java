@@ -230,7 +230,7 @@ class OccupationServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(occupationService.findPaginated(Optional.of(id), Optional.of(Occupation.Status.CURRENT),
+                .thenMany(occupationService.findPaginated(Optional.of(Occupation.Status.CURRENT),
                         Optional.of(unitId), Optional.of(tenantId), 1, 10, OrderType.ASC));
         // then
         StepVerifier
@@ -239,8 +239,8 @@ class OccupationServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Occupation> findOccupationNotExist = occupationService.findPaginated(Optional.of("2000"), Optional.of(Occupation.Status.CURRENT), Optional.of(unitId),
-                Optional.of(tenantId), 1, 10, OrderType.ASC);
+        Flux<Occupation> findOccupationNotExist = occupationService.findPaginated(Optional.of(Occupation.Status.CURRENT),
+                Optional.of(unitId), Optional.of(tenantId), 1, 10, OrderType.ASC);
         // then
         StepVerifier
                 .create(findOccupationNotExist)
@@ -251,7 +251,7 @@ class OccupationServiceImplIntegrationTest {
         // when
         Flux<Occupation> findAll = occupationRepository.save(occupation2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(occupationService.findPaginated(Optional.empty(), Optional.empty(), Optional.empty(),
+                .thenMany(occupationService.findPaginated(Optional.empty(), Optional.empty(),
                         Optional.empty(), 1, 10, OrderType.DESC));
         // then
         StepVerifier

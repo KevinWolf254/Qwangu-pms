@@ -5,11 +5,11 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.BookingRefund;
-import co.ke.proaktivio.qwanguapi.models.Receivable;
+import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.pojos.BookingRefundDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.BookingRefundRepository;
-import co.ke.proaktivio.qwanguapi.repositories.ReceivableRepository;
+import co.ke.proaktivio.qwanguapi.repositories.InvoiceRepository;
 import co.ke.proaktivio.qwanguapi.services.BookingRefundService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ class BookingRefundServiceImplIntegrationTest {
     @Autowired
     private BookingRefundService bookingRefundService;
     @Autowired
-    private ReceivableRepository receivableRepository;
+    private InvoiceRepository invoiceRepository;
     @Autowired
     private BookingRefundRepository bookingRefundRepository;
     @MockBean
@@ -60,7 +60,7 @@ class BookingRefundServiceImplIntegrationTest {
     }
 
     Mono<Void> deleteAll() {
-        return receivableRepository.deleteAll()
+        return invoiceRepository.deleteAll()
                 .doOnSuccess(r -> System.out.println("---- Deleted all Receivables!"))
                 .then(bookingRefundRepository.deleteAll())
                 .doOnSuccess(r -> System.out.println("---- Deleted all Refunds!"));
@@ -71,8 +71,8 @@ class BookingRefundServiceImplIntegrationTest {
         // given
         Map<String, BigDecimal> otherAmounts = new HashMap<>(1);
         otherAmounts.put("booking", BigDecimal.valueOf(20000));
-        var receivable = new Receivable.ReceivableBuilder()
-                .type(Receivable.Type.BOOKING)
+        var receivable = new Invoice.InvoiceBuilder()
+                .type(Invoice.Type.BOOKING)
                 .period(LocalDate.now())
                 .otherAmounts(otherAmounts)
                 .build();
@@ -83,7 +83,7 @@ class BookingRefundServiceImplIntegrationTest {
 
         // when
         Mono<BookingRefund> createBookingRefund = deleteAll()
-                .then(receivableRepository.save(receivable))
+                .then(invoiceRepository.save(receivable))
                 .doOnSuccess(r -> System.out.println("---- Created: " + r))
                 .then(bookingRefundService.create(dto))
                 .doOnSuccess(r -> System.out.println("---- Created: " + r));
@@ -95,8 +95,8 @@ class BookingRefundServiceImplIntegrationTest {
                 .verifyComplete();
 
         // given
-        var receivable2 = new Receivable.ReceivableBuilder()
-                .type(Receivable.Type.BOOKING)
+        var receivable2 = new Invoice.InvoiceBuilder()
+                .type(Invoice.Type.BOOKING)
                 .period(LocalDate.now())
                 .otherAmounts(otherAmounts)
                 .build();
@@ -105,7 +105,7 @@ class BookingRefundServiceImplIntegrationTest {
         var bookingRefundAmountGTAmountPaid = new BookingRefundDto(BigDecimal.valueOf(25000),
                 "QVERDFDEERERT is transactionID", "2");
         // when
-        Mono<BookingRefund> refundAmountTooGreat = receivableRepository.save(receivable2)
+        Mono<BookingRefund> refundAmountTooGreat = invoiceRepository.save(receivable2)
                 .doOnSuccess(r -> System.out.println("---- Created: " + r))
                 .then(bookingRefundService.create(bookingRefundAmountGTAmountPaid))
                 .doOnSuccess(r -> System.out.println("---- Created: " + r));

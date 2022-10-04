@@ -267,7 +267,6 @@ class OccupationConfigsTest {
 
         // when
         when(occupationService.findPaginated(
-                Optional.of(id),
                 Optional.of(Occupation.Status.CURRENT),
                 Optional.of(unitId),
                 Optional.of(tenantId),

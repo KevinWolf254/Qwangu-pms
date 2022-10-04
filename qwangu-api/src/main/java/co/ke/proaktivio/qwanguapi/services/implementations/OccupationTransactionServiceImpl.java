@@ -1,10 +1,7 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Notice;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
-import co.ke.proaktivio.qwanguapi.models.Payment;
-import co.ke.proaktivio.qwanguapi.models.Receivable;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationTransactionRepository;
@@ -20,8 +17,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -32,9 +27,17 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
 
     @Override
     public Mono<OccupationTransaction>  create(OccupationTransactionDto dto) {
-        return occupationTransactionRepository.save(new OccupationTransaction(null, dto.getType(),
-                dto.getTotalAmountOwed(), dto.getTotalAmountPaid(), dto.getTotalAmountCarriedForward(), dto.getOccupationId(),
-                dto.getReceivableId(), dto.getPaymentId()));
+        return occupationTransactionRepository.save(
+                new OccupationTransaction.OccupationTransactionBuilder()
+                        .type(dto.getType())
+                        .occupationId(dto.getOccupationId())
+                        .invoiceId(dto.getInvoiceId())
+                        .receiptId(dto.getReceiptId())
+                        .totalAmountOwed(dto.getTotalAmountOwed())
+                        .totalAmountPaid(dto.getTotalAmountPaid())
+                        .totalAmountCarriedForward(dto.getTotalAmountCarriedForward())
+                        .build()
+        );
     }
 
     @Override

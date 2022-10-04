@@ -6,7 +6,7 @@ import co.ke.proaktivio.qwanguapi.models.BookingRefund;
 import co.ke.proaktivio.qwanguapi.pojos.BookingRefundDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.BookingRefundRepository;
-import co.ke.proaktivio.qwanguapi.repositories.ReceivableRepository;
+import co.ke.proaktivio.qwanguapi.repositories.InvoiceRepository;
 import co.ke.proaktivio.qwanguapi.services.BookingRefundService;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
@@ -21,20 +21,19 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class BookingRefundServiceImpl implements BookingRefundService {
     private final BookingRefundRepository bookingRefundRepository;
-    private final ReceivableRepository receivableRepository;
+    private final InvoiceRepository invoiceRepository;
     private final ReactiveMongoTemplate template;
 
     @Override
     public Mono<BookingRefund> create(BookingRefundDto dto) {
         String receivableId = dto.getReceivableId();
-        return receivableRepository.findById(receivableId)
+        return invoiceRepository.findById(receivableId)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Receivable with id %s does not exist!"
                         .formatted(receivableId))))
                 .flatMap(receivable -> existsByReceivableId(receivableId)

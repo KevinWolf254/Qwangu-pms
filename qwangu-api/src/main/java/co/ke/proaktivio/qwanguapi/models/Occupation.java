@@ -2,6 +2,7 @@ package co.ke.proaktivio.qwanguapi.models;
 
 import lombok.*;
 import org.springframework.data.annotation.*;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -9,12 +10,13 @@ import java.time.LocalDateTime;
 @Data
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @Document(value = "OCCUPATION")
 public class Occupation {
     @Id
     private String id;
     private Status status;
+    @Indexed(unique = true)
+    private String occupationNo;
     private LocalDateTime startedOn;
     private LocalDateTime endedOn;
     private String tenantId;

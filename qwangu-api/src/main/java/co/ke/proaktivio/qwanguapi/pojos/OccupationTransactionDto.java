@@ -16,6 +16,6 @@ public class OccupationTransactionDto {
     private BigDecimal totalAmountPaid;
     private BigDecimal totalAmountCarriedForward;
     private String occupationId;
-    private String receivableId;
-    private String paymentId;
+    private String invoiceId;
+    private String receiptId;
 }

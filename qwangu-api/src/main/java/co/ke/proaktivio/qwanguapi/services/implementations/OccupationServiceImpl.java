@@ -60,9 +60,6 @@ public class OccupationServiceImpl implements OccupationService {
                                         occupation.getStatus().equals(Occupation.Status.CURRENT)))
                                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Notice does not exist!")))
                                 .then(Mono.just(
-//                                        new Occupation(null, dto.getStatus(), dto.getStarted(), dto.getEnded(),
-//                                        dto.getTenantId(),
-//                                        dto.getUnitId(), LocalDateTime.now(), null)
                                         new Occupation.OccupationBuilder()
                                                 .status(dto.getStatus())
                                                 .startedOn(dto.getStarted())
@@ -76,9 +73,6 @@ public class OccupationServiceImpl implements OccupationService {
                             .filter(exists -> !exists)
                             .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Occupation already exists!")))
                             .then(Mono.just(
-//                                    new Occupation(null, Occupation.Status.CURRENT, dto.getStarted(),
-//                                    dto.getEnded(), dto.getTenantId(), dto.getUnitId(), LocalDateTime.now(),
-//                                    null))
                                     new Occupation.OccupationBuilder()
                                             .status(Occupation.Status.CURRENT)
                                             .startedOn(dto.getStarted())
@@ -140,10 +134,23 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     @Override
+    public Mono<Occupation> findById(String id) {
+        return occupationRepository.findById(id)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))));
+    }
+
+    @Override
     public Mono<Occupation> findByUnitId(String unitId) {
         return template.findOne(new Query()
                 .addCriteria(Criteria
                         .where("unitId").is(unitId)), Occupation.class);
+    }
+
+    @Override
+    public Mono<Occupation> findByOccupationNo(String occupationNo) {
+        return template.findOne(new Query()
+                .addCriteria(Criteria
+                        .where("occupationNo").is(occupationNo)), Occupation.class);
     }
 
     @Override
@@ -172,14 +179,13 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     @Override
-    public Flux<Occupation> findPaginated(Optional<String> id, Optional<Occupation.Status> status, Optional<String> unitId,
+    public Flux<Occupation> findPaginated(Optional<Occupation.Status> status, Optional<String> unitId,
                                           Optional<String> tenantId, int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
         status.ifPresent(state -> query.addCriteria(Criteria.where("status").is(state)));
         unitId.ifPresent(uId -> query.addCriteria(Criteria.where("unitId").is(uId)));
         tenantId.ifPresent(tId -> query.addCriteria(Criteria.where("tenantId").is(tId)));

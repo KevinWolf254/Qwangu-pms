@@ -4,7 +4,6 @@ import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
-import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessResponse;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.services.DarajaCustomerToBusinessService;
 import org.junit.jupiter.api.BeforeEach;
@@ -209,9 +208,16 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
         unit.setId("1");
         var occupation = new Occupation("1", Occupation.Status.CURRENT, now, null,
                 "1", unit.getId(), now, null, null, null);
-        var occupationTransaction = new OccupationTransaction("1", OccupationTransaction.Type.DEBIT,
-                BigDecimal.valueOf(5000), BigDecimal.ZERO, BigDecimal.valueOf(5000), occupation.getId(), null,
-                "1");
+        var occupationTransaction = new OccupationTransaction.OccupationTransactionBuilder()
+                .type(OccupationTransaction.Type.DEBIT)
+                .occupationId(occupation.getId())
+                .invoiceId("1")
+                .receiptId("1")
+                .totalAmountOwed(BigDecimal.valueOf(5000))
+                .totalAmountPaid(BigDecimal.ZERO)
+                .totalAmountCarriedForward(BigDecimal.valueOf(5000))
+                .build();
+
         var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "TE3489", "", "49197.00", "", "254708374147",
@@ -256,8 +262,8 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .doOnNext(t -> System.out.println("---- Created: " + t))
                 .then(occupationTransactionRepository.save(occupationTransaction))
                 .doOnSuccess(t -> System.out.println("---- Created: " + t))
-                .then(darajaCustomerToBusinessService.processRent(payment))
-                .then(darajaCustomerToBusinessService.processRent(payment2));
+                .then(darajaCustomerToBusinessService.processPayment(payment))
+                .then(darajaCustomerToBusinessService.processPayment(payment2));
         // then
         StepVerifier
                 .create(processPayments)

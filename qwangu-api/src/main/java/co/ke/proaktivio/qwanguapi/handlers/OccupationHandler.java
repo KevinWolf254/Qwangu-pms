@@ -74,8 +74,9 @@ public class OccupationHandler {
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating tenant", a.rawStatusCode()));
     }
 
+    // TODO - ADD FIND_BY_ID HANDLER
+
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("occupationId");
         Optional<String> status = request.queryParam("status");
         Optional<String> unitId = request.queryParam("unitId");
         Optional<String> tenantId = request.queryParam("tenantId");
@@ -89,7 +90,6 @@ public class OccupationHandler {
             }
         log.info(" Received request for querying occupations");
             return occupationService.findPaginated(
-                        id,
                         status.map(Occupation.Status::valueOf),
                         unitId,
                         tenantId,

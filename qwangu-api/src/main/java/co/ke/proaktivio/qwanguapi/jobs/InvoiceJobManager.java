@@ -2,13 +2,13 @@ package co.ke.proaktivio.qwanguapi.jobs;
 
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
-import co.ke.proaktivio.qwanguapi.models.Receivable;
+import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
-import co.ke.proaktivio.qwanguapi.pojos.ReceivableDto;
+import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
-import co.ke.proaktivio.qwanguapi.services.ReceivableService;
+import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -22,10 +22,10 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class ReceivableJobManager {
+public class InvoiceJobManager {
     private final OccupationService occupationService;
     private final UnitRepository unitRepository;
-    private final ReceivableService receivableService;
+    private final InvoiceService invoiceService;
     private final OccupationTransactionService occupationTransactionService;
 
     // TODO - ADD SEND SMS
@@ -43,15 +43,21 @@ public class ReceivableJobManager {
                 .flatMap(occupation -> unitRepository.findById(occupation.getUnitId())
                         .doOnSuccess(t -> System.out.println("---- Found: " +t))
                         .flatMap(unit -> occupationTransactionService.findLatestByOccupationId(occupation.getId())
-                                .switchIfEmpty(Mono.just(new OccupationTransaction(null, null, BigDecimal.ZERO,
-                                        BigDecimal.ZERO, BigDecimal.ZERO, occupation.getId(), null,"1")))
+                                .switchIfEmpty(Mono.just(
+                                        new OccupationTransaction.OccupationTransactionBuilder()
+                                                .totalAmountCarriedForward(BigDecimal.ZERO)
+                                                .totalAmountOwed(BigDecimal.ZERO)
+                                                .totalAmountPaid(BigDecimal.ZERO)
+                                                .occupationId(occupation.getId())
+                                                .build()
+                                ))
                                 .doOnSuccess(t -> System.out.println("---- Found: " +t))
-                                .flatMap(previousOccupationTransaction -> receivableService
-                                        .create(new ReceivableDto(Receivable.Type.RENT, LocalDate.now(),
+                                .flatMap(previousOccupationTransaction -> invoiceService
+                                        .create(new InvoiceDto(Invoice.Type.RENT, LocalDate.now(),
                                                 unit.getRentPerMonth(), unit.getSecurityPerMonth(), unit.getGarbagePerMonth(),
-                                                null))
+                                                null, occupation.getId()))
                                         .doOnSuccess(t -> System.out.println("---- Created: " +t))
-                                        .flatMap(receivable -> {
+                                        .flatMap(invoice -> {
                                             BigDecimal rentSecurityGarbage = unit.getRentPerMonth()
                                                     .add(unit.getSecurityPerMonth()).add(unit.getGarbagePerMonth());
                                             BigDecimal totalCarriedForward = rentSecurityGarbage.add(
@@ -59,7 +65,7 @@ public class ReceivableJobManager {
                                             return occupationTransactionService.create(
                                                     new OccupationTransactionDto(OccupationTransaction.Type.DEBIT,
                                                             rentSecurityGarbage, BigDecimal.ZERO, totalCarriedForward,
-                                                            occupation.getId(), receivable.getId(), null));
+                                                            occupation.getId(), invoice.getId(), null));
                                         })
                                         .doOnSuccess(t -> System.out.println("---- Created: " +t))
                                 )

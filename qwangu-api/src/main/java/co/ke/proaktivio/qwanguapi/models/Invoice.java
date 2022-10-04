@@ -2,6 +2,7 @@ package co.ke.proaktivio.qwanguapi.models;
 
 import lombok.*;
 import org.springframework.data.annotation.*;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -10,13 +11,15 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(value = "RECEIVABLE")
-public class Receivable {
+@Document(value = "INVOICE")
+public class Invoice {
     @Id
     private String id;
+    private String occupationId;
+    @Indexed(unique = true)
+    private String invoiceNo;
     private Type type;
     private LocalDate period;
     private BigDecimal rentAmount;
@@ -42,53 +45,67 @@ public class Receivable {
         private final String name;
     }
 
-    public static class ReceivableBuilder {
+    public static class InvoiceBuilder {
         private Type type;
         private LocalDate period;
         private BigDecimal rentAmount;
         private BigDecimal securityAmount;
         private BigDecimal garbageAmount;
         private Map<String, BigDecimal> otherAmounts;
+        private String invoiceNo;
+        private String occupationId;
 
-        public ReceivableBuilder type(Type type) {
+        public InvoiceBuilder type(Type type) {
             this.type = type;
             return this;
         }
 
-        public ReceivableBuilder period(LocalDate period) {
+        public InvoiceBuilder period(LocalDate period) {
             this.period = period;
             return this;
         }
 
-        public ReceivableBuilder rentAmount(BigDecimal rentAmount) {
+        public InvoiceBuilder rentAmount(BigDecimal rentAmount) {
             this.rentAmount = rentAmount;
             return this;
         }
 
-        public ReceivableBuilder securityAmount(BigDecimal securityAmount) {
+        public InvoiceBuilder securityAmount(BigDecimal securityAmount) {
             this.securityAmount = securityAmount;
             return this;
         }
 
-        public ReceivableBuilder garbageAmount(BigDecimal garbageAmount) {
+        public InvoiceBuilder garbageAmount(BigDecimal garbageAmount) {
             this.garbageAmount = garbageAmount;
             return this;
         }
 
-        public ReceivableBuilder otherAmounts(Map<String, BigDecimal> otherAmounts) {
+        public InvoiceBuilder otherAmounts(Map<String, BigDecimal> otherAmounts) {
             this.otherAmounts = otherAmounts;
             return this;
         }
 
-        public Receivable build() {
-            Receivable receivable = new Receivable();
-            receivable.setType(this.type);
-            receivable.setPeriod(this.period);
-            receivable.setRentAmount(this.rentAmount);
-            receivable.setSecurityAmount(this.securityAmount);
-            receivable.setGarbageAmount(this.garbageAmount);
-            receivable.setOtherAmounts(this.otherAmounts);
-            return receivable;
+        public InvoiceBuilder invoiceNo(String invoiceNo) {
+            this.invoiceNo = invoiceNo;
+            return this;
+        }
+
+        public InvoiceBuilder occupationId(String occupationId) {
+            this.occupationId = occupationId;
+            return this;
+        }
+
+        public Invoice build() {
+            Invoice invoice = new Invoice();
+            invoice.setType(this.type);
+            invoice.setPeriod(this.period);
+            invoice.setRentAmount(this.rentAmount);
+            invoice.setSecurityAmount(this.securityAmount);
+            invoice.setGarbageAmount(this.garbageAmount);
+            invoice.setOtherAmounts(this.otherAmounts);
+            invoice.setInvoiceNo(this.invoiceNo);
+            invoice.setOccupationId(this.occupationId);
+            return invoice;
         }
     }
 }

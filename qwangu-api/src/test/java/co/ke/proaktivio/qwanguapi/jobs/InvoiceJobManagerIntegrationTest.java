@@ -2,11 +2,11 @@ package co.ke.proaktivio.qwanguapi.jobs;
 
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
-import co.ke.proaktivio.qwanguapi.models.Receivable;
+import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationTransactionRepository;
-import co.ke.proaktivio.qwanguapi.repositories.ReceivableRepository;
+import co.ke.proaktivio.qwanguapi.repositories.InvoiceRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ import java.util.List;
 
 @Testcontainers
 @SpringBootTest
-class ReceivableJobManagerIntegrationTest {
+class InvoiceJobManagerIntegrationTest {
     @Autowired
     private OccupationRepository occupationRepository;
     @Autowired
@@ -35,9 +35,9 @@ class ReceivableJobManagerIntegrationTest {
     @Autowired
     private OccupationTransactionRepository occupationTransactionRepository;
     @Autowired
-    private ReceivableRepository receivableRepository;
+    private InvoiceRepository invoiceRepository;
     @Autowired
-    private ReceivableJobManager manager;
+    private InvoiceJobManager manager;
 
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName
@@ -98,9 +98,15 @@ class ReceivableJobManagerIntegrationTest {
                 .apartmentId("1").build();
         bookedUnit.setId("2");
 
-        var occupationTransaction = new OccupationTransaction(null, OccupationTransaction.Type.DEBIT,
-                BigDecimal.valueOf(5000), BigDecimal.ZERO, BigDecimal.valueOf(5000), "1", "1",
-                "1");
+        var occupationTransaction = new OccupationTransaction.OccupationTransactionBuilder()
+                .type(OccupationTransaction.Type.DEBIT)
+                .occupationId("1")
+                .invoiceId("1")
+                .receiptId("1")
+                .totalAmountOwed(BigDecimal.valueOf(5000))
+                .totalAmountPaid(BigDecimal.ZERO)
+                .totalAmountCarriedForward(BigDecimal.valueOf(5000))
+                .build();
         occupationTransaction.setCreatedOn(now.minusDays(15));
 
         // when
@@ -125,15 +131,15 @@ class ReceivableJobManagerIntegrationTest {
                 .verifyComplete();
 
         // then
-        Flux<Receivable> allReceivables = receivableRepository.findAll()
+        Flux<Invoice> allReceivables = invoiceRepository.findAll()
                 .doOnNext(t -> System.out.println("---- Found: " + t));
         StepVerifier
                 .create(allReceivables)
-                .expectNextMatches(r -> r.getType().equals(Receivable.Type.RENT) &&
+                .expectNextMatches(r -> r.getType().equals(Invoice.Type.RENT) &&
                         r.getRentAmount().equals(BigDecimal.valueOf(27000)) &&
                         r.getSecurityAmount().equals(BigDecimal.valueOf(500)) &&
                         r.getGarbageAmount().equals(BigDecimal.valueOf(300)))
-                .expectNextMatches(r -> r.getType().equals(Receivable.Type.RENT) &&
+                .expectNextMatches(r -> r.getType().equals(Invoice.Type.RENT) &&
                         r.getRentAmount().equals(BigDecimal.valueOf(27000)) &&
                         r.getSecurityAmount().equals(BigDecimal.valueOf(500)) &&
                         r.getGarbageAmount().equals(BigDecimal.valueOf(300)))
