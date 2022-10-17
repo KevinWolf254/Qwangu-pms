@@ -14,7 +14,6 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -24,25 +23,6 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class OccupationTransactionHandler {
     private final OccupationTransactionService occupationTransactionService;
-
-    public Mono<ServerResponse> create(ServerRequest request) {
-        return request
-                .bodyToMono(OccupationTransactionDto.class)
-                .doOnSuccess(a -> log.info(" Received request to create {}", a))
-//                .map(validateUserDtoFunc(new UserDtoValidator()))
-                .doOnSuccess(a -> log.debug(" Validation of request to create occupation transaction was successful"))
-                .flatMap(occupationTransactionService::create)
-                .doOnSuccess(a -> log.info(" Created {} successfully", a))
-                .doOnError(e -> log.error(" Failed to create Occupation Transaction. Error ", e))
-                .flatMap(created -> ServerResponse
-                        .created(URI.create("v1/occupationTransactions/%s".formatted(created.getId())))
-                        .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.CREATED.value(),true, "Occupation Transaction created successfully.", created)),
-                                Response.class))
-                .doOnSuccess(a -> log.debug(" Sent response with status code {} for creating Occupation Transaction", a.rawStatusCode()));
-    }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("occupationTransactionId");

@@ -46,10 +46,6 @@ public class UnitServiceImpl implements UnitService {
     private Mono<Unit> createNonApartmentUnit(UnitDto dto) {
         var accountNo = RandomStringUtils.randomAlphanumeric(4);
         return Mono.just(dto)
-//                .map(d -> new Unit(null, Unit.Status.VACANT, false, accountNo, dto.getType(), null, null,
-//                        dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
-//                        dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
-//                        LocalDateTime.now(), null, null))
                 .map(d -> new Unit.UnitBuilder()
                         .status(Unit.Status.VACANT)
                         .booked(false)
@@ -83,10 +79,6 @@ public class UnitServiceImpl implements UnitService {
                 .flatMap(r -> apartmentRepository.findById(apartmentId))
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(apartmentId))))
-//                .map(aprt -> new Unit(null, Unit.Status.VACANT, false, accountNo, dto.getType(), dto.getIdentifier(), dto.getFloorNo(),
-//                        dto.getNoOfBedrooms(), dto.getNoOfBathrooms(), dto.getAdvanceInMonths(), dto.getCurrency(),
-//                        dto.getRentPerMonth(), dto.getSecurityPerMonth(), dto.getGarbagePerMonth(),
-//                        LocalDateTime.now(), null, aprt.getId()))
                 .map(apartment -> new Unit.UnitBuilder()
                         .status(Unit.Status.VACANT)
                         .booked(false)
@@ -156,7 +148,14 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public Flux<Unit> findPaginated(Optional<String> id, Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.Type> type,
+    public Mono<Unit> findById(String unitId) {
+        return unitRepository.findById(unitId)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!"
+                        .formatted(unitId))));
+    }
+
+    @Override
+    public Flux<Unit> findPaginated(Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.Type> type,
                                     Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
                                     Optional<Integer> bedrooms, Optional<Integer> bathrooms, Optional<String> apartmentId, int page, int pageSize,
                                     OrderType order) {
@@ -165,7 +164,6 @@ public class UnitServiceImpl implements UnitService {
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
         status.ifPresent(i -> query.addCriteria(Criteria.where("status").is(i)));
         accountNo.ifPresent(acct -> query.addCriteria(Criteria.where("accountNo").is(acct)));
         type.ifPresent(t -> query.addCriteria(Criteria.where("type").is(t)));

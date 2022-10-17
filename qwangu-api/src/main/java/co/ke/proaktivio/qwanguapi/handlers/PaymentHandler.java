@@ -1,11 +1,9 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
-import co.ke.proaktivio.qwanguapi.pojos.UserWithoutPasswordDto;
 import co.ke.proaktivio.qwanguapi.services.PaymentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import lombok.RequiredArgsConstructor;
@@ -51,13 +49,13 @@ public class PaymentHandler {
         Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
 
-        if (status.isPresent() &&  !EnumUtils.isValidEnum(Payment.Status.class, status.get())) {
+        if (status.isPresent() && !EnumUtils.isValidEnum(Payment.Status.class, status.get())) {
             String[] arrayOfState = Stream.of(Payment.Status.values()).map(Payment.Status::getState).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Status should be " + states + "!");
         }
 
-        if (status.isPresent() &&  !EnumUtils.isValidEnum(Payment.Type.class, type.get())) {
+        if (type.isPresent() && !EnumUtils.isValidEnum(Payment.Type.class, type.get())) {
             String[] arrayOfState = Stream.of(Payment.Type.values()).map(Payment.Type::getType).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Type should be " + states + "!");

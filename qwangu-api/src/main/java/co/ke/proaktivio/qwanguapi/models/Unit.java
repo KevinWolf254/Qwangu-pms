@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 @ToString
@@ -29,6 +30,7 @@ public class Unit {
     private BigDecimal rentPerMonth;
     private BigDecimal securityPerMonth;
     private BigDecimal garbagePerMonth;
+    private Map<String, BigDecimal> otherAmounts;
     @CreatedDate
     private LocalDateTime createdOn;
     @CreatedBy

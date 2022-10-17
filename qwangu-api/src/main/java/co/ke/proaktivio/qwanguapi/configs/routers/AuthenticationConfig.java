@@ -12,17 +12,17 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class AuthenticationConfig {
 
     @Bean
-    RouterFunction<ServerResponse> routeAuthentication(AuthenticationHandler handler) {
+    RouterFunction<ServerResponse> authenticationRoute(AuthenticationHandler handler) {
         return route()
                 .path("v1", builder -> builder
                         .path("signIn", b -> b
                                 .POST(handler::signIn))
                         .path("/{userId}/activate", b -> b
                                 .GET( handler::activate))
-                        .path("setPassword", b -> b
-                                .POST(handler::setFirstTimePassword)))
                         .path("forgotPassword", b -> b
                                 .POST(handler::sendForgotPasswordEmail))
+                        .path("setPassword", b -> b
+                                .POST(handler::setFirstTimePassword)))
                 .build();
     }
 }

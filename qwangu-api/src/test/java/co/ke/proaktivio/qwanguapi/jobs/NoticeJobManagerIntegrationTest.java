@@ -60,9 +60,12 @@ class NoticeJobManagerIntegrationTest {
             .securityPerMonth(BigDecimal.valueOf(510))
             .garbagePerMonth(BigDecimal.valueOf(300))
             .apartmentId("1").build();
-
-    private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(),
-            null, "1", "1", now, null, null, null);
+    private final Occupation occupation = new Occupation.OccupationBuilder()
+            .tenantId("1")
+            .startDate(LocalDate.now())
+//            .status(Occupation.Status.CURRENT)
+            .unitId("1")
+            .build();
     private final Tenant tenant = new Tenant("1", "John", "middle", "Doe",
             "0700000000", "person@gmail.com", now, null, null, null);
     private final Notice notice = new Notice("1", true, now.minusDays(30), today.minusDays(1),

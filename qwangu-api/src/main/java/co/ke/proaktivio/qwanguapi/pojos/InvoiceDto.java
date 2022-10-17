@@ -14,10 +14,32 @@ import java.util.Map;
 @AllArgsConstructor
 public class InvoiceDto {
     private Invoice.Type type;
-    private LocalDate period;
+    private LocalDate fromDate;
     private BigDecimal rentAmount;
     private BigDecimal securityAmount;
     private BigDecimal garbageAmount;
     private Map<String, BigDecimal> otherAmounts;
     private String occupationId;
 }
+
+//class RentAdvanceInvoiceDto {
+//    private String occupationId;
+//    private BigDecimal rentAmount;
+//    private BigDecimal securityAmount;
+//    private BigDecimal garbageAmount;
+//    private Map<String, BigDecimal> otherAmounts;
+//}
+//
+//class RentInvoiceDto {
+//    private String occupationId;
+//    private LocalDate fromDate;
+//    private BigDecimal rentAmount;
+//    private BigDecimal securityAmount;
+//    private BigDecimal garbageAmount;
+//    private Map<String, BigDecimal> otherAmounts;
+//}
+//
+//class PenaltyInvoiceDto {
+//    private String occupationId;
+//    private Map<String, BigDecimal> otherAmounts;
+//}

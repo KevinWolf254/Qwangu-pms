@@ -1,12 +1,10 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
-import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UserRoleDto;
 import co.ke.proaktivio.qwanguapi.services.UserRoleService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
-import co.ke.proaktivio.qwanguapi.validators.ApartmentDtoValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

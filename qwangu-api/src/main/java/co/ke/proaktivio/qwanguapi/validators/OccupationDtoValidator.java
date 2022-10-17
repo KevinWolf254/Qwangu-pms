@@ -5,7 +5,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
-public class OccupationDtoValidator implements Validator {
+public class OccupationDtoValidator implements Validator{
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -16,23 +16,23 @@ public class OccupationDtoValidator implements Validator {
     public void validate(Object target, Errors errors) {
         validateStatus((OccupationDto) target, errors);
         validateStarted((OccupationDto) target, errors);
-        validateTenantId((OccupationDto) target, errors);
         validateUnitId((OccupationDto) target, errors);
+        validatePaymentId((OccupationDto) target, errors);
     }
 
-    private void validateStatus(OccupationDto request, Errors errors) {
+    protected void validateStatus(OccupationDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "status", "field.required", "Status is required.");
     }
 
-    private void validateStarted(OccupationDto request, Errors errors) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "started", "field.required", "Started is required.");
+    protected void validateStarted(OccupationDto request, Errors errors) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "startDate", "field.required", "Start date is required.");
     }
 
-    private void validateTenantId(OccupationDto request, Errors errors) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "tenantId", "field.required", "Tenant id is required.");
-    }
-
-    private void validateUnitId(OccupationDto request, Errors errors) {
+    protected void validateUnitId(OccupationDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "unitId", "field.required", "Unit id is required.");
+    }
+
+    protected void validatePaymentId(OccupationDto request, Errors errors) {
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "paymentId", "field.required", "Payment id is required.");
     }
 }

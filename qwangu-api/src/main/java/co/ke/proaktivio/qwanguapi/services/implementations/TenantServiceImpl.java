@@ -44,9 +44,6 @@ public class TenantServiceImpl implements TenantService {
                 .filter(exits -> !exits)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Tenant already exists!")))
                 .then(Mono.just(
-//                        new Tenant(null, dto.getFirstName(), dto.getMiddleName(), dto.getSurname(),
-//                                dto.getMobileNumber(), dto.getEmailAddress(),
-//                        LocalDateTime.now(), null)
                         new Tenant.TenantBuilder()
                                 .firstName(dto.getFirstName())
                                 .middleName(dto.getMiddleName())
@@ -108,14 +105,19 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public Flux<Tenant> findPaginated(Optional<String> id, Optional<String> mobileNumber, Optional<String> emailAddress,
+    public Mono<Tenant> findById(String tenantId) {
+        return tenantRepository.findById(tenantId)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Tenant with id %s was not found!".formatted(tenantId))));
+    }
+
+    @Override
+    public Flux<Tenant> findPaginated(Optional<String> mobileNumber, Optional<String> emailAddress,
                                       int page, int pageSize, OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
         mobileNumber.ifPresent(mobile -> query.addCriteria(Criteria.where("mobileNumber").is(mobile)));
         emailAddress.ifPresent(email -> query.addCriteria(Criteria.where("emailAddress").is(email)));
         query.with(pageable)

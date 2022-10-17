@@ -5,6 +5,7 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -17,8 +18,8 @@ public class Occupation {
     private Status status;
     @Indexed(unique = true)
     private String occupationNo;
-    private LocalDateTime startedOn;
-    private LocalDateTime endedOn;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private String tenantId;
     private String unitId;
     @CreatedDate
@@ -35,31 +36,19 @@ public class Occupation {
     public enum Status {
         BOOKED("BOOKED"),
         CURRENT("CURRENT"),
-        PREVIOUS("PREVIOUS");
+        VACATED("VACATED");
 
         private final String state;
     }
 
     @NoArgsConstructor
     public static class OccupationBuilder {
-        private Status status;
-        private LocalDateTime startedOn;
-        private LocalDateTime endedOn;
+        private LocalDate startDate;
         private String tenantId;
         private String unitId;
 
-        public OccupationBuilder status(Status status) {
-            this.status = status;
-            return this;
-        }
-
-        public OccupationBuilder startedOn(LocalDateTime startedOn) {
-            this.startedOn = startedOn;
-            return this;
-        }
-
-        public OccupationBuilder endedOn(LocalDateTime endedOn) {
-            this.endedOn = endedOn;
+        public OccupationBuilder startDate(LocalDate startDate) {
+            this.startDate = startDate;
             return this;
         }
 
@@ -75,9 +64,8 @@ public class Occupation {
 
         public Occupation build() {
             var occupation = new Occupation();
-            occupation.setStatus(this.status);
-            occupation.setStartedOn(this.startedOn);
-            occupation.setEndedOn(this.endedOn);
+            occupation.setStatus(Status.CURRENT);
+            occupation.setStartDate(this.startDate);
             occupation.setTenantId(this.tenantId);
             occupation.setUnitId(this.unitId);
             return occupation;

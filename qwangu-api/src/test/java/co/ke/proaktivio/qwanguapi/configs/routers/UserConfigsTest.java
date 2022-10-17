@@ -797,35 +797,6 @@ class UserConfigsTest {
                 .consumeWith(System.out::println);
     }
 
-    @Test
-    @DisplayName("signIn returns a jwt when a user exists")
-    void signIn_returnsAJwt_whenUserExists_status200() {
-        // given
-        String password = "QwwsefRgvt_@er23";
-        String emailAddress = "person@gmail.com";
-
-        SignInDto dto = new SignInDto(emailAddress, password);
-        var token = new TokenDto("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c");
-
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userService.signIn(dto)).thenReturn(Mono.just(token));
-
-        // then
-        client
-                .post()
-                .uri("/v1/signIn")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignInDto.class)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Signed in successfully.")
-                .jsonPath("$.data").isNotEmpty()
-                .consumeWith(System.out::println);
-    }
 //
 //    @Test
 //    @DisplayName("signIn returns BadRequestException when username is null status 400")
@@ -900,30 +871,6 @@ class UserConfigsTest {
 //                .jsonPath("$.data").isEmpty()
 //                .consumeWith(System.out::println);
 //    }
-
-    @Test
-    @DisplayName("signIn returns BadRequestException when password is empty status 400")
-    void signIn_returnsBadRequestException_whenPasswordIsEmpty_status400() {
-        // given
-        SignInDto dto = new SignInDto("person@gmail.com", " ");
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        // then
-        client
-                .post()
-                .uri("/v1/signIn")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), SignInDto.class)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("Password is required. Password must be at least 6 characters in length.")
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
 
     @Test
     @DisplayName("changePassword returns unauthorised when user is not authenticated status 401")

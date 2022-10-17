@@ -55,8 +55,12 @@ class RentAdvanceServiceImplTest {
             "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
             "TE34", "", "49197.00", "", "254708374147",
             "John", "", "Doe");
-    private final Occupation occupation = new Occupation(null, Occupation.Status.CURRENT, LocalDateTime.now(), null,
-            "1", "1", LocalDateTime.now(), null, null, null);
+    private final Occupation occupation = new Occupation.OccupationBuilder()
+            .tenantId("1")
+            .unitId("1")
+            .startDate(LocalDate.now())
+            .unitId("1")
+            .build();
     private final RentAdvance advance = new RentAdvance(null, RentAdvance.Status.HOLDING, null, null,
             null, null, null, null, null, null);
 

@@ -137,16 +137,15 @@ class TenantServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         var tenant = new Tenant(id, "John", "middle", "Doe", mobileNumber, emailAddress,
                 LocalDateTime.now(), null, null, null);
-        var tenant2 = new Tenant("2", "John", "middle", "Doe", "0700000002", "person2@gmail.com",
-                LocalDateTime.now(), null, null, null);
+        var tenant2 = new Tenant("2", "John", "middle", "Doe", "0700000002",
+                "person2@gmail.com", LocalDateTime.now(), null, null, null);
 
         // when
-        Flux<Tenant> findTenant = tenantRepository
-                .deleteAll()
+        Flux<Tenant> findTenant = tenantRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Tenants!"))
                 .then(tenantRepository.save(tenant))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(tenantService.findPaginated(Optional.of(id), Optional.of(mobileNumber), Optional.of(emailAddress),
+                .thenMany(tenantService.findPaginated(Optional.of(mobileNumber), Optional.of(emailAddress),
                         1, 10, OrderType.ASC))
                 .doOnNext(a -> System.out.println("---- Found " + a));
         // then
@@ -157,7 +156,7 @@ class TenantServiceImplIntegrationTest {
 
         // when
         Flux<Tenant> findNotExist = tenantService
-                .findPaginated(Optional.of("2343"), Optional.of(mobileNumber), Optional.of(emailAddress),
+                .findPaginated(Optional.of("0700000001"), Optional.of("person2@gmail.com"),
                         1, 10, OrderType.ASC);
         // then
         StepVerifier
@@ -167,10 +166,9 @@ class TenantServiceImplIntegrationTest {
                 .verify();
 
         // when
-        Flux<Tenant> findPaginatedDesc = tenantRepository
-                .save(tenant2)
+        Flux<Tenant> findPaginatedDesc = tenantRepository.save(tenant2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(tenantService.findPaginated(Optional.empty(), Optional.empty(), Optional.empty(),
+                .thenMany(tenantService.findPaginated( Optional.empty(), Optional.empty(),
                         1, 10, OrderType.DESC))
                 .doOnNext(a -> System.out.println("---- Found " + a));
         // then

@@ -5,16 +5,12 @@ import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
-import co.ke.proaktivio.qwanguapi.validators.OccupationDtoValidator;
+import co.ke.proaktivio.qwanguapi.validators.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.EnumUtils;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -22,8 +18,6 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Log4j2
@@ -34,9 +28,9 @@ public class OccupationHandler {
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request
-                .bodyToMono(OccupationDto.class)
+                .bodyToMono(OccupationForNewTenantDto.class)
                 .doOnSuccess(a -> log.info(" Received request to create {}", a))
-                .map(validateOccupationDtoFunc(new OccupationDtoValidator()))
+                .map(ValidatorUtil.validateOccupationForNewTenantDto(new OccupationForNewTenantDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to create user was successful"))
                 .flatMap(occupationService::create)
                 .doOnSuccess(a -> log.info(" Created occupation for tenant {} and unit {} successfully",
@@ -54,10 +48,9 @@ public class OccupationHandler {
 
     public Mono<ServerResponse> update(ServerRequest request) {
         String id = request.pathVariable("occupationId");
-        return request
-                .bodyToMono(OccupationDto.class)
+        return request.bodyToMono(VacateOccupationDto.class)
                 .doOnSuccess(a -> log.info(" Received request to update {}", a))
-                .map(validateOccupationDtoFunc(new OccupationDtoValidator()))
+                .map(ValidatorUtil.validateVacateOccupationDto(new VacateOccupationDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to update occupation was successful"))
                 .flatMap(dto -> occupationService.update(id, dto))
                 .doOnSuccess(a -> log.info(" Updated occupation for tenant {} and unit {} successfully",
@@ -74,7 +67,19 @@ public class OccupationHandler {
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating tenant", a.rawStatusCode()));
     }
 
-    // TODO - ADD FIND_BY_ID HANDLER
+    public Mono<ServerResponse> findById(ServerRequest request) {
+        String id = request.pathVariable("occupationId");
+        return occupationService.findById(id)
+                .flatMap(results ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,"Occupation found successfully.",
+                                        results)), Response.class))
+                .doOnSuccess(a -> log.info(" Sent response with status code {} for querying occupation by id", a.rawStatusCode()));
+    }
 
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> status = request.queryParam("status");
@@ -127,19 +132,5 @@ public class OccupationHandler {
                                         HttpStatus.OK.value(),true, "Occupation with id %s deleted successfully."
                                         .formatted(id), null)), Response.class))
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting user", a.rawStatusCode()));
-    }
-
-    private Function<OccupationDto, OccupationDto> validateOccupationDtoFunc(Validator validator) {
-        return createOccupationDto -> {
-            Errors errors = new BeanPropertyBindingResult(createOccupationDto, OccupationDto.class.getName());
-            validator.validate(createOccupationDto, errors);
-            if (!errors.getAllErrors().isEmpty()) {
-                String errorMessage = errors.getAllErrors().stream()
-                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                        .collect(Collectors.joining(" "));
-                throw new CustomBadRequestException(errorMessage);
-            }
-            return createOccupationDto;
-        };
     }
 }

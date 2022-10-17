@@ -4,6 +4,7 @@ import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
+import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.services.DarajaCustomerToBusinessService;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -25,6 +27,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -37,6 +41,8 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
     private OccupationRepository occupationRepository;
     @Autowired
     private NoticeRepository noticeRepository;
+    @Autowired
+    private InvoiceRepository invoiceRepository;
     @Autowired
     private OccupationTransactionRepository occupationTransactionRepository;
     @Autowired
@@ -115,81 +121,75 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .verifyComplete();
     }
 
+//    @Test
+//    void processBooking() {
+//        // given
+//        var now = LocalDateTime.now();
+//        var today = LocalDate.now();
+//        var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
+//                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
+//                "BOOKTE34", "", "49197.00", "", "254708374147",
+//                "John", "", "Doe");
+//        var unit = new Unit.UnitBuilder()
+//                .status(Unit.Status.OCCUPIED)
+//                .booked(false)
+//                .accountNo("TE34")
+//                .type(Unit.Type.APARTMENT_UNIT)
+//                .identifier(Unit.Identifier.B)
+//                .floorNo(2)
+//                .noOfBedrooms(2)
+//                .noOfBathrooms(1)
+//                .advanceInMonths(2)
+//                .currency(Unit.Currency.KES)
+//                .rentPerMonth(BigDecimal.valueOf(27000))
+//                .securityPerMonth(BigDecimal.valueOf(510))
+//                .garbagePerMonth(BigDecimal.valueOf(300))
+//                .apartmentId("1").build();
+//        unit.setId("1");
+//        var occupation = new Occupation.OccupationBuilder()
+//                .tenantId("1")
+//                .startedOn(LocalDateTime.now())
+//                .status(Occupation.Status.CURRENT).unitId("1")
+//                .build();
+//        occupation.setId("1");
+//        var notice = new Notice("1", true, now, today.plusDays(40), now, null,
+//                null, null, "1");
+//
+//        // when
+//        Mono<Payment> processBookingPayment = unitRepository.deleteAll()
+//                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
+//                .then(occupationRepository.deleteAll())
+//                .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
+//                .then(noticeRepository.deleteAll())
+//                .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
+//                .then(unitRepository.save(unit))
+//                .doOnSuccess(u -> System.out.println("---- Created: " + u))
+//                .then(occupationRepository.save(occupation))
+//                .doOnSuccess(u -> System.out.println("---- Created: " + u))
+//                .then(noticeRepository.save(notice))
+//                .doOnSuccess(u -> System.out.println("---- Created: " + u))
+//                .then(paymentRepository.save(payment))
+//                .doOnSuccess(u -> System.out.println("---- Created: " + u))
+//                .flatMap(p -> darajaCustomerToBusinessService.processBooking(p));
+//        // then
+//        StepVerifier
+//                .create(processBookingPayment)
+//                .expectNextMatches(p -> p.getStatus().equals(Payment.Status.PROCESSED))
+//                .verifyComplete();
+//
+//        // when
+//        Mono<Unit> findUnit = unitRepository.findById(unit.getId());
+//        // then
+//        StepVerifier
+//                .create(findUnit)
+//                .expectNextMatches(Unit::getIsBooked)
+//                .verifyComplete();
+//    }
+
     @Test
-    void processBooking() {
+    void makePayment_returnReceiptAndCreateCreditOccupationTransaction_whenSuccessful() {
         // given
-        var now = LocalDateTime.now();
-        var today = LocalDate.now();
-        var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
-                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
-                "BOOKTE34", "", "49197.00", "", "254708374147",
-                "John", "", "Doe");
-//        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE34", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, "1");
-        var unit = new Unit.UnitBuilder()
-                .status(Unit.Status.OCCUPIED)
-                .booked(false)
-                .accountNo("TE34")
-                .type(Unit.Type.APARTMENT_UNIT)
-                .identifier(Unit.Identifier.B)
-                .floorNo(2)
-                .noOfBedrooms(2)
-                .noOfBathrooms(1)
-                .advanceInMonths(2)
-                .currency(Unit.Currency.KES)
-                .rentPerMonth(BigDecimal.valueOf(27000))
-                .securityPerMonth(BigDecimal.valueOf(510))
-                .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
-        unit.setId("1");
-
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null,
-                "1", "1", LocalDateTime.now(), null, null, null);
-        var notice = new Notice("1", true, now, today.plusDays(40), now, null,
-                null, null, "1");
-
-        // when
-        Mono<Payment> processBookingPayment = unitRepository.deleteAll()
-                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
-                .then(occupationRepository.deleteAll())
-                .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
-                .then(noticeRepository.deleteAll())
-                .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
-                .then(unitRepository.save(unit))
-                .doOnSuccess(u -> System.out.println("---- Created: " + u))
-                .then(occupationRepository.save(occupation))
-                .doOnSuccess(u -> System.out.println("---- Created: " + u))
-                .then(noticeRepository.save(notice))
-                .doOnSuccess(u -> System.out.println("---- Created: " + u))
-                .then(paymentRepository.save(payment))
-                .doOnSuccess(u -> System.out.println("---- Created: " + u))
-                .flatMap(p -> darajaCustomerToBusinessService.processBooking(p));
-        // then
-        StepVerifier
-                .create(processBookingPayment)
-                .expectNextMatches(p -> p.getStatus().equals(Payment.Status.PROCESSED))
-                .verifyComplete();
-
-        // when
-        Mono<Unit> findUnit = unitRepository.findById(unit.getId());
-        // then
-        StepVerifier
-                .create(findUnit)
-                .expectNextMatches(Unit::getIsBooked)
-                .verifyComplete();
-    }
-
-    @Test
-    void processRent() {
-        // given
-        LocalDateTime now = LocalDateTime.now();
-//        var unit = new Unit("1", Unit.Status.OCCUPIED, false, "TE3489", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.A, 2, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
-//                null, "1");
-
+        LocalDate now = LocalDate.now();
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
                 .booked(false)
@@ -206,27 +206,37 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .garbagePerMonth(BigDecimal.valueOf(300))
                 .apartmentId("1").build();
         unit.setId("1");
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, now, null,
-                "1", unit.getId(), now, null, null, null);
+        var occupation = new Occupation.OccupationBuilder()
+                .tenantId("1")
+                .startDate(now)
+                .unitId("1")
+                .build();
+        occupation.setId("1");
+        occupation.setStatus(Occupation.Status.CURRENT);
+        occupation.setOccupationNo("YRT2345");
+        var invoice = new Invoice.InvoiceBuilder()
+                .type(Invoice.Type.RENT)
+                .invoiceNo("INV23456B")
+                .period(LocalDate.now())
+                .rentAmount(BigDecimal.valueOf(27000))
+                .securityAmount(BigDecimal.valueOf(500))
+                .garbageAmount(BigDecimal.valueOf(300))
+                .occupationId(occupation.getId())
+                .build();
+        invoice.setId("1");
         var occupationTransaction = new OccupationTransaction.OccupationTransactionBuilder()
                 .type(OccupationTransaction.Type.DEBIT)
                 .occupationId(occupation.getId())
                 .invoiceId("1")
-                .receiptId("1")
-                .totalAmountOwed(BigDecimal.valueOf(5000))
+                .totalAmountOwed(BigDecimal.valueOf(27800))
                 .totalAmountPaid(BigDecimal.ZERO)
-                .totalAmountCarriedForward(BigDecimal.valueOf(5000))
+                .totalAmountCarriedForward(BigDecimal.valueOf(27800))
                 .build();
 
         var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
-                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
-                "TE3489", "", "49197.00", "", "254708374147",
+                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(30000), "600638",
+                "YRT2345", "", "49197.00", "", "254708374147",
                 "John", "", "Doe");
-
-//        var unit2 = new Unit("2", Unit.Status.OCCUPIED, false, "TE3490", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
-//                null, "1");
         var unit2 = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
                 .booked(false)
@@ -243,11 +253,18 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .garbagePerMonth(BigDecimal.valueOf(300))
                 .apartmentId("1").build();
         unit2.setId("2");
-        var occupation2 = new Occupation("2", Occupation.Status.CURRENT, now, null, "2", unit2.getId(),
-                now, null, null, null);
-        var payment2 = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
+        var occupation2 = new Occupation.OccupationBuilder()
+                .tenantId("2")
+                .unitId("2")
+                .startDate(now)
+                .unitId("1")
+                .build();
+        occupation2.setId("2");
+        occupation2.setStatus(Occupation.Status.CURRENT);
+        occupation2.setOccupationNo("B23756");
+        var paymentForNonExistingOccupationNo = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
-                "TE3490", "", "49197.00", "", "254708374147",
+                "AFDER345345", "", "49197.00", "", "254708374147",
                 "John", "", "Doe");
 
         Mono<Payment> processPayments = unitRepository.deleteAll()
@@ -260,45 +277,42 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .doOnNext(t -> System.out.println("---- Created: " + t))
                 .thenMany(occupationRepository.saveAll(List.of(occupation, occupation2)))
                 .doOnNext(t -> System.out.println("---- Created: " + t))
+                .then(invoiceRepository.save(invoice))
+                .doOnNext(t -> System.out.println("---- Created: " + t))
                 .then(occupationTransactionRepository.save(occupationTransaction))
                 .doOnSuccess(t -> System.out.println("---- Created: " + t))
-                .then(darajaCustomerToBusinessService.processPayment(payment))
-                .then(darajaCustomerToBusinessService.processPayment(payment2));
+                .thenMany(paymentRepository.saveAll(List.of(payment, paymentForNonExistingOccupationNo)))
+                .doOnNext(t -> System.out.println("---- Created: " + t))
+                .then(darajaCustomerToBusinessService.processPayment(payment));
         // then
         StepVerifier
                 .create(processPayments)
-                .expectNextCount(1)
+                .expectNextMatches(pmt -> !pmt.getId().isEmpty() && pmt.getTransactionId().equals(payment.getTransactionId()) &&
+                        pmt.getReferenceNo().equals(occupation.getOccupationNo()) && pmt.getStatus().equals(Payment.Status.PROCESSED))
+                .verifyComplete();
+
+        Mono<Payment> expectNull = darajaCustomerToBusinessService.processPayment(paymentForNonExistingOccupationNo);
+
+        // then
+        StepVerifier
+                .create(expectNull)
                 .verifyComplete();
 
         // then
-        Flux<OccupationTransaction> allOccupationTransactions = occupationTransactionRepository.findAll();
-        StepVerifier
-                .create(allOccupationTransactions)
-                .expectNextMatches(ot -> (ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(15000)) &&
-                        ot.getOccupationId().equals("1")) || (
-                                ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(20000)) &&
-                        ot.getOccupationId().equals("2")) || (
-                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(5000)) &&
-                                ot.getOccupationId().equals("1")))
-                .expectNextMatches(ot -> (ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(15000)) &&
-                        ot.getOccupationId().equals("1")) || (
-                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(20000)) &&
-                                ot.getOccupationId().equals("2")) || (
-                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(5000)) &&
-                                ot.getOccupationId().equals("1")))
-                .expectNextMatches(ot -> (ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(15000)) &&
-                        ot.getOccupationId().equals("1")) || (
-                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(20000)) &&
-                                ot.getOccupationId().equals("2")) || (
-                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(5000)) &&
-                                ot.getOccupationId().equals("1")))
-                .verifyComplete();
+        Flux<OccupationTransaction> expectTwoOccupationTransactions = occupationTransactionRepository
+                .findAll(Sort.by(Sort.Order.desc("createdOn")))
+                .doOnNext(t -> System.out.println("---- Found: " + t));
 
-        // then
-        Flux<Payment> allPayments = paymentRepository.findAll();
         StepVerifier
-                .create(allPayments)
-                .expectNextCount(2)
+                .create(expectTwoOccupationTransactions)
+                .expectNextMatches(ot ->
+                        ot.getTotalAmountPaid().equals(BigDecimal.valueOf(30000)) &&
+                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(2200)) &&
+                        ot.getOccupationId().equals("1"))
+                .expectNextMatches(ot ->
+                        ot.getTotalAmountOwed().equals(BigDecimal.valueOf(27800)) &&
+                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(27800)) &&
+                        ot.getOccupationId().equals("1"))
                 .verifyComplete();
     }
 }

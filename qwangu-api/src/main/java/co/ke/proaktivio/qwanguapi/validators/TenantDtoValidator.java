@@ -30,23 +30,23 @@ public class TenantDtoValidator implements Validator {
         String firstName = request.getFirstName();
         if (firstName != null) {
             if (firstName.trim().length() < 3)
-                errors.rejectValue("firstName", "field.min.length", new Object[]{Integer.valueOf(3)}, "First name must be at least %s characters in length.".formatted(3));
+                errors.rejectValue("firstName", "field.min.length", new Object[]{3}, "First name must be at least %s characters in length.".formatted(3));
             if (firstName.trim().length() > 25)
-                errors.rejectValue("firstName", "field.max.length", new Object[]{Integer.valueOf(25)}, "First name must be at most %s characters in length.".formatted(25));
+                errors.rejectValue("firstName", "field.max.length", new Object[]{25}, "First name must be at most %s characters in length.".formatted(25));
         }
         String otherNames = request.getMiddleName();
         if (StringUtils.hasText(otherNames)) {
             if (otherNames.trim().length() < 3)
-                errors.rejectValue("middleName", "field.min.length", new Object[]{Integer.valueOf(3)}, "Middle name must be at least %s characters in length.".formatted(3));
+                errors.rejectValue("middleName", "field.min.length", new Object[]{3}, "Middle name must be at least %s characters in length.".formatted(3));
             if (otherNames.trim().length() > 40)
-                errors.rejectValue("middleName", "field.max.length", new Object[]{Integer.valueOf(40)}, "Middle name must be at most %s characters in length.".formatted(40));
+                errors.rejectValue("middleName", "field.max.length", new Object[]{40}, "Middle name must be at most %s characters in length.".formatted(40));
         }
         String surname = request.getSurname();
         if (surname != null) {
             if (surname.trim().length() < 3)
-                errors.rejectValue("person.surname", "field.min.length", new Object[]{Integer.valueOf(3)}, "Surname must be at least %s characters in length.".formatted(3));
+                errors.rejectValue("surname", "field.min.length", new Object[]{3}, "Surname must be at least %s characters in length.".formatted(3));
             if (surname.trim().length() > 25)
-                errors.rejectValue("person.surname", "field.max.length", new Object[]{Integer.valueOf(25)}, "Surname must be at most %s characters in length.".formatted(25));
+                errors.rejectValue("surname", "field.max.length", new Object[]{25}, "Surname must be at most %s characters in length.".formatted(25));
         }
     }
 
@@ -55,7 +55,7 @@ public class TenantDtoValidator implements Validator {
         String mobileNumber = request.getMobileNumber();
         if (mobileNumber != null) {
             if (mobileNumber.trim().length() < MINIMUM_LENGTH)
-                errors.rejectValue("mobileNumber", "field.min.length", new Object[]{Integer.valueOf(MINIMUM_LENGTH)}, "Email address must be at least %s characters in length.".formatted(10));
+                errors.rejectValue("mobileNumber", "field.min.length", new Object[]{MINIMUM_LENGTH}, "Email address must be at least %s characters in length.".formatted(10));
             var mobileNumberRegEx = "^(([+](254))|[0])(([7][0-9])|([1][0|1]))[0-9]{7}$";
             var p = Pattern.compile(mobileNumberRegEx);
             if (!p.matcher(mobileNumber).matches())
@@ -68,7 +68,7 @@ public class TenantDtoValidator implements Validator {
         String emailAddress = request.getEmailAddress();
         if (emailAddress != null) {
             if (emailAddress.trim().length() < MINIMUM_LENGTH)
-                errors.rejectValue("emailAddress", "field.min.length", new Object[]{Integer.valueOf(MINIMUM_LENGTH)}, "Email address must be at least %s characters in length.".formatted(MINIMUM_LENGTH));
+                errors.rejectValue("emailAddress", "field.min.length", new Object[]{MINIMUM_LENGTH}, "Email address must be at least %s characters in length.".formatted(MINIMUM_LENGTH));
             var emailAddressRegEx = "^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$";
             var p = Pattern.compile(emailAddressRegEx);
             if (!p.matcher(emailAddress).matches())

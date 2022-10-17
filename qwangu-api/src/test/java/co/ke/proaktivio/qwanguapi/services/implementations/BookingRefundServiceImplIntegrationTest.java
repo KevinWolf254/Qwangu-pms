@@ -68,53 +68,6 @@ class BookingRefundServiceImplIntegrationTest {
 
     @Test
     void create() {
-        // given
-        Map<String, BigDecimal> otherAmounts = new HashMap<>(1);
-        otherAmounts.put("booking", BigDecimal.valueOf(20000));
-        var receivable = new Invoice.InvoiceBuilder()
-                .type(Invoice.Type.BOOKING)
-                .period(LocalDate.now())
-                .otherAmounts(otherAmounts)
-                .build();
-        receivable.setId("1");
-        receivable.setCreatedOn(LocalDateTime.now());
-        var dto = new BookingRefundDto(BigDecimal.valueOf(15000), "QVERDFDEERERT is transactionID",
-                "1");
-
-        // when
-        Mono<BookingRefund> createBookingRefund = deleteAll()
-                .then(invoiceRepository.save(receivable))
-                .doOnSuccess(r -> System.out.println("---- Created: " + r))
-                .then(bookingRefundService.create(dto))
-                .doOnSuccess(r -> System.out.println("---- Created: " + r));
-        // then
-        StepVerifier
-                .create(createBookingRefund)
-                .expectNextMatches(r -> r.getId() != null && r.getAmount().compareTo(BigDecimal.valueOf(15000)) == 0 &&
-                        r.getReceivableId().equals("1"))
-                .verifyComplete();
-
-        // given
-        var receivable2 = new Invoice.InvoiceBuilder()
-                .type(Invoice.Type.BOOKING)
-                .period(LocalDate.now())
-                .otherAmounts(otherAmounts)
-                .build();
-        receivable2.setId("2");
-        receivable2.setCreatedOn(LocalDateTime.now());
-        var bookingRefundAmountGTAmountPaid = new BookingRefundDto(BigDecimal.valueOf(25000),
-                "QVERDFDEERERT is transactionID", "2");
-        // when
-        Mono<BookingRefund> refundAmountTooGreat = invoiceRepository.save(receivable2)
-                .doOnSuccess(r -> System.out.println("---- Created: " + r))
-                .then(bookingRefundService.create(bookingRefundAmountGTAmountPaid))
-                .doOnSuccess(r -> System.out.println("---- Created: " + r));
-        // then
-        StepVerifier
-                .create(refundAmountTooGreat)
-                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
-                        e.getMessage().equals("Amount to be refunded cannot be greater than the amount paid!"))
-                .verify();
     }
 
     @Test

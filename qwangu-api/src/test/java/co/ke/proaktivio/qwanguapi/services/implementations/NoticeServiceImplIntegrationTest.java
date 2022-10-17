@@ -47,10 +47,10 @@ class NoticeServiceImplIntegrationTest {
 
     private final LocalDateTime now = LocalDateTime.now();
     private final LocalDate today = LocalDate.now();
-    private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1",
-            "1", LocalDateTime.now(), null, null, null);
-    private final Occupation occupationMoved = new Occupation("2", Occupation.Status.PREVIOUS, LocalDateTime.now(),
-            null, "2", "2", LocalDateTime.now(), null, null, null);
+//    private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1",
+//            "1", LocalDateTime.now(), null, null, null);
+//    private Occupation occupationMoved = new Occupation("2", Occupation.Status.PREVIOUS, LocalDateTime.now(),
+//            null, "2", "2", LocalDateTime.now(), null, null, null);
     private final Notice notice = new Notice("1", true, now, today.plusDays(40), now, null,
             null, null, "1");
     private final Notice noticeWithOccupationMoved = new Notice("2", true, now, today.plusDays(40), now,
@@ -64,10 +64,25 @@ class NoticeServiceImplIntegrationTest {
     @Test
     void create() {
         // given
+        var occupationId = "1";
         LocalDateTime now = LocalDateTime.now();
         var dto = new CreateNoticeDto(now, today.plusDays(30), "1");
         var dtoOccupationDoesNotExist = new CreateNoticeDto(now, today.plusDays(30), "3000");
         var dtoOccupationNotActive = new CreateNoticeDto(now, today.plusDays(30), "2");
+        var occupation = new Occupation.OccupationBuilder()
+                .tenantId("1")
+                .startDate(LocalDate.now())
+                .unitId("1")
+                .build();
+        occupation.setId(occupationId);
+        occupation.setStatus(Occupation.Status.CURRENT);
+        var occupationVacated = new Occupation.OccupationBuilder()
+                .tenantId("2")
+                .startDate(LocalDate.now())
+                .unitId("2")
+                .build();
+        occupationVacated.setId("2");
+        occupationVacated.setStatus(Occupation.Status.VACATED);
         // when
         Mono<Notice> notice = noticeRepository
                 .deleteAll()
@@ -76,7 +91,7 @@ class NoticeServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all occupations!"))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .then(occupationRepository.save(occupationMoved))
+                .then(occupationRepository.save(occupationVacated))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeService.create(dto));
         // then
@@ -111,6 +126,20 @@ class NoticeServiceImplIntegrationTest {
         var dto = new UpdateNoticeDto(true, now, today.plusDays(35));
         var noticeWithOccupationDoesNotExist = new Notice("3000", true, now, today.plusDays(40), now,
                 null, null, null, "3000");
+        var occupation = new Occupation.OccupationBuilder()
+                .tenantId("1")
+                .startDate(LocalDate.now())
+                .unitId("1")
+                .build();
+        occupation.setId("1");
+        occupation.setStatus(Occupation.Status.CURRENT);
+        var occupationVacated = new Occupation.OccupationBuilder()
+                .tenantId("2")
+                .startDate(LocalDate.now())
+                .unitId("2")
+                .build();
+        occupationVacated.setId("2");
+        occupationVacated.setStatus(Occupation.Status.VACATED);
         // when
         Mono<Notice> updateNotice = noticeRepository
                 .deleteAll()
@@ -119,7 +148,7 @@ class NoticeServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all occupations!"))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .then(occupationRepository.save(occupationMoved))
+                .then(occupationRepository.save(occupationVacated))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
@@ -164,6 +193,20 @@ class NoticeServiceImplIntegrationTest {
     @Test
     void findPaginated() {
         // given
+        var occupation = new Occupation.OccupationBuilder()
+                .tenantId("1")
+                .startDate(LocalDate.now())
+                .unitId("1")
+                .build();
+        occupation.setId("1");
+        occupation.setStatus(Occupation.Status.CURRENT);
+        var occupationVacated = new Occupation.OccupationBuilder()
+                .tenantId("2")
+                .startDate(LocalDate.now())
+                .unitId("2")
+                .build();
+        occupationVacated.setId("2");
+        occupationVacated.setStatus(Occupation.Status.VACATED);
         // when
         Flux<Notice> find = noticeRepository
                 .deleteAll()
@@ -172,7 +215,7 @@ class NoticeServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all occupations!"))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .then(occupationRepository.save(occupationMoved))
+                .then(occupationRepository.save(occupationVacated))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))

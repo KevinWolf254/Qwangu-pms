@@ -28,6 +28,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.function.Function;
@@ -76,12 +77,21 @@ class OccupationConfigsTest {
         // given
         String tenantId = "1";
         String unitId = "1";
-        LocalDateTime now = LocalDateTime.now();
-        var dto = new OccupationDto(Occupation.Status.CURRENT, now, null, tenantId, unitId);
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, now, null,
-                tenantId, unitId, now, null, null, null);
-        var dtoNotValid = new OccupationDto(null, null, null, null, null);
+        String paymentId = "1";
+        LocalDate now = LocalDate.now();
+        var tenant = new TenantDto("John", "Doe", "Doe", "0720000000",
+                "johndoe@gmail.com");
+        var dto = new OccupationForNewTenantDto(now, unitId, paymentId, tenant);
+        var occupation = new Occupation.OccupationBuilder()
+                .tenantId(tenantId)
+                .startDate(now)
+                .unitId(unitId)
+                .build();
+        occupation.setId("1");
+        occupation.setCreatedOn(LocalDateTime.now());
 
+        var dtoNotValid = new OccupationForNewTenantDto();
+        var dtoNotValidWithoutTenantDetails = new OccupationForNewTenantDto(now, unitId, paymentId, new TenantDto());
         // when
         when(occupationService.create(dto)).thenReturn(Mono.just(occupation));
 
@@ -101,13 +111,14 @@ class OccupationConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.status").isEqualTo(Occupation.Status.CURRENT.getState())
-                .jsonPath("$.data.endedOn").isEmpty()
-                .jsonPath("$.data.tenantId").isEqualTo(tenantId)
+                .jsonPath("$.data.endDate").isEmpty()
                 .jsonPath("$.data.unitId").isEqualTo(unitId)
                 .jsonPath("$.data.createdOn").isNotEmpty()
                 .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
 
+        // when
+        when(occupationService.create(dtoNotValid)).thenReturn(Mono.just(occupation));
         // then
         client
                 .post()
@@ -120,7 +131,27 @@ class OccupationConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Status is required. Started is required. Tenant id is required. Unit id is required.")
+                .jsonPath("$.message").isEqualTo("Start date is required. Unit id is required. Payment id is required. Tenant is required!")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+
+
+        // when
+        when(occupationService.create(dtoNotValidWithoutTenantDetails)).thenReturn(Mono.just(occupation));
+
+        // then
+        client
+                .post()
+                .uri("/v1/occupations")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dtoNotValidWithoutTenantDetails), OccupationForNewTenantDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("First name is required. Surname is required. Mobile number is required. Email address is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -146,11 +177,17 @@ class OccupationConfigsTest {
     void update_returnsOccupation_whenSuccessful() {
         // given
         var id = "1";
-        var dto = new OccupationDto(Occupation.Status.CURRENT, LocalDateTime.now(), null, "1", "1");
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null,
-                "1", "1", LocalDateTime.now(), null, null, null);
-        var dtoNotValid = new OccupationDto(null, null, null, null, null);
-
+        var dto = new VacateOccupationDto(LocalDate.now());
+        var occupation = new Occupation.OccupationBuilder()
+                .tenantId("1")
+                .startDate(LocalDate.now())
+                .unitId("1")
+                .build();
+        occupation.setId("1");
+        occupation.setEndDate(LocalDate.now());
+        occupation.setStatus(Occupation.Status.VACATED);
+        occupation.setCreatedOn(LocalDateTime.now());
+        var dtoNotValid = new VacateOccupationDto();
         // when
         when(occupationService.update(id, dto)).thenReturn(Mono.just(occupation));
 
@@ -169,8 +206,9 @@ class OccupationConfigsTest {
                 .jsonPath("$.message").isEqualTo("Occupation updated successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.status").isEqualTo(Occupation.Status.CURRENT.getState())
-                .jsonPath("$.data.endedOn").isEmpty()
+                .jsonPath("$.data.status").isEqualTo(Occupation.Status.VACATED.getState())
+                .jsonPath("$.data.startDate").isNotEmpty()
+                .jsonPath("$.data.endDate").isNotEmpty()
                 .jsonPath("$.data.tenantId").isEqualTo("1")
                 .jsonPath("$.data.unitId").isEqualTo("1")
                 .jsonPath("$.data.createdOn").isNotEmpty()
@@ -191,7 +229,7 @@ class OccupationConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Status is required. Started is required. Tenant id is required. Unit id is required.")
+                .jsonPath("$.message").isEqualTo("End date is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -238,9 +276,14 @@ class OccupationConfigsTest {
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
-        var occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null,
-                "1", "1", LocalDateTime.now(), null, null, null);
-
+        var occupation = new Occupation.OccupationBuilder()
+                .tenantId("1")
+                .startDate(LocalDate.now())
+                .unitId("1")
+                .build();
+        occupation.setId("1");
+        occupation.setStatus(Occupation.Status.CURRENT);
+        occupation.setCreatedOn(LocalDateTime.now());
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/occupations")
@@ -289,7 +332,8 @@ class OccupationConfigsTest {
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
                 .jsonPath("$.data.[0].status").isEqualTo(Occupation.Status.CURRENT.getState())
-                .jsonPath("$.data.[0].endedOn").isEmpty()
+                .jsonPath("$.data.[0].startDate").isNotEmpty()
+                .jsonPath("$.data.[0].endDate").isEmpty()
                 .jsonPath("$.data.[0].tenantId").isEqualTo("1")
                 .jsonPath("$.data.[0].unitId").isEqualTo("1")
                 .jsonPath("$.data.[0].createdOn").isNotEmpty()
@@ -306,7 +350,7 @@ class OccupationConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Status should be BOOKED or CURRENT or PREVIOUS!")
+                .jsonPath("$.message").isEqualTo("Status should be BOOKED or CURRENT or VACATED!")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }

@@ -28,7 +28,7 @@ public class UserDtoValidator implements Validator {
         String emailAddress = request.getEmailAddress();
         if (emailAddress != null) {
             if (emailAddress.trim().length() < MINIMUM_LENGTH)
-                errors.rejectValue("emailAddress", "field.min.length", new Object[]{Integer.valueOf(MINIMUM_LENGTH)}, "Email address must be at least %s characters in length.".formatted(MINIMUM_LENGTH));
+                errors.rejectValue("emailAddress", "field.min.length", new Object[]{MINIMUM_LENGTH}, "Email address must be at least %s characters in length.".formatted(MINIMUM_LENGTH));
             var emailAddressRegEx = "^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$";
             var p = Pattern.compile(emailAddressRegEx);
             if (!p.matcher(emailAddress).matches())
@@ -42,23 +42,23 @@ public class UserDtoValidator implements Validator {
         String firstName = request.getPerson().getFirstName();
         if (firstName != null) {
             if (firstName.trim().length() < 3)
-                errors.rejectValue("person.firstName", "field.min.length", new Object[]{Integer.valueOf(3)}, "First name must be at least %s characters in length.".formatted(3));
+                errors.rejectValue("person.firstName", "field.min.length", new Object[]{3}, "First name must be at least %s characters in length.".formatted(3));
             if (firstName.trim().length() > 25)
-                errors.rejectValue("person.firstName", "field.max.length", new Object[]{Integer.valueOf(25)}, "First name must be at most %s characters in length.".formatted(25));
+                errors.rejectValue("person.firstName", "field.max.length", new Object[]{25}, "First name must be at most %s characters in length.".formatted(25));
         }
         String otherNames = request.getPerson().getOtherNames();
         if (StringUtils.hasText(otherNames)) {
             if (otherNames.trim().length() < 3)
-                errors.rejectValue("person.otherNames", "field.min.length", new Object[]{Integer.valueOf(3)}, "Surname must be at least %s characters in length.".formatted(3));
+                errors.rejectValue("person.otherNames", "field.min.length", new Object[]{3}, "Surname must be at least %s characters in length.".formatted(3));
             if (otherNames.trim().length() > 40)
-                errors.rejectValue("person.otherNames", "field.max.length", new Object[]{Integer.valueOf(40)}, "First name must be at most %s characters in length.".formatted(40));
+                errors.rejectValue("person.otherNames", "field.max.length", new Object[]{40}, "First name must be at most %s characters in length.".formatted(40));
         }
         String surname = request.getPerson().getSurname();
         if (surname != null) {
             if (surname.trim().length() < 3)
-                errors.rejectValue("person.surname", "field.min.length", new Object[]{Integer.valueOf(3)}, "Surname must be at least %s characters in length.".formatted(3));
+                errors.rejectValue("person.surname", "field.min.length", new Object[]{3}, "Surname must be at least %s characters in length.".formatted(3));
             if (surname.trim().length() > 25)
-                errors.rejectValue("person.surname", "field.max.length", new Object[]{Integer.valueOf(25)}, "Surname must be at most %s characters in length.".formatted(25));
+                errors.rejectValue("person.surname", "field.max.length", new Object[]{25}, "Surname must be at most %s characters in length.".formatted(25));
         }
     }
 
@@ -67,7 +67,7 @@ public class UserDtoValidator implements Validator {
         String roleId = request.getRoleId();
         if (roleId != null) {
             if (roleId.trim().length() < 1)
-                errors.rejectValue("roleId", "field.min.length", new Object[]{Integer.valueOf(1)}, "Role id must be at least %s characters in length.".formatted(1));
+                errors.rejectValue("roleId", "field.min.length", new Object[]{1}, "Role id must be at least %s characters in length.".formatted(1));
          }
     }
 

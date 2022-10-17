@@ -276,10 +276,6 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         var apartment = new Apartment(name);
         apartment.setId(id);
-//        var unit = new Unit("301", Unit.Status.VACANT, false,"TE34", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, "1");
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
                 .booked(false)
@@ -296,10 +292,6 @@ class UnitServiceImplIntegrationTest {
                 .garbagePerMonth(BigDecimal.valueOf(300))
                 .apartmentId("1").build();
         unit.setId("301");
-//        var unit2 = new Unit("303", Unit.Status.VACANT, false, "TE36", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.A, 2, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, "1");
         var unit2 = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
                 .booked(false)
@@ -326,9 +318,10 @@ class UnitServiceImplIntegrationTest {
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(unitRepository.save(unit))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.findPaginated(Optional.of("301"), Optional.of(Unit.Status.VACANT), Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT),
-                        Optional.of(Unit.Identifier.B), Optional.of(2), Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.ASC))
-                .doOnNext(u -> System.out.println(" Found " +u));
+                .thenMany(unitService.findPaginated(Optional.of(Unit.Status.VACANT), Optional.of("TE34"),
+                        Optional.of(Unit.Type.APARTMENT_UNIT), Optional.of(Unit.Identifier.B), Optional.of(2),
+                        Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.ASC))
+                .doOnNext(u -> System.out.println("---- Found " +u));
         // then
         StepVerifier
                 .create(findUnit)
@@ -336,10 +329,10 @@ class UnitServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Unit> findUnitNonExisting = unitService.findPaginated(Optional.of("302"), Optional.of(Unit.Status.VACANT),
-                Optional.of("TE34"), Optional.of(Unit.Type.APARTMENT_UNIT), Optional.of(Unit.Identifier.B),
+        Flux<Unit> findUnitNonExisting = unitService.findPaginated( Optional.of(Unit.Status.VACANT),
+                Optional.of("TE35"), Optional.of(Unit.Type.APARTMENT_UNIT), Optional.of(Unit.Identifier.E),
                 Optional.of(2), Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.ASC)
-                .doOnNext(a -> System.out.println(" Found " +a));
+                .doOnNext(a -> System.out.println("---- Found " +a));
         // then
         StepVerifier
                 .create(findUnitNonExisting)
@@ -350,7 +343,7 @@ class UnitServiceImplIntegrationTest {
         // when
         Flux<Unit> createUnitAndFindAllOnSecondFloor = unitRepository.save(unit2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.findPaginated(Optional.empty(), Optional.empty(),Optional.empty(),
+                .thenMany(unitService.findPaginated(Optional.empty(),Optional.empty(),
                         Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                         Optional.empty(), Optional.of(id), 1, 5, OrderType.DESC))
                 .doOnNext(a -> System.out.println(" Found " +a));

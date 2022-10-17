@@ -7,6 +7,7 @@ import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.TenantHandler;
 import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.pojos.*;
+import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import co.ke.proaktivio.qwanguapi.services.TenantService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
@@ -46,6 +47,8 @@ class TenantConfigsTest {
     private WebTestClient client;
     @MockBean
     private TenantService tenantService;
+    @MockBean
+    private OccupationService occupationService;
     @MockBean
     private ReactiveAuthenticationManager authenticationManager;
     @MockBean
@@ -249,7 +252,6 @@ class TenantConfigsTest {
                         .build();
         // when
         when(tenantService.findPaginated(
-                Optional.of(id),
                 Optional.of(mobileNumber),
                 Optional.of(emailAddress),
                 finalPage,

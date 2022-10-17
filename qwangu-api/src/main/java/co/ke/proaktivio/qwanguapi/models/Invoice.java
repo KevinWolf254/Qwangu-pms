@@ -21,6 +21,7 @@ public class Invoice {
     @Indexed(unique = true)
     private String invoiceNo;
     private Type type;
+    // TODO - ENSURE PERIOD IS MONTH AND YEAR
     private LocalDate period;
     private BigDecimal rentAmount;
     private BigDecimal securityAmount;
@@ -38,12 +39,14 @@ public class Invoice {
     @Getter
     @RequiredArgsConstructor
     public enum Type {
+        RENT_ADVANCE("RENT_ADVANCE"),
         RENT("RENT"),
-        PENALTY("PENALTY"),
-        BOOKING("BOOKING");
+        PENALTY("PENALTY");
+//        BOOKING("BOOKING");
 
         private final String name;
     }
+
 
     public static class InvoiceBuilder {
         private Type type;

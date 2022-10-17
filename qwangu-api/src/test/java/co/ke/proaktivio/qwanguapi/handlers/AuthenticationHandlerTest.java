@@ -249,7 +249,7 @@ class AuthenticationHandlerTest {
         // then
         client
                 .post()
-                .uri("/v1/setPassword")
+                .uri("/v1/forgotPassword")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(emailDto), EmailDto.class)
                 .exchange()
@@ -269,7 +269,7 @@ class AuthenticationHandlerTest {
         // then
         client
                 .post()
-                .uri("/v1/users/sendResetPassword")
+                .uri("/v1/forgotPassword")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(emailDto1), EmailDto.class)
                 .exchange()
@@ -289,7 +289,7 @@ class AuthenticationHandlerTest {
         // then
         client
                 .post()
-                .uri("/v1/users/sendResetPassword")
+                .uri("/v1/forgotPassword")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(emailDto2), EmailDto.class)
                 .exchange()
@@ -311,7 +311,7 @@ class AuthenticationHandlerTest {
         // then
         client
                 .post()
-                .uri("/v1/users/sendResetPassword")
+                .uri("/v1/forgotPassword/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(emailDto3), EmailDto.class)
                 .exchange()

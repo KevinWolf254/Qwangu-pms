@@ -1,7 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.OccupationTransactionHandler;
-import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,23 +26,6 @@ public class OccupationTransactionConfig {
     @Bean
     @RouterOperations(
             {
-                    @RouterOperation(
-                            path = "/v1/occupationTransactions",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = OccupationTransactionHandler.class, beanMethod = "create",
-                            operation = @Operation(
-                                    operationId = "create",
-                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = OccupationTransactionDto.class))),
-                                    responses = {
-                                            @ApiResponse(responseCode = "201", description = "occupation Transaction created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "occupation Transaction already exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "occupation Transaction were not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    }
-                            )
-                    ),
                     @RouterOperation(
                             path = "/v1/occupationTransactions",
                             produces = MediaType.APPLICATION_JSON_VALUE,
@@ -87,7 +69,6 @@ public class OccupationTransactionConfig {
                 .path("v1/occupationTransactions", builder -> builder
                         .GET("/{occupationTransactionId}", handler::findById)
                         .GET(handler::find)
-                        .POST(handler::create)
                 ).build();
     }
 }

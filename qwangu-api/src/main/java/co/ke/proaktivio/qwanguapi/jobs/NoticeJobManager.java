@@ -60,7 +60,7 @@ public class NoticeJobManager {
                                 .doOnNext(u -> System.out.println("---- Saved: " +u))
                                 .then(Mono.just(occupation)))
                         .map(occupation -> {
-                            occupation.setStatus(Occupation.Status.PREVIOUS);
+                            occupation.setStatus(Occupation.Status.VACATED);
                             return occupation;
                         })
                         .flatMap(occupationRepository::save)

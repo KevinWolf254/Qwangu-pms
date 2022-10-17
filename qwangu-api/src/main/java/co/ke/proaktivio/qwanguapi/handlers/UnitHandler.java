@@ -88,8 +88,21 @@ public class UnitHandler {
         throw new CustomBadRequestException("Not a valid Identifier!");
     }
 
+    public Mono<ServerResponse> findById(ServerRequest request) {
+        String id = request.pathVariable("unitId");
+        return unitService.findById(id)
+                .flatMap(results ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(new Response<>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,"Unit found successfully.",
+                                        results)), Response.class))
+                .doOnSuccess(a -> log.info(" Sent response with status code {} for querying unit by id", a.rawStatusCode()));
+    }
+
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("unitId");
         Optional<String> status = request.queryParam("status");
         Optional<String> accountNo = request.queryParam("accountNo");
         Optional<String> type = request.queryParam("type");
@@ -125,7 +138,6 @@ public class UnitHandler {
             OrderType finalOrder = order.map(OrderType::valueOf).orElse(OrderType.DESC);
 
             return unitService.findPaginated(
-                            id,
                             status.map(Unit.Status::valueOf),
                             accountNo,
                             type.map(Unit.Type::valueOf),
@@ -150,6 +162,7 @@ public class UnitHandler {
                                             results)), Response.class));
     }
 
+    // TODO FIND IF ITS IMPORTANT
     public Mono<ServerResponse> findByOccupationIds(ServerRequest request) {
         return request.bodyToMono(FindUnitsDto.class)
                 .filter(dto -> dto.getOccupationIds() != null && !dto.getOccupationIds().isEmpty())

@@ -9,8 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OccupationService {
-    Mono<Occupation> create(OccupationDto dto);
-    Mono<Occupation> update(String id, OccupationDto dto);
+    Mono<Occupation> create(OccupationForNewTenantDto dto);
+    Mono<Occupation> create(String tenantId, OccupationDto dto);
+    Mono<Occupation> update(String occupationId, VacateOccupationDto dto);
     Mono<Occupation> findById(String id);
     Mono<Occupation> findByUnitId(String unitId);
     Mono<Occupation> findByOccupationNo(String occupationNo);

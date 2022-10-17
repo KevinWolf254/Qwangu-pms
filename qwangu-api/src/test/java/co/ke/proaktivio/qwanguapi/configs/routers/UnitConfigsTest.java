@@ -396,7 +396,6 @@ public class UnitConfigsTest {
 
         // when
         when(unitService.findPaginated(
-                Optional.of(id),
                 Optional.of(Unit.Status.VACANT),
                 Optional.of(accountNo),
                 Optional.of(type),

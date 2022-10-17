@@ -22,6 +22,7 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -51,13 +52,14 @@ class InvoiceJobManagerIntegrationTest {
     @Test
     void create() {
         // given
-        LocalDateTime now = LocalDateTime.now();
-        var currentOccupation = new Occupation("1", Occupation.Status.CURRENT, now.minusDays(30), null,
-                "1", "1", now, null, null, null);
-//        new Unit("1", Unit.Status.OCCUPIED, false, "TE99", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now,
-//                null, "1");
+        LocalDate now = LocalDate.now();
+        var currentOccupation = new Occupation.OccupationBuilder()
+                .tenantId("1")
+                .startDate(now.minusDays(30))
+                .unitId("1")
+                .build();
+        currentOccupation.setId("1");
+        currentOccupation.setStatus(Occupation.Status.CURRENT);
         var currentUnit = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
                 .booked(false)
@@ -74,13 +76,13 @@ class InvoiceJobManagerIntegrationTest {
                 .garbagePerMonth(BigDecimal.valueOf(300))
                 .apartmentId("1").build();
         currentUnit.setId("1");
-
-        var bookedOccupation = new Occupation("2", Occupation.Status.BOOKED, now, null,
-                "2", "2", now, null, null, null);
-//        var bookedUnit = new Unit("2", Unit.Status.VACANT, false, "TE100", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.B, 1, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), now, null,
-//                "1");
+        var bookedOccupation = new Occupation.OccupationBuilder()
+                .tenantId("2")
+                .startDate(now)
+                .unitId("2")
+                .build();
+        bookedOccupation.setStatus(Occupation.Status.BOOKED);
+        bookedOccupation.setId("2");
         var bookedUnit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
                 .booked(false)
@@ -107,42 +109,35 @@ class InvoiceJobManagerIntegrationTest {
                 .totalAmountPaid(BigDecimal.ZERO)
                 .totalAmountCarriedForward(BigDecimal.valueOf(5000))
                 .build();
-        occupationTransaction.setCreatedOn(now.minusDays(15));
+        occupationTransaction.setCreatedOn(LocalDateTime.now().minusDays(15));
 
         // when
-        Flux<OccupationTransaction> createRentInvoices = occupationRepository.deleteAll()
+        var createRentInvoices = occupationRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
                 .then(unitRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
                 .then(occupationTransactionRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all OccupationTransactions!"))
+                .then(invoiceRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all Invoices!"))
                 .thenMany(unitRepository.saveAll(List.of(currentUnit, bookedUnit)))
                 .doOnNext(t -> System.out.println("---- Created: " + t))
                 .thenMany(occupationRepository.saveAll(List.of(currentOccupation, bookedOccupation)))
                 .doOnNext(t -> System.out.println("---- Created: " + t))
                 .then(occupationTransactionRepository.save(occupationTransaction))
                 .doOnSuccess(t -> System.out.println("---- Created: " + t))
-                .thenMany(manager.createRentInvoices());
+                .thenMany(manager.createRentInvoices())
+                .doOnNext(invoice -> System.out.println("---- Found :" +invoice));
 
         // then
         StepVerifier
                 .create(createRentInvoices)
-                .expectNextCount(2)
-                .verifyComplete();
-
-        // then
-        Flux<Invoice> allReceivables = invoiceRepository.findAll()
-                .doOnNext(t -> System.out.println("---- Found: " + t));
-        StepVerifier
-                .create(allReceivables)
-                .expectNextMatches(r -> r.getType().equals(Invoice.Type.RENT) &&
-                        r.getRentAmount().equals(BigDecimal.valueOf(27000)) &&
-                        r.getSecurityAmount().equals(BigDecimal.valueOf(500)) &&
-                        r.getGarbageAmount().equals(BigDecimal.valueOf(300)))
-                .expectNextMatches(r -> r.getType().equals(Invoice.Type.RENT) &&
-                        r.getRentAmount().equals(BigDecimal.valueOf(27000)) &&
-                        r.getSecurityAmount().equals(BigDecimal.valueOf(500)) &&
-                        r.getGarbageAmount().equals(BigDecimal.valueOf(300)))
+                .expectNextMatches(invoice -> !invoice.getId().isEmpty() && !invoice.getOccupationId().isEmpty() &&
+                        !invoice.getInvoiceNo().isEmpty() && invoice.getType().equals(Invoice.Type.RENT) &&
+                        invoice.getPeriod() != null && invoice.getRentAmount().equals(BigDecimal.valueOf(27000)) &&
+                        invoice.getSecurityAmount().equals(BigDecimal.valueOf(500)) &&
+                        invoice.getGarbageAmount().equals(BigDecimal.valueOf(300)) && invoice.getCreatedOn() != null &&
+                        invoice.getModifiedOn() != null)
                 .verifyComplete();
 
         // then
@@ -151,16 +146,11 @@ class InvoiceJobManagerIntegrationTest {
                 .doOnNext(t -> System.out.println("---- Found: " + t));
         StepVerifier
                 .create(allOccupationTransactions)
-                .expectNextMatches(ot -> ot.getType().equals(OccupationTransaction.Type.DEBIT) &&
+                .expectNextMatches(ot -> !ot.getId().isEmpty() && ot.getOccupationId().equals("1") &&
+                        !ot.getInvoiceId().isEmpty() && ot.getType().equals(OccupationTransaction.Type.DEBIT) &&
                         ot.getTotalAmountOwed().equals(BigDecimal.valueOf(27800)) &&
                         ot.getTotalAmountPaid().equals(BigDecimal.ZERO) &&
-                        (ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(27800)) ||
-                                ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(32800))))
-                .expectNextMatches(ot -> ot.getType().equals(OccupationTransaction.Type.DEBIT) &&
-                        ot.getTotalAmountOwed().equals(BigDecimal.valueOf(27800)) &&
-                        ot.getTotalAmountPaid().equals(BigDecimal.ZERO) &&
-                        (ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(27800)) ||
-                                ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(32800))))
+                        ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(32800)))
                 .expectNextMatches(ot -> ot.getType().equals(OccupationTransaction.Type.DEBIT) &&
                         ot.getTotalAmountOwed().equals(BigDecimal.valueOf(5000)) &&
                         ot.getTotalAmountPaid().equals(BigDecimal.ZERO) &&

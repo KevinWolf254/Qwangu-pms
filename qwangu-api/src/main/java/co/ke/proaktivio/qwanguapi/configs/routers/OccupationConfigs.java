@@ -1,8 +1,11 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.OccupationHandler;
+import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
+import co.ke.proaktivio.qwanguapi.pojos.responses.OccupationResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.OccupationsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -36,7 +39,7 @@ public class OccupationConfigs {
                                     operationId = "find",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Occupations found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = OccupationsResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Occupations were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -52,6 +55,21 @@ public class OccupationConfigs {
                             )
                     ),
                     @RouterOperation(
+                            path = "/v1/occupations/{occupationId}",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.GET, beanClass = OccupationHandler.class, beanMethod = "findById",
+                            operation = @Operation(
+                                    operationId = "findById",
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Occupation found successfully.",
+                                                    content = @Content(schema = @Schema(implementation = OccupationResponse.class))),
+                                            @ApiResponse(responseCode = "404", description = "Occupation was not found!",
+                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+                                    },
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "occupationId")}
+                            )
+                    ),
+                    @RouterOperation(
                             path = "/v1/occupations",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.POST, beanClass = OccupationHandler.class, beanMethod = "create",
@@ -60,7 +78,7 @@ public class OccupationConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = OccupationDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Occupation created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = OccupationResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "Occupation already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Occupation were not found!",
@@ -77,7 +95,7 @@ public class OccupationConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = OccupationDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Occupation updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = OccupationResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "Occupation already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Occupation was not found!",
@@ -95,7 +113,7 @@ public class OccupationConfigs {
                                     operationId = "delete",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Occupation deleted successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                                    content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "400", description = "Occupation does not exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Occupation was not found!",
@@ -111,6 +129,7 @@ public class OccupationConfigs {
         return route()
                 .path("v1/occupations", builder -> builder
                         .GET(handler::find)
+                        .GET("/{occupationId}", handler::findById)
                         .POST(handler::create)
                         .PUT("/{occupationId}", handler::update)
                         .DELETE("/{occupationId}", handler::delete)
