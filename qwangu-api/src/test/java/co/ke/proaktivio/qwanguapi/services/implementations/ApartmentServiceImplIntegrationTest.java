@@ -154,8 +154,7 @@ class ApartmentServiceImplIntegrationTest {
                 .flatMap(a -> apartmentService.create(a))
                 .doOnNext(a -> System.out.println("---- Created " +a))
                 .thenMany(apartmentService
-                        .findPaginated(Optional.empty(),
-                                Optional.empty(), 1, 10,
+                        .find(Optional.empty(),
                                 OrderType.ASC))
                 .doOnNext(a -> System.out.println("---- Found " +a));
 
@@ -176,8 +175,7 @@ class ApartmentServiceImplIntegrationTest {
 
         //when
         Flux<Apartment> saved = deleteAll()
-                .thenMany(apartmentService.findPaginated(Optional.empty(),
-                        Optional.empty(), 1, 10,
+                .thenMany(apartmentService.find(Optional.empty(),
                         OrderType.ASC))
                 .doOnError(a -> System.out.println("---- Found no apartments!"));
 

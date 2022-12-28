@@ -22,6 +22,7 @@ import org.springframework.validation.Validator;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -73,42 +74,34 @@ public class ApartmentHandler {
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating apartment", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> findAll(ServerRequest request) {
-        Optional<String> id = request.queryParam("apartmentId");
-        Optional<String> name = request.queryParam("name");
-        Optional<String> order = request.queryParam("order");
-
-        Flux<Apartment> apartments = apartmentService.findAll(id, name, order.map(OrderType::valueOf).orElse(OrderType.DESC));
-        return ServerResponse
-                .ok()
-                .body(apartments, Apartment.class);
-    }
-
-    public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> id = request.queryParam("apartmentId");
-        Optional<String> name = request.queryParam("name");
-        Optional<String> page = request.queryParam("page");
-        Optional<String> pageSize = request.queryParam("pageSize");
-        Optional<String> order = request.queryParam("order");
-        log.info(" Received request for querying apartments");
-        return apartmentService.findPaginated(
-                        id,
-                        name,
-                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
-                        pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
-                        order.map(OrderType::valueOf).orElse(OrderType.DESC)
-                ).collectList()
-                .doOnSuccess(a -> log.info(" Query request returned {} apartments", a.size()))
-                .doOnError(e -> log.error(" Failed to find apartment. Error ", e))
+    public Mono<ServerResponse> findById(ServerRequest request) {
+        String id = request.pathVariable("apartmentId");
+        return apartmentService.findById(id)
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
-                                        "",
-                                        HttpStatus.OK.value(),true,"Apartments found successfully.",
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,"Apartment found successfully.",
                                         results)), Response.class))
-                .doOnSuccess(a -> log.debug(" Sent response with status code {} for querying apartment", a.rawStatusCode()));
+                .doOnSuccess(a -> log.info(" Sent response with status code {} for querying user by id", a.rawStatusCode()));
+    }
+
+    public Mono<ServerResponse> find(ServerRequest request) {
+        Optional<String> name = request.queryParam("name");
+        Optional<String> order = request.queryParam("order");
+
+        return ServerResponse
+                .ok()
+                .body(apartmentService
+                        .find(name, order.map(OrderType::valueOf).orElse(OrderType.DESC))
+                        .collectList()
+                        .flatMap(apartments -> Mono.just(new Response<List<Apartment>>(
+                                LocalDateTime.now().toString(),
+                                request.uri().getPath(),
+                                HttpStatus.OK.value(),true,"Apartments found successfully.",
+                                apartments))), Response.class);
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {

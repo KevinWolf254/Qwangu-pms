@@ -3,6 +3,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Apartment;
+import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
@@ -67,44 +68,25 @@ public class ApartmentServiceImpl implements ApartmentService {
                 .doOnSuccess(a -> log.debug(" Apartment with name {} update on database successfully", dto.getName()));
     }
 
+    @Override
+    public Mono<Apartment> findById(String apartmentId) {
+        Query query = new Query().addCriteria(Criteria.where("id").is(apartmentId));
+        return template.findOne(query, Apartment.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %S was not found!"
+                        .formatted(apartmentId))));
+    }
+
     public Mono<Boolean> exists(String name) {
         return template.exists(new Query()
                 .addCriteria(Criteria.where("name").is(name)), Apartment.class);
     }
 
     @Override
-    public Flux<Apartment> findPaginated(Optional<String> optionalId, Optional<String> optionalApartmentName, int page,
-                                         int pageSize, OrderType order) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
+    public Flux<Apartment> find(Optional<String> optionalApartmentName, OrderType order) {
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        optionalId.ifPresent(s -> {
-            if(StringUtils.hasText(s))
-                query.addCriteria(Criteria.where("id").is(s.trim()));
-        });
-        optionalApartmentName.ifPresent(s -> {
-            if(StringUtils.hasText(s))
-                query.addCriteria(Criteria.where("name").regex(".*" +s.trim()+ ".*", "i"));
-        });
-        query.with(pageable)
-                .with(sort);
-        return template.find(query, Apartment.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("Apartments were not found!")))
-                .doOnComplete(() -> log.debug(" Apartments retrieved from database successfully"));
-    }
-
-    @Override
-    public Flux<Apartment> findAll(Optional<String> optionalId, Optional<String> optionalApartmentName, OrderType order) {
-        Sort sort = order.equals(OrderType.ASC) ?
-                Sort.by(Sort.Order.asc("id")) :
-                Sort.by(Sort.Order.desc("id"));
-        Query query = new Query();
-        optionalId.ifPresent(s -> {
-            if(StringUtils.hasText(s))
-                query.addCriteria(Criteria.where("id").is(s.trim()));
-        });
         optionalApartmentName.ifPresent(s -> {
             if(StringUtils.hasText(s))
                 query.addCriteria(Criteria.where("name").regex(".*" +s.trim()+ ".*", "i"));

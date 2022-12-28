@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.services;
 
 import co.ke.proaktivio.qwanguapi.models.Apartment;
+import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import reactor.core.publisher.Flux;
@@ -13,9 +14,9 @@ public interface ApartmentService {
 
     Mono<Apartment> update(String id, ApartmentDto dto);
 
-    Flux<Apartment> findPaginated(Optional<String> id, Optional<String> name, int page, int pageSize, OrderType order);
+    Mono<Apartment> findById(String apartmentId);
 
-    Flux<Apartment> findAll(Optional<String> optionalId, Optional<String> optionalApartmentName, OrderType order);
+    Flux<Apartment> find(Optional<String> optionalApartmentName, OrderType order);
 
     Mono<Boolean> deleteById(String id);
 }

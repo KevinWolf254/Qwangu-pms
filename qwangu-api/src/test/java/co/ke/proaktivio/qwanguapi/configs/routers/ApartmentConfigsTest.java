@@ -408,35 +408,24 @@ class ApartmentConfigsTest {
     @DisplayName("find returns a Flux of Apartments")
     void find_returnsFluxOfApartments_status200() {
         // given
-        String page = "1";
-        String id = "1";
         String name = "Luxury Apartments";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(name);
         apartment.setId("1");
         apartment.setCreatedOn(now);
 
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
 
         // when
-        when(apartmentService.findPaginated(
-                Optional.of(id),
+        when(apartmentService.find(
                 Optional.of(name),
-                finalPage,
-                finalPageSize,
                 order)).thenReturn(Flux.just(apartment));
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/apartments")
-                        .queryParam("apartmentId", id)
                         .queryParam("name", name)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
                         .queryParam("order", order)
                         .build();
         client
@@ -461,20 +450,12 @@ class ApartmentConfigsTest {
     @DisplayName("find returns CustomNotFoundException with status 404")
     void find_returnsCustomNotFoundException_status404() {
         // given
-        String id = "1";
         String name = "Luxury Apartments";
-        String page = "1";
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         String order = OrderType.ASC.name();
 
         // when
-        when(apartmentService.findPaginated(
-                Optional.of(id),
+        when(apartmentService.find(
                 Optional.of(name),
-                finalPage,
-                finalPageSize,
                 OrderType.valueOf(order)))
                 .thenReturn(Flux.error(new CustomNotFoundException("Apartments were not found!")));
 
@@ -482,10 +463,7 @@ class ApartmentConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/apartments")
-                        .queryParam("apartmentId", id)
                         .queryParam("name", name)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
                         .queryParam("order", order)
                         .build();
         client
@@ -507,20 +485,12 @@ class ApartmentConfigsTest {
     @DisplayName("find returns Exception with status 500")
     void find_returnsException_status500() {
         // given
-        String id = "1";
         String name = "Luxury Apartments";
-        String page = "1";
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
 
         // when
         OrderType order = OrderType.ASC;
-        when(apartmentService.findPaginated(
-                Optional.of(id),
+        when(apartmentService.find(
                 Optional.of(name),
-                finalPage,
-                finalPageSize,
                 order))
                 .thenReturn(Flux.error(new RuntimeException("Something happened!")));
 
@@ -528,10 +498,7 @@ class ApartmentConfigsTest {
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/apartments")
-                        .queryParam("apartmentId", id)
                         .queryParam("name", name)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
                         .queryParam("order", order)
                         .build();
         client

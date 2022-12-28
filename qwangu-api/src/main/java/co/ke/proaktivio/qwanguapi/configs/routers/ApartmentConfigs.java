@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.ApartmentHandler;
+import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
 import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,28 +31,6 @@ public class ApartmentConfigs {
     @Bean
     @RouterOperations(
             {
-                    @RouterOperation(
-                            path = "/v1/apartments",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = ApartmentHandler.class, beanMethod = "find",
-                            operation = @Operation(
-                                    operationId = "find",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Apartments found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Apartments were not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "apartmentId"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "name"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    },
-                                    security = @SecurityRequirement(name = "Bearer authentication")
-                            )
-                    ),
                     @RouterOperation(
                             path = "/v1/apartments",
                             produces = MediaType.APPLICATION_JSON_VALUE,
@@ -106,16 +85,55 @@ public class ApartmentConfigs {
                                     parameters = {@Parameter(in = ParameterIn.PATH, name = "apartmentId")},
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
+                    ),
+                    @RouterOperation(
+                            path = "/v1/apartments/{apartmentId}",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.GET, beanClass = ApartmentHandler.class, beanMethod = "findById",
+                            operation = @Operation(
+                                    operationId = "findById",
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Apartment fund successfully.",
+                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                            @ApiResponse(responseCode = "400", description = "User does not exists!",
+                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                            @ApiResponse(responseCode = "404", description = "User was not found!",
+                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+                                    },
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "apartmentId")}
+                            )
+                    ),
+                    @RouterOperation(
+                            path = "/v1/apartments",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.GET, beanClass = ApartmentHandler.class, beanMethod = "find",
+                            operation = @Operation(
+                                    operationId = "find",
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Apartments found successfully.",
+                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                            @ApiResponse(responseCode = "404", description = "Apartments were not found!",
+                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+                                    },
+                                    parameters = {
+                                            @Parameter(in = ParameterIn.QUERY, name = "apartmentId"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "name"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "order")
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
+                            )
                     )
             }
     )
     RouterFunction<ServerResponse> apartmentRoute(ApartmentHandler handler) {
         return route()
                 .path("v1/apartments", builder -> builder
-                        .GET("/paginated", handler::find)
-                        .GET(handler::findAll)
+                        .GET(handler::find)
                         .POST(handler::create)
                         .PUT("/{apartmentId}", handler::update)
+                        .GET("/{apartmentId}", handler::findById)
                         .DELETE("/{apartmentId}", handler::delete)
                 ).build();
     }
