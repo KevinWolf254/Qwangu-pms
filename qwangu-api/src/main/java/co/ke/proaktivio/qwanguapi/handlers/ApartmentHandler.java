@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.models.Apartment;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.ApartmentService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -69,6 +71,17 @@ public class ApartmentHandler {
                                         HttpStatus.OK.value(), true,"Apartment updated successfully.",
                                         updated)), Response.class))
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating apartment", a.rawStatusCode()));
+    }
+
+    public Mono<ServerResponse> findAll(ServerRequest request) {
+        Optional<String> id = request.queryParam("apartmentId");
+        Optional<String> name = request.queryParam("name");
+        Optional<String> order = request.queryParam("order");
+
+        Flux<Apartment> apartments = apartmentService.findAll(id, name, order.map(OrderType::valueOf).orElse(OrderType.DESC));
+        return ServerResponse
+                .ok()
+                .body(apartments, Apartment.class);
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {

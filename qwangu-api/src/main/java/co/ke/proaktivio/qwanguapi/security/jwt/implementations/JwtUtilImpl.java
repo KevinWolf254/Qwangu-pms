@@ -93,6 +93,9 @@ public class JwtUtilImpl implements JwtUtil {
             if(authority.getUpdate()) {
                 userAuthorities.add(name.toUpperCase().concat("_UPDATE"));
             }
+            if(authority.getDelete()) {
+                userAuthorities.add(name.toUpperCase().concat("_DELETE"));
+            }
             if(authority.getAuthorize()) {
                 userAuthorities.add(name.toUpperCase().concat("_AUTHORIZE"));
             }

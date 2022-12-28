@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -79,10 +80,36 @@ public class ApartmentServiceImpl implements ApartmentService {
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        optionalId.ifPresent(s -> query.addCriteria(Criteria.where("id").is(s)));
-        optionalApartmentName.ifPresent(s -> query.addCriteria(Criteria.where("name").is(s)));
+        optionalId.ifPresent(s -> {
+            if(StringUtils.hasText(s))
+                query.addCriteria(Criteria.where("id").is(s.trim()));
+        });
+        optionalApartmentName.ifPresent(s -> {
+            if(StringUtils.hasText(s))
+                query.addCriteria(Criteria.where("name").regex(".*" +s.trim()+ ".*", "i"));
+        });
         query.with(pageable)
                 .with(sort);
+        return template.find(query, Apartment.class)
+                .switchIfEmpty(Flux.error(new CustomNotFoundException("Apartments were not found!")))
+                .doOnComplete(() -> log.debug(" Apartments retrieved from database successfully"));
+    }
+
+    @Override
+    public Flux<Apartment> findAll(Optional<String> optionalId, Optional<String> optionalApartmentName, OrderType order) {
+        Sort sort = order.equals(OrderType.ASC) ?
+                Sort.by(Sort.Order.asc("id")) :
+                Sort.by(Sort.Order.desc("id"));
+        Query query = new Query();
+        optionalId.ifPresent(s -> {
+            if(StringUtils.hasText(s))
+                query.addCriteria(Criteria.where("id").is(s.trim()));
+        });
+        optionalApartmentName.ifPresent(s -> {
+            if(StringUtils.hasText(s))
+                query.addCriteria(Criteria.where("name").regex(".*" +s.trim()+ ".*", "i"));
+        });
+        query.with(sort);
         return template.find(query, Apartment.class)
                 .switchIfEmpty(Flux.error(new CustomNotFoundException("Apartments were not found!")))
                 .doOnComplete(() -> log.debug(" Apartments retrieved from database successfully"));

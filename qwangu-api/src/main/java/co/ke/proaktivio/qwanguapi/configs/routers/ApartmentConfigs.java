@@ -112,7 +112,8 @@ public class ApartmentConfigs {
     RouterFunction<ServerResponse> apartmentRoute(ApartmentHandler handler) {
         return route()
                 .path("v1/apartments", builder -> builder
-                        .GET(handler::find)
+                        .GET("/paginated", handler::find)
+                        .GET(handler::findAll)
                         .POST(handler::create)
                         .PUT("/{apartmentId}", handler::update)
                         .DELETE("/{apartmentId}", handler::delete)

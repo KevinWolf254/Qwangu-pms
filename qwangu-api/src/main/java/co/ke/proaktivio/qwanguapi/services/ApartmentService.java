@@ -10,7 +10,12 @@ import java.util.Optional;
 
 public interface ApartmentService {
     Mono<Apartment> create(ApartmentDto dto);
+
     Mono<Apartment> update(String id, ApartmentDto dto);
+
     Flux<Apartment> findPaginated(Optional<String> id, Optional<String> name, int page, int pageSize, OrderType order);
+
+    Flux<Apartment> findAll(Optional<String> optionalId, Optional<String> optionalApartmentName, OrderType order);
+
     Mono<Boolean> deleteById(String id);
 }
