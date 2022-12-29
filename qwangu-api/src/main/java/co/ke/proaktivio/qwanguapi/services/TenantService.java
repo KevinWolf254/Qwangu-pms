@@ -13,8 +13,7 @@ public interface TenantService {
     Mono<Tenant> update(String tenantId, TenantDto dto);
     Mono<Tenant> findTenantByMobileNumber(String mobileNumber);
     Mono<Tenant> findById(String tenantId);
-    Flux<Tenant> findPaginated(Optional<String> mobileNumber, Optional<String> emailAddress,
-                             int page, int pageSize, OrderType order);
+    Flux<Tenant> findPaginated(Optional<String> mobileNumber, Optional<String> emailAddress, OrderType order);
     Mono<Boolean> deleteById(String id);
 
 }

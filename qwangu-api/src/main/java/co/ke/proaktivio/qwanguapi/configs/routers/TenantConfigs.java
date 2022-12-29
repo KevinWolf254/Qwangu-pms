@@ -39,43 +39,6 @@ public class TenantConfigs {
     @RouterOperations(
             {
                     @RouterOperation(
-                            path = "/v1/tenants/{tenantId}",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = TenantHandler.class, beanMethod = "findById",
-                            operation = @Operation(
-                                    operationId = "findById",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Tenant found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = TenantResponse.class))),
-                                            @ApiResponse(responseCode = "404", description = "Tenant was not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "occupationId")}
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/tenants",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = TenantHandler.class, beanMethod = "find",
-                            operation = @Operation(
-                                    operationId = "find",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Tenants found successfully.",
-                                                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = TenantsResponse.class)))),
-                                            @ApiResponse(responseCode = "404", description = "Tenants were not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "tenantId"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "mobileNumber"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "emailAddress"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    }
-                            )
-                    ),
-                    @RouterOperation(
                             path = "/v1/tenants",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.POST, beanClass = TenantHandler.class, beanMethod = "create",
@@ -148,6 +111,38 @@ public class TenantConfigs {
                                     parameters = {@Parameter(in = ParameterIn.PATH, name = "tenantId")},
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
+                    ),
+                    @RouterOperation(
+                            path = "/v1/tenants/{tenantId}",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.GET, beanClass = TenantHandler.class, beanMethod = "findById",
+                            operation = @Operation(
+                                    operationId = "findById",
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Tenant found successfully.",
+                                                    content = @Content(schema = @Schema(implementation = TenantResponse.class))),
+                                            @ApiResponse(responseCode = "404", description = "Tenant was not found!",
+                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+                                    },
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "tenantId")}
+                            )
+                    ),
+                    @RouterOperation(
+                            path = "/v1/tenants",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.GET, beanClass = TenantHandler.class, beanMethod = "find",
+                            operation = @Operation(
+                                    operationId = "find",
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Tenants found successfully.",
+                                                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = TenantsResponse.class))))
+                                    },
+                                    parameters = {
+                                            @Parameter(in = ParameterIn.QUERY, name = "mobileNumber"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "emailAddress"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "order")
+                                    }
+                            )
                     )
             }
     )
@@ -155,9 +150,9 @@ public class TenantConfigs {
         return route()
                 .path("v1/tenants", builder -> builder
                         .GET(handler::find)
-                        .GET("/{tenantId}", handler::findById)
                         .POST(handler::create)
                         .PUT("/{tenantId}", handler::update)
+                        .GET("/{tenantId}", handler::findById)
                         .DELETE("/{tenantId}", handler::delete)
                         .POST("/{tenantId}/occupations", handler::createOccupation)
                 ).build();

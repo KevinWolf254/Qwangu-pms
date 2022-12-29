@@ -102,30 +102,33 @@ public class TenantHandler {
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> mobileNumber = request.queryParam("mobileNumber");
         Optional<String> emailAddress = request.queryParam("emailAddress");
-        Optional<String> page = request.queryParam("page");
-        Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
-        Integer finalPage = page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1);
-        Integer finalPageSize = pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10);
         OrderType finalOrder = order.map(OrderType::valueOf).orElse(OrderType.DESC);
         log.info(" Received request for querying tenants");
         return tenantService.findPaginated(
                         mobileNumber,
                         emailAddress,
-                        finalPage,
-                        finalPageSize,
                         finalOrder
                 ).collectList()
                 .doOnSuccess(a -> log.info(" Query request returned {} tenants", a.size()))
                 .doOnError(e -> log.error(" Failed to find tenants. Error ", e))
-                .flatMap(results ->
-                        ServerResponse
+                .flatMap(results -> {
+                    if(results.isEmpty())
+                        return ServerResponse
                                 .ok()
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.OK.value(), true, "Tenant found successfully.",
-                                        results)), Response.class))
+                                        HttpStatus.OK.value(), false, "Tenants with those parameters do not exist!",
+                                        results)), Response.class);
+                    return ServerResponse
+                            .ok()
+                            .body(Mono.just(new Response<>(
+                                    LocalDateTime.now().toString(),
+                                    request.uri().getPath(),
+                                    HttpStatus.OK.value(), true, "Tenant found successfully.",
+                                    results)), Response.class);
+                })
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for querying tenants", a.rawStatusCode()));
     }
 
@@ -135,15 +138,25 @@ public class TenantHandler {
         return tenantService.deleteById(id)
                 .doOnSuccess($ -> log.info(" Deleted user successfully"))
                 .doOnError(e -> log.error(" Failed to delete user. Error ", e))
-                .flatMap(result ->
-                        ServerResponse
+                .flatMap(success -> {
+                    if(!success)
+                        return ServerResponse
                                 .ok()
                                 .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,
-                                        "Tenant with id %s deleted successfully.".formatted(id), null)),
-                                        Response.class))
+                                                LocalDateTime.now().toString(),
+                                                request.uri().getPath(),
+                                                HttpStatus.OK.value(),false,
+                                                "Tenant with id %s does not exist!".formatted(id), null)),
+                                        Response.class);
+                    return ServerResponse
+                            .ok()
+                            .body(Mono.just(new Response<>(
+                                            LocalDateTime.now().toString(),
+                                            request.uri().getPath(),
+                                            HttpStatus.OK.value(),true,
+                                            "Tenant with id %s deleted successfully.".formatted(id), null)),
+                                    Response.class);
+                })
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting tenant", a.rawStatusCode()));
     }
 }

@@ -146,7 +146,7 @@ class TenantServiceImplIntegrationTest {
                 .then(tenantRepository.save(tenant))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(tenantService.findPaginated(Optional.of(mobileNumber), Optional.of(emailAddress),
-                        1, 10, OrderType.ASC))
+                        OrderType.ASC))
                 .doOnNext(a -> System.out.println("---- Found " + a));
         // then
         StepVerifier
@@ -157,7 +157,7 @@ class TenantServiceImplIntegrationTest {
         // when
         Flux<Tenant> findNotExist = tenantService
                 .findPaginated(Optional.of("0700000001"), Optional.of("person2@gmail.com"),
-                        1, 10, OrderType.ASC);
+                        OrderType.ASC);
         // then
         StepVerifier
                 .create(findNotExist)
@@ -169,7 +169,7 @@ class TenantServiceImplIntegrationTest {
         Flux<Tenant> findPaginatedDesc = tenantRepository.save(tenant2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(tenantService.findPaginated( Optional.empty(), Optional.empty(),
-                        1, 10, OrderType.DESC))
+                        OrderType.DESC))
                 .doOnNext(a -> System.out.println("---- Found " + a));
         // then
         StepVerifier

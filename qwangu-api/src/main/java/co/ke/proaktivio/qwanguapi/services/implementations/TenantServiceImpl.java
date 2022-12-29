@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -106,32 +107,32 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public Mono<Tenant> findById(String tenantId) {
-        return tenantRepository.findById(tenantId)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Tenant with id %s was not found!".formatted(tenantId))));
+        return tenantRepository.findById(tenantId);
     }
 
     @Override
-    public Flux<Tenant> findPaginated(Optional<String> mobileNumber, Optional<String> emailAddress,
-                                      int page, int pageSize, OrderType order) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
+    public Flux<Tenant> findPaginated(Optional<String> mobileNumber, Optional<String> emailAddress, OrderType order) {
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        mobileNumber.ifPresent(mobile -> query.addCriteria(Criteria.where("mobileNumber").is(mobile)));
-        emailAddress.ifPresent(email -> query.addCriteria(Criteria.where("emailAddress").is(email)));
-        query.with(pageable)
-                .with(sort);
+        mobileNumber.ifPresent(mobile -> {
+            if(StringUtils.hasText(mobile))
+                query.addCriteria(Criteria.where("mobileNumber").regex(".*" +mobile.trim()+ ".*", "i"));
+        });
+        emailAddress.ifPresent(email -> {
+            if(StringUtils.hasText(email))
+                query.addCriteria(Criteria.where("emailAddress").regex(".*" +email.trim()+ ".*", "i"));
+        });
+        query.with(sort);
         return template
-                .find(query, Tenant.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("Tenants were not found!")));
+                .find(query, Tenant.class);
     }
 
     @Override
     public Mono<Boolean> deleteById(String id) {
         return template
                 .findById(id, Tenant.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Tenant with id %s does not exist!".formatted(id))))
                 .flatMap(template::remove)
                 .map(DeleteResult::wasAcknowledged);
     }

@@ -254,8 +254,6 @@ class TenantConfigsTest {
         when(tenantService.findPaginated(
                 Optional.of(mobileNumber),
                 Optional.of(emailAddress),
-                finalPage,
-                finalPageSize,
                 order
         )).thenReturn(Flux.just(tenant));
         // then
