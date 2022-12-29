@@ -62,7 +62,7 @@ public class Unit {
     }
 
     public enum Identifier {
-        A,B,C,D,E,F,G,H,I,J
+        A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
     }
 
     public enum Currency {
@@ -87,6 +87,7 @@ public class Unit {
         private BigDecimal securityPerMonth;
         private BigDecimal garbagePerMonth;
         private String apartmentId;
+        private Map<String, BigDecimal> otherAmounts;
 
         public UnitBuilder status(Status status) {
             this.status = status;
@@ -153,6 +154,11 @@ public class Unit {
             return this;
         }
 
+        public UnitBuilder otherAmounts(Map<String, BigDecimal> otherAmounts) {
+            this.otherAmounts = otherAmounts;
+            return this;
+        }
+
         public UnitBuilder apartmentId(String apartmentId) {
             this.apartmentId = apartmentId;
             return this;
@@ -174,6 +180,7 @@ public class Unit {
             unit.setSecurityPerMonth(this.securityPerMonth);
             unit.setGarbagePerMonth(this.garbagePerMonth);
             unit.setApartmentId(this.apartmentId);
+            unit.setOtherAmounts(this.otherAmounts);
             return unit;
         }
     }

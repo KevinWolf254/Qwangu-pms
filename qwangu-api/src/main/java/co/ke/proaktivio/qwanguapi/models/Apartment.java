@@ -15,6 +15,8 @@ public class Apartment {
     private String id;
     @Indexed(unique = true)
     private String name;
+    // TODO INCLUDE NO OF FLOORS
+    // TODO INCLUDE AMENITIES
     @CreatedDate
     private LocalDateTime createdOn;
     @CreatedBy

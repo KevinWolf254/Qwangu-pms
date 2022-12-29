@@ -76,7 +76,7 @@ public class UnitConfigsTest {
         // given
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
                 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
-                BigDecimal.valueOf(300), "1");
+                BigDecimal.valueOf(300), null, "1");
 //        var unit = new Unit("1", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
 //                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
 //                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
@@ -100,7 +100,7 @@ public class UnitConfigsTest {
         unit.setCreatedOn(LocalDateTime.now());
         var dtoNonApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
                 2, 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
-                BigDecimal.valueOf(500), BigDecimal.valueOf(300), null);
+                BigDecimal.valueOf(500), BigDecimal.valueOf(300), null, null);
 //        var unitNonApartment = new Unit("2", Unit.Status.VACANT, false, "TE99", Unit.Type.MAISONETTES,
 //                null, 0, 2, 1, 2, Unit.Currency.KES,
 //                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), LocalDateTime.now(),
@@ -121,11 +121,11 @@ public class UnitConfigsTest {
         unitNonApartment.setId("2");
         unitNonApartment.setCreatedOn(LocalDateTime.now());
         var dtoFailsValidation = new UnitDto(null, null, null, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
         var dtoApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, null, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
         var dtoNoneApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null, null, null,
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
 
         // when
         when(unitService.create(dto)).thenReturn(Mono.just(unit));
@@ -255,7 +255,7 @@ public class UnitConfigsTest {
         var id = "1";
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
                 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
-                BigDecimal.valueOf(300), "1");
+                BigDecimal.valueOf(300), null, "1");
 //        var unit = new Unit(id, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
 //                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
 //                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
@@ -395,7 +395,8 @@ public class UnitConfigsTest {
                         .build();
 
         // when
-        when(unitService.findPaginated(
+        when(unitService.find(
+                Optional.of(apartmentId),
                 Optional.of(Unit.Status.VACANT),
                 Optional.of(accountNo),
                 Optional.of(type),
@@ -403,9 +404,6 @@ public class UnitConfigsTest {
                 Optional.of(floorNo),
                 Optional.of(noOfBedrooms),
                 Optional.of(noOfBathrooms),
-                Optional.of(apartmentId),
-                finalPage,
-                finalPageSize,
                 order
                 )).thenReturn(Flux.just(unit));
 

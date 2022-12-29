@@ -13,10 +13,9 @@ public interface UnitService {
     Mono<Unit> create(UnitDto dto);
     Mono<Unit> update(String id, UnitDto dto);
     Mono<Unit> findById(String unitId);
-    Flux<Unit> findPaginated(Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.Type> type,
-                             Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
-                             Optional<Integer> bedrooms, Optional<Integer> bathrooms, Optional<String> apartmentId, int page, int pageSize,
-                             OrderType order);
+    Flux<Unit> find(Optional<String> apartmentId, Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.Type> type,
+                    Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
+                    Optional<Integer> bedrooms, Optional<Integer> bathrooms, OrderType order);
     Flux<Unit> findByOccupationIds(List<String> occupationIds);
     Mono<Unit> findByAccountNoAndIsBooked(String accountNo, Boolean isBooked);
     Mono<Unit> findByAccountNo(String accountNo);

@@ -29,6 +29,7 @@ import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Optional;
 
 @Testcontainers
@@ -65,13 +66,13 @@ class UnitServiceImplIntegrationTest {
         apartment.setId(id);
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1,
                 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), id);
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, id);
         var dtoWithNonExistingApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
                 1, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), "2");
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, "2");
         var dtoNotApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
                 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null);
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, null);
         // when
         Mono<Unit> createUnit = apartmentRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
@@ -124,13 +125,17 @@ class UnitServiceImplIntegrationTest {
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
         var apartment = new Apartment(name);
+        var otherAmounts = new HashMap<String, BigDecimal>();
+        otherAmounts.put("Gym", new BigDecimal(500));
+        otherAmounts.put("Swimming Pool", new BigDecimal(800));
+
         apartment.setId(id);
         var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2,
                 1, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
-                BigDecimal.valueOf(500), id);
+                BigDecimal.valueOf(500), null, id);
         var dtoUpdate = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1,
                 2, 1, 2, Unit.Currency.KES, BigDecimal.valueOf(26000),
-                BigDecimal.valueOf(510), BigDecimal.valueOf(510), "1");
+                BigDecimal.valueOf(510), BigDecimal.valueOf(510), otherAmounts, "1");
 //        var unit = new Unit("301", Unit.Status.VACANT, false, "TE34", Unit.Type.APARTMENT_UNIT,
 //                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
 //                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
@@ -154,7 +159,7 @@ class UnitServiceImplIntegrationTest {
 
         var dtoThatChangesUnitType = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, Unit.Identifier.A, 1,
                 2, 1, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
-                BigDecimal.valueOf(500), BigDecimal.valueOf(500), "1");
+                BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, "1");
 //        var unit2 = new Unit("302", Unit.Status.VACANT, false, "TE35", Unit.Type.APARTMENT_UNIT,
 //                Unit.Identifier.C, 3, 2, 1, 2, Unit.Currency.KES,
 //                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
@@ -178,7 +183,7 @@ class UnitServiceImplIntegrationTest {
 
         var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT,
                 Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), "1");
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, "1");
 //        var unitNotForApartment = new Unit("4444", Unit.Status.VACANT, false, "SE44",
 //                Unit.Type.MAISONETTES, null, null, 2, 1, 2,
 //                Unit.Currency.KES, BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300),
@@ -199,7 +204,7 @@ class UnitServiceImplIntegrationTest {
 
         var dtoUpdateNotForApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
                 5, 3, 2, Unit.Currency.KES, BigDecimal.valueOf(45000),
-                BigDecimal.valueOf(1510), BigDecimal.valueOf(1510), null);
+                BigDecimal.valueOf(1510), BigDecimal.valueOf(1510), null, null);
 
         // when
         Mono<Unit> createUpdateUnit = apartmentRepository.deleteAll()
@@ -318,9 +323,9 @@ class UnitServiceImplIntegrationTest {
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(unitRepository.save(unit))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.findPaginated(Optional.of(Unit.Status.VACANT), Optional.of("TE34"),
+                .thenMany(unitService.find(Optional.of(id), Optional.of(Unit.Status.VACANT), Optional.of("TE34"),
                         Optional.of(Unit.Type.APARTMENT_UNIT), Optional.of(Unit.Identifier.B), Optional.of(2),
-                        Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.ASC))
+                        Optional.of(2), Optional.of(1), OrderType.ASC))
                 .doOnNext(u -> System.out.println("---- Found " +u));
         // then
         StepVerifier
@@ -329,9 +334,9 @@ class UnitServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Unit> findUnitNonExisting = unitService.findPaginated( Optional.of(Unit.Status.VACANT),
+        Flux<Unit> findUnitNonExisting = unitService.find(Optional.of(id), Optional.of(Unit.Status.VACANT),
                 Optional.of("TE35"), Optional.of(Unit.Type.APARTMENT_UNIT), Optional.of(Unit.Identifier.E),
-                Optional.of(2), Optional.of(2), Optional.of(1), Optional.of(id), 1, 5, OrderType.ASC)
+                Optional.of(2), Optional.of(2), Optional.of(1), OrderType.ASC)
                 .doOnNext(a -> System.out.println("---- Found " +a));
         // then
         StepVerifier
@@ -343,9 +348,9 @@ class UnitServiceImplIntegrationTest {
         // when
         Flux<Unit> createUnitAndFindAllOnSecondFloor = unitRepository.save(unit2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.findPaginated(Optional.empty(),Optional.empty(),
+                .thenMany(unitService.find(Optional.of(id), Optional.empty(),Optional.empty(),
                         Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                        Optional.empty(), Optional.of(id), 1, 5, OrderType.DESC))
+                        Optional.empty(),  OrderType.DESC))
                 .doOnNext(a -> System.out.println(" Found " +a));
         // then
         StepVerifier

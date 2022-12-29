@@ -4,7 +4,6 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.UnitDtoValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -91,18 +90,29 @@ public class UnitHandler {
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("unitId");
         return unitService.findById(id)
-                .flatMap(results ->
-                        ServerResponse
+                .flatMap(results -> {
+                    if (results == null) {
+                        return ServerResponse
                                 .ok()
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,"Unit found successfully.",
-                                        results)), Response.class))
+                                        HttpStatus.OK.value(), true, "Unit with id %s does not exist!".formatted(id),
+                                        null)), Response.class);
+                    }
+                    return ServerResponse
+                            .ok()
+                            .body(Mono.just(new Response<>(
+                                    LocalDateTime.now().toString(),
+                                    request.uri().getPath(),
+                                    HttpStatus.OK.value(), true, "Unit found successfully.",
+                                    results)), Response.class);
+                })
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for querying unit by id", a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
+        Optional<String> apartmentId = request.queryParam("apartmentId");
         Optional<String> status = request.queryParam("status");
         Optional<String> accountNo = request.queryParam("accountNo");
         Optional<String> type = request.queryParam("type");
@@ -110,11 +120,8 @@ public class UnitHandler {
         Optional<String> floorNo = request.queryParam("floorNo");
         Optional<String> bedrooms = request.queryParam("noOfBedrooms");
         Optional<String> bathrooms = request.queryParam("noOfBathrooms");
-        Optional<String> apartmentId = request.queryParam("apartmentId");
-        Optional<String> page = request.queryParam("page");
-        Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
-        log.info(" Received request for querying units");
+
         if (type.isPresent() &&  !EnumUtils.isValidEnum(Unit.Type.class, type.get())) {
             String[] arrayOfState = Stream.of(Unit.Type.values()).map(Unit.Type::getType).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
@@ -133,11 +140,10 @@ public class UnitHandler {
             Optional<Integer> noOfBedrooms = convertToInteger(bedrooms);
             Optional<Integer> noOfBathrooms = convertToInteger(bathrooms);
             Optional<Unit.Identifier> finalIdentifier = identifier.flatMap(this::convertToIdentifier);
-            Integer finalPage = page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1);
-            Integer finalPageSize = pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10);
             OrderType finalOrder = order.map(OrderType::valueOf).orElse(OrderType.DESC);
 
-            return unitService.findPaginated(
+            return unitService.find(
+                            apartmentId,
                             status.map(Unit.Status::valueOf),
                             accountNo,
                             type.map(Unit.Type::valueOf),
@@ -145,21 +151,27 @@ public class UnitHandler {
                             floorNoResult,
                             noOfBedrooms,
                             noOfBathrooms,
-                            apartmentId,
-                            finalPage,
-                            finalPageSize,
                             finalOrder
                     ).collectList()
                     .doOnSuccess(a -> log.info(" Query request returned {} units", a.size()))
                     .doOnError(e -> log.error(" Failed to find units. Error ", e))
-                    .flatMap(results ->
-                            ServerResponse
+                    .flatMap(results ->{
+                        if(results.isEmpty())
+                            return ServerResponse
                                     .ok()
                                     .body(Mono.just(new Response<>(
                                             LocalDateTime.now().toString(),
                                             request.uri().getPath(),
-                                            HttpStatus.OK.value(),true, "Units found successfully.",
-                                            results)), Response.class));
+                                            HttpStatus.OK.value(),true, "Units with those parameters do not exist!",
+                                            results)), Response.class);
+                        return ServerResponse
+                                        .ok()
+                                        .body(Mono.just(new Response<>(
+                                                LocalDateTime.now().toString(),
+                                                request.uri().getPath(),
+                                                HttpStatus.OK.value(),true, "Units found successfully.",
+                                                results)), Response.class);
+                            });
     }
 
     // TODO FIND IF ITS IMPORTANT

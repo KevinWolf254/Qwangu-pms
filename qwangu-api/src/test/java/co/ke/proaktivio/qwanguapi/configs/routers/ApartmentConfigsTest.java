@@ -34,6 +34,7 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -457,7 +458,7 @@ class ApartmentConfigsTest {
         when(apartmentService.find(
                 Optional.of(name),
                 OrderType.valueOf(order)))
-                .thenReturn(Flux.error(new CustomNotFoundException("Apartments were not found!")));
+                .thenReturn(Flux.just());
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
@@ -470,12 +471,12 @@ class ApartmentConfigsTest {
                 .get()
                 .uri(uriFunc)
                 .exchange()
-                .expectStatus().isNotFound()
+                .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
-                .jsonPath("$.message").isEqualTo("Apartments were not found!")
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
+                .jsonPath("$.message").isEqualTo("Apartments with those parameters do  not exist!")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -565,18 +566,18 @@ class ApartmentConfigsTest {
 
         // when
         when(apartmentService.deleteById(id))
-                .thenReturn(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(id))));
+                .thenReturn(Mono.just(false));
 
         // then
         client
                 .delete()
                 .uri("/v1/apartments/{apartmentId}", id)
                 .exchange()
-                .expectStatus().isNotFound()
+                .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
+                .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
                 .jsonPath("$.message").isEqualTo("Apartment with id %s does not exist!".formatted(id))
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);

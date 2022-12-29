@@ -77,14 +77,23 @@ public class ApartmentHandler {
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("apartmentId");
         return apartmentService.findById(id)
-                .flatMap(results ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,"Apartment found successfully.",
-                                        results)), Response.class))
+                .flatMap(results -> {
+                    if(results == null)
+                        return ServerResponse
+                                        .ok()
+                                        .body(Mono.just(new Response<>(
+                                                LocalDateTime.now().toString(),
+                                                request.uri().getPath(),
+                                                HttpStatus.OK.value(),true,"Apartment with id %s does not exist!".formatted(id),
+                                                null)), Response.class);
+                    return ServerResponse
+                                    .ok()
+                                    .body(Mono.just(new Response<>(
+                                            LocalDateTime.now().toString(),
+                                            request.uri().getPath(),
+                                            HttpStatus.OK.value(),true,"Apartment found successfully.",
+                                            results)), Response.class);
+                })
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for querying user by id", a.rawStatusCode()));
     }
 
@@ -97,11 +106,19 @@ public class ApartmentHandler {
                 .body(apartmentService
                         .find(name, order.map(OrderType::valueOf).orElse(OrderType.DESC))
                         .collectList()
-                        .flatMap(apartments -> Mono.just(new Response<List<Apartment>>(
-                                LocalDateTime.now().toString(),
-                                request.uri().getPath(),
-                                HttpStatus.OK.value(),true,"Apartments found successfully.",
-                                apartments))), Response.class);
+                        .flatMap(apartments -> {
+                            if(apartments.isEmpty())
+                                return Mono.just(new Response<List<Apartment>>(
+                                        LocalDateTime.now().toString(),
+                                        request.uri().getPath(),
+                                        HttpStatus.OK.value(),true,"Apartments with those parameters do  not exist!",
+                                        apartments));
+                            return Mono.just(new Response<List<Apartment>>(
+                                    LocalDateTime.now().toString(),
+                                    request.uri().getPath(),
+                                    HttpStatus.OK.value(),true,"Apartments found successfully.",
+                                    apartments));
+                        }), Response.class);
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -110,15 +127,25 @@ public class ApartmentHandler {
         return apartmentService.deleteById(id)
                 .doOnSuccess($ -> log.info(" Deleted apartment successfully"))
                 .doOnError(e -> log.error(" Failed to delete apartment. Error ", e))
-                .flatMap(result ->
-                        ServerResponse
+                .flatMap(success -> {
+                    if(!success)
+                        return ServerResponse
                                 .ok()
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         "",
                                         HttpStatus.OK.value(),
-                                        true, "Apartment with id %s deleted successfully.".formatted(id),
-                                        null)), Response.class))
+                                        false, "Apartment with id %s does not exist!".formatted(id),
+                                        null)), Response.class);
+                    return ServerResponse
+                            .ok()
+                            .body(Mono.just(new Response<>(
+                                    LocalDateTime.now().toString(),
+                                    "",
+                                    HttpStatus.OK.value(),
+                                    true, "Apartment with id %s deleted successfully.".formatted(id),
+                                    null)), Response.class);
+                })
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting apartment", a.rawStatusCode()));
     }
 

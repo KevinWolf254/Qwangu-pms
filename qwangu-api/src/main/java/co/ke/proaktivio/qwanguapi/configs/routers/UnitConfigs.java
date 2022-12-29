@@ -32,65 +32,6 @@ public class UnitConfigs {
     @RouterOperations(
             {
                     @RouterOperation(
-                            path = "/v1/users/{unitId}",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = UnitHandler.class, beanMethod = "findById",
-                            operation = @Operation(
-                                    operationId = "findById",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Unit found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Unit.class))),
-                                            @ApiResponse(responseCode = "404", description = "Occupation was not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "unitId")}
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/units",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = UnitHandler.class, beanMethod = "find",
-                            operation = @Operation(
-                                    operationId = "find",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Units found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Units were not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "unitId"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "status"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "accountNo"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "identifier"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "floorNo"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "noOfBedrooms"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "noOfBathrooms"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "apartmentId"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    },
-                                    security = @SecurityRequirement(name = "Bearer authentication")
-                            )
-                    ),
-//                    @RouterOperation(
-//                            path = "/v1/units/occupations",
-//                            produces = MediaType.APPLICATION_JSON_VALUE,
-//                            method = RequestMethod.GET, beanClass = UnitHandler.class, beanMethod = "findByOccupationIds",
-//                            operation = @Operation(
-//                                    operationId = "findByOccupationIds",
-//                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = FindUnitsDto.class))),
-//                                    responses = {
-//                                            @ApiResponse(responseCode = "200", description = "Units found successfully.",
-//                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-//                                            @ApiResponse(responseCode = "404", description = "Units were not found!",
-//                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-//                                    },
-//                                    security = @SecurityRequirement(name = "Bearer authentication")
-//                            )
-//                    ),
-                    @RouterOperation(
                             path = "/v1/units",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.POST, beanClass = UnitHandler.class, beanMethod = "create",
@@ -144,6 +85,46 @@ public class UnitConfigs {
                                     parameters = {@Parameter(in = ParameterIn.PATH, name = "unitId")},
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
+                    ),
+                    @RouterOperation(
+                            path = "/v1/users/{unitId}",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.GET, beanClass = UnitHandler.class, beanMethod = "findById",
+                            operation = @Operation(
+                                    operationId = "findById",
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Unit found successfully.",
+                                                    content = @Content(schema = @Schema(implementation = Unit.class))),
+                                            @ApiResponse(responseCode = "404", description = "Occupation was not found!",
+                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+                                    },
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "unitId")}
+                            )
+                    ),
+                    @RouterOperation(
+                            path = "/v1/units",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.GET, beanClass = UnitHandler.class, beanMethod = "find",
+                            operation = @Operation(
+                                    operationId = "find",
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Units found successfully.",
+                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                            @ApiResponse(responseCode = "404", description = "Units were not found!",
+                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+                                    },
+                                    parameters = {
+                                            @Parameter(in = ParameterIn.QUERY, name = "status"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "accountNo"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "identifier"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "floorNo"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "noOfBedrooms"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "noOfBathrooms"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "apartmentId"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "order")
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
+                            )
                     )
             }
     )
@@ -151,10 +132,9 @@ public class UnitConfigs {
         return route()
                 .path("v1/units", builder -> builder
                         .GET(handler::find)
-                        .GET("/{unitId}", handler::findById)
-//                        .GET("/occupations", handler::findByOccupationIds)
                         .POST(handler::create)
                         .PUT("/{unitId}", handler::update)
+                        .GET("/{unitId}", handler::findById)
                         .DELETE("/{unitId}", handler::delete)
                 ).build();
     }

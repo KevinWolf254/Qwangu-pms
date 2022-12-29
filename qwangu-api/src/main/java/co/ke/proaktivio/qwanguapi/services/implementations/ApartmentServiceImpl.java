@@ -71,9 +71,7 @@ public class ApartmentServiceImpl implements ApartmentService {
     @Override
     public Mono<Apartment> findById(String apartmentId) {
         Query query = new Query().addCriteria(Criteria.where("id").is(apartmentId));
-        return template.findOne(query, Apartment.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %S was not found!"
-                        .formatted(apartmentId))));
+        return template.findOne(query, Apartment.class);
     }
 
     public Mono<Boolean> exists(String name) {
@@ -93,7 +91,6 @@ public class ApartmentServiceImpl implements ApartmentService {
         });
         query.with(sort);
         return template.find(query, Apartment.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("Apartments were not found!")))
                 .doOnComplete(() -> log.debug(" Apartments retrieved from database successfully"));
     }
 
@@ -101,7 +98,7 @@ public class ApartmentServiceImpl implements ApartmentService {
     public Mono<Boolean> deleteById(String id) {
         return template
                 .findById(id, Apartment.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(id))))
+//                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(id))))
                 .flatMap(template::remove)
                 .map(DeleteResult::wasAcknowledged)
                 .doOnSuccess($ -> log.debug(" Apartment with id {} deleted from database successfully", id));

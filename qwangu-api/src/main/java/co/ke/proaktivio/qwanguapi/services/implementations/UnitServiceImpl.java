@@ -20,6 +20,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -49,7 +50,8 @@ public class UnitServiceImpl implements UnitService {
                 .map(d -> new Unit.UnitBuilder()
                         .status(Unit.Status.VACANT)
                         .booked(false)
-                        .accountNo(accountNo)
+                        .accountNo(accountNo.toUpperCase())
+                        .identifier(dto.getIdentifier())
                         .type(d.getType())
                         .noOfBedrooms(d.getNoOfBedrooms())
                         .noOfBathrooms(d.getNoOfBathrooms())
@@ -57,7 +59,8 @@ public class UnitServiceImpl implements UnitService {
                         .currency(d.getCurrency())
                         .rentPerMonth(d.getRentPerMonth())
                         .securityPerMonth(d.getSecurityPerMonth())
-                        .garbagePerMonth(d.getGarbagePerMonth()).build())
+                        .garbagePerMonth(d.getGarbagePerMonth())
+                        .otherAmounts(d.getOtherAmounts()).build())
                 .flatMap(unitRepository::save);
     }
 
@@ -82,7 +85,7 @@ public class UnitServiceImpl implements UnitService {
                 .map(apartment -> new Unit.UnitBuilder()
                         .status(Unit.Status.VACANT)
                         .booked(false)
-                        .accountNo(accountNo)
+                        .accountNo(accountNo.toUpperCase())
                         .type(dto.getType())
                         .identifier(dto.getIdentifier())
                         .floorNo(dto.getFloorNo())
@@ -93,7 +96,8 @@ public class UnitServiceImpl implements UnitService {
                         .rentPerMonth(dto.getRentPerMonth())
                         .securityPerMonth(dto.getSecurityPerMonth())
                         .garbagePerMonth(dto.getGarbagePerMonth())
-                        .apartmentId(apartment.getId()).build())
+                        .apartmentId(apartment.getId())
+                        .otherAmounts(dto.getOtherAmounts()).build())
                 .flatMap(unitRepository::save);
     }
 
@@ -127,6 +131,8 @@ public class UnitServiceImpl implements UnitService {
                 .map(u -> {
                     if (dto.getStatus() != null)
                         u.setStatus(dto.getStatus());
+                    if (dto.getIdentifier() != null)
+                        u.setIdentifier(dto.getIdentifier());
                     if (dto.getNoOfBedrooms() != null)
                         u.setNoOfBedrooms(dto.getNoOfBedrooms());
                     if (dto.getNoOfBathrooms() != null)
@@ -149,34 +155,34 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public Mono<Unit> findById(String unitId) {
-        return unitRepository.findById(unitId)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!"
-                        .formatted(unitId))));
+        return unitRepository.findById(unitId);
     }
 
     @Override
-    public Flux<Unit> findPaginated(Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.Type> type,
-                                    Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
-                                    Optional<Integer> bedrooms, Optional<Integer> bathrooms, Optional<String> apartmentId, int page, int pageSize,
-                                    OrderType order) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
+    public Flux<Unit> find(Optional<String> apartmentId, Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.Type> type,
+                           Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
+                           Optional<Integer> bedrooms, Optional<Integer> bathrooms, OrderType order) {
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
+        apartmentId.ifPresent(aprtId -> {
+            if(StringUtils.hasText(aprtId))
+                query.addCriteria(Criteria.where("apartmentId").is(aprtId));
+        });
         status.ifPresent(i -> query.addCriteria(Criteria.where("status").is(i)));
-        accountNo.ifPresent(acct -> query.addCriteria(Criteria.where("accountNo").is(acct)));
+        accountNo.ifPresent(acct -> {
+            if(StringUtils.hasText(acct))
+                query.addCriteria(Criteria.where("accountNo").regex(".*" +acct.trim()+ ".*", "i"));
+        });
         type.ifPresent(t -> query.addCriteria(Criteria.where("type").is(t)));
         identifier.ifPresent(t -> query.addCriteria(Criteria.where("identifier").is(t)));
         floorNo.ifPresent(t -> query.addCriteria(Criteria.where("floorNo").is(t)));
         bedrooms.ifPresent(t -> query.addCriteria(Criteria.where("noOfBedrooms").is(t)));
         bathrooms.ifPresent(t -> query.addCriteria(Criteria.where("noOfBathrooms").is(t)));
-        apartmentId.ifPresent(t -> query.addCriteria(Criteria.where("apartmentId").is(t)));
-        query.with(pageable)
-                .with(sort);
+        query.with(sort);
         return template
-                .find(query, Unit.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("Units were not found!")));
+                .find(query, Unit.class);
     }
 
     @Override

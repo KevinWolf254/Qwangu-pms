@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -22,5 +23,6 @@ public class UnitDto {
     private BigDecimal rentPerMonth;
     private BigDecimal securityPerMonth;
     private BigDecimal garbagePerMonth;
+    private Map<String, BigDecimal> otherAmounts;
     private String apartmentId;
 }
