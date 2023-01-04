@@ -4,7 +4,6 @@ import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
-import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.services.DarajaCustomerToBusinessService;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,8 +26,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -192,8 +189,8 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
         LocalDate now = LocalDate.now();
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
-                .booked(false)
-                .accountNo("TE3489")
+//                .booked(false)
+                .number("TE3489")
                 .type(Unit.Type.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
                 .floorNo(2)
@@ -213,11 +210,11 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .build();
         occupation.setId("1");
         occupation.setStatus(Occupation.Status.CURRENT);
-        occupation.setOccupationNo("YRT2345");
+        occupation.setNumber("YRT2345");
         var invoice = new Invoice.InvoiceBuilder()
                 .type(Invoice.Type.RENT)
-                .invoiceNo("INV23456B")
-                .period(LocalDate.now())
+                .number(new Invoice(), occupation)
+                .startDate(LocalDate.now())
                 .rentAmount(BigDecimal.valueOf(27000))
                 .securityAmount(BigDecimal.valueOf(500))
                 .garbageAmount(BigDecimal.valueOf(300))
@@ -239,8 +236,8 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 "John", "", "Doe");
         var unit2 = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
-                .booked(false)
-                .accountNo("TE3490")
+//                .booked(false)
+                .number("TE3490")
                 .type(Unit.Type.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
                 .floorNo(2)
@@ -261,7 +258,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .build();
         occupation2.setId("2");
         occupation2.setStatus(Occupation.Status.CURRENT);
-        occupation2.setOccupationNo("B23756");
+        occupation2.setNumber("B23756");
         var paymentForNonExistingOccupationNo = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
                 "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
                 "AFDER345345", "", "49197.00", "", "254708374147",
@@ -288,7 +285,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
         StepVerifier
                 .create(processPayments)
                 .expectNextMatches(pmt -> !pmt.getId().isEmpty() && pmt.getTransactionId().equals(payment.getTransactionId()) &&
-                        pmt.getReferenceNo().equals(occupation.getOccupationNo()) && pmt.getStatus().equals(Payment.Status.PROCESSED))
+                        pmt.getReferenceNo().equals(occupation.getNumber()) && pmt.getStatus().equals(Payment.Status.PROCESSED))
                 .verifyComplete();
 
         Mono<Payment> expectNull = darajaCustomerToBusinessService.processPayment(paymentForNonExistingOccupationNo);

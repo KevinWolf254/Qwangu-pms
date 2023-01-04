@@ -1,7 +1,6 @@
 package co.ke.proaktivio.qwanguapi.jobs;
 
 import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
@@ -12,10 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -26,6 +24,9 @@ public class InvoiceJobManager {
     private final UnitRepository unitRepository;
     private final InvoiceService invoiceService;
     private final OccupationTransactionService occupationTransactionService;
+    // TODO CREATE JOB TO PROCESS PENDING_OCCUPATION
+    // TODO CREATE JOB TO PROCESS PENALTIES (PERCENTAGE OF RENT E.G. 0.08)
+    // TODO CREATE JOB TO SEND NOTIFICATIONS OF OVERDUE PAYMENTS
 
     // TODO - ADD SEND SMS
     @Scheduled(cron = "${rent.cronToCreateInvoice}")
@@ -36,9 +37,12 @@ public class InvoiceJobManager {
     }
 
     public Flux<Invoice> createRentInvoices() {
+        var today = LocalDate.now();
+        var firstDay = today.withDayOfMonth(1);
+        var lastDay = firstDay.with(lastDayOfMonth());
         return occupationService.findByStatus(List.of(Occupation.Status.CURRENT))
                 .flatMap(occupation -> unitRepository.findById(occupation.getUnitId())
-                        .flatMap(unit -> invoiceService.create(new InvoiceDto(Invoice.Type.RENT, LocalDate.now(),
+                        .flatMap(unit -> invoiceService.create(new InvoiceDto(Invoice.Type.RENT, firstDay, lastDay,
                                 unit.getRentPerMonth(), unit.getSecurityPerMonth(), unit.getGarbagePerMonth(),
                                 null, occupation.getId())))
                 );

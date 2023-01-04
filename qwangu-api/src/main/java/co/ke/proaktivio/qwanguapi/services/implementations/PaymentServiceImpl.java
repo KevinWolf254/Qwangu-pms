@@ -25,8 +25,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Mono<Payment> findById(String paymentId) {
-        return template.findById(paymentId, Payment.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Payment with id %s does not exist!".formatted(paymentId))));
+        return template.findById(paymentId, Payment.class);
     }
 
     @Override

@@ -13,8 +13,6 @@ import co.ke.proaktivio.qwanguapi.services.UnitService;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -49,8 +47,7 @@ public class UnitServiceImpl implements UnitService {
         return Mono.just(dto)
                 .map(d -> new Unit.UnitBuilder()
                         .status(Unit.Status.VACANT)
-                        .booked(false)
-                        .accountNo(accountNo.toUpperCase())
+                        .number(accountNo.toUpperCase())
                         .identifier(dto.getIdentifier())
                         .type(d.getType())
                         .noOfBedrooms(d.getNoOfBedrooms())
@@ -84,8 +81,7 @@ public class UnitServiceImpl implements UnitService {
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(apartmentId))))
                 .map(apartment -> new Unit.UnitBuilder()
                         .status(Unit.Status.VACANT)
-                        .booked(false)
-                        .accountNo(accountNo.toUpperCase())
+                        .number(accountNo.toUpperCase())
                         .type(dto.getType())
                         .identifier(dto.getIdentifier())
                         .floorNo(dto.getFloorNo())

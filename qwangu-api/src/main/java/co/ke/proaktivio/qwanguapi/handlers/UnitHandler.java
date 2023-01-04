@@ -38,7 +38,7 @@ public class UnitHandler {
                 .map(validateUnitDtoFunc(new UnitDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to create unit was successful"))
                 .flatMap(unitService::create)
-                .doOnSuccess(a -> log.info(" Created unit {} successfully", a.getAccountNo()))
+                .doOnSuccess(a -> log.info(" Created unit {} successfully", a.getNumber()))
                 .doOnError(e -> log.error(" Failed to create unit. Error ", e))
                 .flatMap(created ->
                         ServerResponse.created(URI.create("v1/units/%s".formatted(created.getId())))
@@ -57,7 +57,7 @@ public class UnitHandler {
                 .map(validateUnitDtoFunc(new UnitDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to update unit was successful"))
                 .flatMap(dto -> unitService.update(id, dto))
-                .doOnSuccess(a -> log.info(" Updated unit {} successfully", a.getAccountNo()))
+                .doOnSuccess(a -> log.info(" Updated unit {} successfully", a.getNumber()))
                 .doOnError(e -> log.error(" Failed to update unit. Error ", e))
                 .flatMap(updated ->
                         ServerResponse

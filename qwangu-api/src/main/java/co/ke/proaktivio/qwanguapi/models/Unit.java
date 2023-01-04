@@ -17,20 +17,25 @@ public class Unit {
     @Id
     private String id;
     private Status status;
-    private Boolean isBooked;
     @Indexed(unique = true)
-    private String accountNo;
+    private String number;
     private Type type;
     private Identifier identifier;
     private Integer floorNo;
     private Integer noOfBedrooms;
     private Integer noOfBathrooms;
-    private Integer advanceInMonths;
+
     private Currency currency;
+    // payments per month
     private BigDecimal rentPerMonth;
     private BigDecimal securityPerMonth;
     private BigDecimal garbagePerMonth;
-    private Map<String, BigDecimal> otherAmounts;
+    private Map<String, BigDecimal> otherAmountsPerMonth; // TODO ON UI ADD WATER AND ELECTRICITY
+    // advance payments
+    private Integer advanceInMonths;
+    private BigDecimal securityAdvance;
+    private BigDecimal garbageAdvance;
+    private Map<String, BigDecimal> otherAmountsAdvance; // TODO ON UI ADD WATER AND ELECTRICITY
     @CreatedDate
     private LocalDateTime createdOn;
     @CreatedBy
@@ -40,6 +45,20 @@ public class Unit {
     @LastModifiedBy
     private String modifiedBy;
     private String apartmentId;
+
+    public class PaymentPerMonth {
+        private BigDecimal rent; // 27000
+        private BigDecimal security; // 510
+        private BigDecimal garbage; // 300
+        private Map<String, BigDecimal> otherAmounts; // TODO ON UI ADD WATER AND ELECTRICITY OR MAKE IT DYNAMIC
+    }
+
+    public class AdvancePayment {
+        private Integer rentAdvanceInMonths; // 27000 * 2
+        private BigDecimal security;
+        private BigDecimal garbage;
+        private Map<String, BigDecimal> otherAmounts; // TODO ON UI ADD WATER AND ELECTRICITY OR MAKE IT DYNAMIC
+    }
 
     @Getter
     @RequiredArgsConstructor
@@ -71,36 +90,37 @@ public class Unit {
         POUND
     }
 
+    // TODO ENSURE ALL FIELDS ARE CAPTURED
     @NoArgsConstructor
     public static class UnitBuilder {
         private Status status;
-        private Boolean isBooked;
-        private String accountNo;
+        private String number;
         private Type type;
         private Identifier identifier;
         private Integer floorNo;
         private Integer noOfBedrooms;
         private Integer noOfBathrooms;
-        private Integer advanceInMonths;
+        private String apartmentId;
+
         private Currency currency;
+        // payment per month
         private BigDecimal rentPerMonth;
         private BigDecimal securityPerMonth;
         private BigDecimal garbagePerMonth;
-        private String apartmentId;
         private Map<String, BigDecimal> otherAmounts;
+        // advance payments
+        private Integer advanceInMonths;
+        private BigDecimal securityAdvance;
+        private BigDecimal garbageAdvance;
+        private Map<String, BigDecimal> otherAmountsAdvance;
 
         public UnitBuilder status(Status status) {
             this.status = status;
             return this;
         }
 
-        public UnitBuilder booked(Boolean booked) {
-            isBooked = booked;
-            return this;
-        }
-
-        public UnitBuilder accountNo(String accountNo) {
-            this.accountNo = accountNo;
+        public UnitBuilder number(String number) {
+            this.number = number;
             return this;
         }
 
@@ -164,11 +184,26 @@ public class Unit {
             return this;
         }
 
+        public UnitBuilder securityAdvance(BigDecimal securityAdvance) {
+            this.securityAdvance = securityAdvance;
+            return this;
+        }
+
+        public UnitBuilder garbageAdvance(BigDecimal garbageAdvance) {
+            this.garbageAdvance = garbageAdvance;
+            return this;
+        }
+
+        public UnitBuilder otherAmountsAdvance(Map<String, BigDecimal> otherAmountsAdvance) {
+            this.otherAmountsAdvance = otherAmountsAdvance;
+            return this;
+        }
+
         public Unit build() {
             var unit = new Unit();
             unit.setStatus(this.status);
-            unit.setIsBooked(this.isBooked);
-            unit.setAccountNo(this.accountNo);
+//            unit.setIsBooked(this.isBooked);
+            unit.setNumber(this.number);
             unit.setType(this.type);
             unit.setIdentifier(this.identifier);
             unit.setFloorNo(this.floorNo);
@@ -180,7 +215,10 @@ public class Unit {
             unit.setSecurityPerMonth(this.securityPerMonth);
             unit.setGarbagePerMonth(this.garbagePerMonth);
             unit.setApartmentId(this.apartmentId);
-            unit.setOtherAmounts(this.otherAmounts);
+            unit.setOtherAmountsPerMonth(this.otherAmounts);
+            unit.setSecurityAdvance(this.securityAdvance);
+            unit.setGarbageAdvance(this.garbageAdvance);
+            unit.setOtherAmountsAdvance(this.otherAmountsAdvance);
             return unit;
         }
     }

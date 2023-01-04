@@ -43,9 +43,9 @@ public class NoticeServiceImpl implements NoticeService {
                         CustomBadRequestException("Can not create notice of occupation that is not active!")))
                 .then(Mono.just(
                         new Notice.NoticeBuilder()
-                                .isActive(true)
-                                .notifiedOn(dto.getNotifiedOn())
-                                .vacatingOn(dto.getVacatingOn())
+                                .status(Notice.Status.ACTIVE)
+                                .notificationDate(dto.getNotificationDate())
+                                .vacatingDate(dto.getVacatingDate())
                                 .occupationId(dto.getOccupationId())
                                 .build()
                 ))
@@ -57,7 +57,7 @@ public class NoticeServiceImpl implements NoticeService {
         return noticeRepository.findById(id)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Notice with id %s does not exist!"
                         .formatted(id))))
-                .filter(Notice::getIsActive)
+                .filter(notice -> notice.getStatus().equals(Notice.Status.ACTIVE))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not update notice that is inactive!")))
                 .flatMap(notice -> occupationRepository.findById(notice.getOccupationId())
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!"
@@ -67,12 +67,12 @@ public class NoticeServiceImpl implements NoticeService {
                                 CustomBadRequestException("Can not update notice of occupation that is not active!")))
                         .then(Mono.just(notice)))
                 .map(notice -> {
-                    if (dto.getIsActive() != null)
-                        notice.setIsActive(dto.getIsActive());
-                    if (dto.getNotifiedOn() != null)
-                        notice.setNotifiedOn(dto.getNotifiedOn());
-                    if (dto.getVacatingOn() != null)
-                        notice.setVacatingOn(dto.getVacatingOn());
+                    if (dto.getStatus() != null)
+                        notice.setStatus(dto.getStatus());
+                    if (dto.getNotificationDate() != null)
+                        notice.setNotificationDate(dto.getNotificationDate());
+                    if (dto.getVacatingDate() != null)
+                        notice.setVacatingDate(dto.getVacatingDate());
                     notice.setModifiedOn(LocalDateTime.now());
                     return notice;
                 })

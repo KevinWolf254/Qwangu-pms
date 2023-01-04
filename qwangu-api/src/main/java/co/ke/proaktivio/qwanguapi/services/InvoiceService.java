@@ -6,7 +6,6 @@ import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 public interface InvoiceService {

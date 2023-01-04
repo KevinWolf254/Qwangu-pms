@@ -45,16 +45,16 @@ class NoticeServiceImplIntegrationTest {
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));
 
-    private final LocalDateTime now = LocalDateTime.now();
+    private final LocalDate now = LocalDate.now();
     private final LocalDate today = LocalDate.now();
 //    private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1",
 //            "1", LocalDateTime.now(), null, null, null);
 //    private Occupation occupationMoved = new Occupation("2", Occupation.Status.PREVIOUS, LocalDateTime.now(),
 //            null, "2", "2", LocalDateTime.now(), null, null, null);
-    private final Notice notice = new Notice("1", true, now, today.plusDays(40), now, null,
-            null, null, "1");
-    private final Notice noticeWithOccupationMoved = new Notice("2", true, now, today.plusDays(40), now,
-            null, null, null, "2");
+    private final Notice notice = new Notice("1", Notice.Status.ACTIVE, now, today.plusDays(40), "1", null,
+            null, null, null);
+    private final Notice noticeWithOccupationMoved = new Notice("2", Notice.Status.ACTIVE, now, today.plusDays(40), "2",
+            null, null, null, null);
 
     @DynamicPropertySource
     public static void overrideProperties(DynamicPropertyRegistry registry) {
@@ -65,7 +65,7 @@ class NoticeServiceImplIntegrationTest {
     void create() {
         // given
         var occupationId = "1";
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate now = LocalDate.now();
         var dto = new CreateNoticeDto(now, today.plusDays(30), "1");
         var dtoOccupationDoesNotExist = new CreateNoticeDto(now, today.plusDays(30), "3000");
         var dtoOccupationNotActive = new CreateNoticeDto(now, today.plusDays(30), "2");
@@ -122,10 +122,10 @@ class NoticeServiceImplIntegrationTest {
     @Test
     void update() {
         // given
-        LocalDateTime now = LocalDateTime.now();
-        var dto = new UpdateNoticeDto(true, now, today.plusDays(35));
-        var noticeWithOccupationDoesNotExist = new Notice("3000", true, now, today.plusDays(40), now,
-                null, null, null, "3000");
+        LocalDate now = LocalDate.now();
+        var dto = new UpdateNoticeDto(now, today.plusDays(35), Notice.Status.ACTIVE);
+        var noticeWithOccupationDoesNotExist = new Notice("3000", Notice.Status.ACTIVE, now, today.plusDays(40),
+                "3000", null, null, null, null);
         var occupation = new Occupation.OccupationBuilder()
                 .tenantId("1")
                 .startDate(LocalDate.now())
@@ -224,7 +224,7 @@ class NoticeServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(find)
-                .expectNextMatches(n -> n.getIsActive() && n.getId().equals("1"))
+                .expectNextMatches(n -> n.getStatus().equals(Notice.Status.ACTIVE) && n.getId().equals("1"))
                 .verifyComplete();
 
         // when

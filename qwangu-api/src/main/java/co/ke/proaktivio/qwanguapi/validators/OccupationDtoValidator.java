@@ -5,7 +5,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
-public class OccupationDtoValidator implements Validator{
+public class OccupationDtoValidator implements Validator {
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -20,19 +20,19 @@ public class OccupationDtoValidator implements Validator{
         validatePaymentId((OccupationDto) target, errors);
     }
 
-    protected void validateStatus(OccupationDto request, Errors errors) {
+    private void validateStatus(OccupationDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "status", "field.required", "Status is required.");
     }
 
-    protected void validateStarted(OccupationDto request, Errors errors) {
+    private void validateStarted(OccupationDto request, Errors errors) {
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "startDate", "field.required", "Start date is required.");
     }
 
-    protected void validateUnitId(OccupationDto request, Errors errors) {
+    private void validateUnitId(OccupationDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "unitId", "field.required", "Unit id is required.");
     }
 
-    protected void validatePaymentId(OccupationDto request, Errors errors) {
+    private void validatePaymentId(OccupationDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "paymentId", "field.required", "Payment id is required.");
     }
 }

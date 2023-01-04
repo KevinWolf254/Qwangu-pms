@@ -52,8 +52,13 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
                                 .flatMap(previousOccupationTransaction -> {
                                     OccupationTransaction ot = new OccupationTransaction();
 
-                                    BigDecimal rentSecurityGarbage = BigDecimal.ZERO.add(invoice.getRentAmount()).add(invoice.getSecurityAmount()).add(invoice.getGarbageAmount());
-                                    BigDecimal otherAmounts = invoice.getOtherAmounts() != null ? invoice.getOtherAmounts().values().stream().reduce(BigDecimal.ZERO, BigDecimal::add) : BigDecimal.ZERO;
+                                    BigDecimal rentSecurityGarbage = BigDecimal.ZERO
+                                            .add(invoice.getRentAmount() != null ? invoice.getRentAmount() : BigDecimal.ZERO)
+                                            .add(invoice.getSecurityAmount() != null ? invoice.getSecurityAmount() : BigDecimal.ZERO)
+                                            .add(invoice.getGarbageAmount() != null ? invoice.getGarbageAmount() : BigDecimal.ZERO);
+                                    BigDecimal otherAmounts = invoice.getOtherAmounts() != null ?
+                                            invoice.getOtherAmounts().values().stream().reduce(BigDecimal.ZERO, BigDecimal::add) :
+                                            BigDecimal.ZERO;
                                     BigDecimal totalAmountOwed = BigDecimal.ZERO.add(rentSecurityGarbage).add(otherAmounts);
 
                                     BigDecimal amountBroughtForward = previousOccupationTransaction.getTotalAmountCarriedForward();

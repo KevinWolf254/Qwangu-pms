@@ -13,33 +13,13 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InvoiceDto {
+    // TODO VALIDATE AMOUNTS ACCORDING TO INVOICE TYPE
     private Invoice.Type type;
-    private LocalDate fromDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private BigDecimal rentAmount;
     private BigDecimal securityAmount;
     private BigDecimal garbageAmount;
     private Map<String, BigDecimal> otherAmounts;
     private String occupationId;
 }
-
-//class RentAdvanceInvoiceDto {
-//    private String occupationId;
-//    private BigDecimal rentAmount;
-//    private BigDecimal securityAmount;
-//    private BigDecimal garbageAmount;
-//    private Map<String, BigDecimal> otherAmounts;
-//}
-//
-//class RentInvoiceDto {
-//    private String occupationId;
-//    private LocalDate fromDate;
-//    private BigDecimal rentAmount;
-//    private BigDecimal securityAmount;
-//    private BigDecimal garbageAmount;
-//    private Map<String, BigDecimal> otherAmounts;
-//}
-//
-//class PenaltyInvoiceDto {
-//    private String occupationId;
-//    private Map<String, BigDecimal> otherAmounts;
-//}

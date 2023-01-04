@@ -1,6 +1,5 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
@@ -8,6 +7,7 @@ import co.ke.proaktivio.qwanguapi.pojos.DebitTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.repositories.InvoiceRepository;
+import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
 import com.mongodb.client.result.DeleteResult;
@@ -20,99 +20,55 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
-import java.util.UUID;
+import java.util.function.BiFunction;
 
 @Service
 @RequiredArgsConstructor
 public class InvoiceServiceImpl implements InvoiceService {
     private final InvoiceRepository invoiceRepository;
+    private final OccupationRepository occupationRepository;
     private final OccupationTransactionService occupationTransactionService;
     private final ReactiveMongoTemplate template;
 
     @Override
     @Transactional
     public Mono<Invoice> create(InvoiceDto dto) {
-        if (dto.getType().equals(Invoice.Type.RENT))
-            return createRentInvoice(dto);
-        else if (dto.getType().equals(Invoice.Type.RENT_ADVANCE))
-            return createRentAdvanceInvoice(dto);
-        else if (dto.getType().equals(Invoice.Type.PENALTY))
-            return createPenaltyInvoice(dto);
-        else
-            return Mono.error(new CustomBadRequestException("Invoice type does not exist!"));
-    }
-
-    private Mono<Invoice> createRentAdvanceInvoice(InvoiceDto dto) {
         String occupationId = dto.getOccupationId();
-        return findOccupationById(occupationId)
-                .map(occupation ->
-                        new Invoice.InvoiceBuilder()
-                                .type(Invoice.Type.RENT_ADVANCE)
-                                // TODO GENERATE UNIQUE INVOICE NO
-                                .invoiceNo(UUID.randomUUID().toString())
+        // TODO INCLUDE BEGINNING_OF_MONTH OR MIDDLE_OF_MONTH IN INVOICE
+        return occupationRepository.findById(occupationId)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!"
+                        .formatted(occupationId))))
+                .flatMap(occupation -> template
+                        .findOne(new Query()
+                                .addCriteria(Criteria.where("occupationId").is(occupation.getId()))
+                                .with(Sort.by(Sort.Direction.DESC, "id")), Invoice.class)
+                        .switchIfEmpty(Mono.just(new Invoice()))
+                        .map(previousInvoice -> new Invoice.InvoiceBuilder()
+                                .number(previousInvoice, occupation)
+                                .type(dto.getType())
+                                .startDate(occupation.getStartDate())
+                                .endDate(!dto.getType().equals(Invoice.Type.RENT_ADVANCE) && dto.getEndDate() == null ?
+                                        occupation.getStartDate().withDayOfMonth(occupation.getStartDate()
+                                                .getMonth().length(occupation.getStartDate().isLeapYear())) :
+                                        dto.getEndDate())
                                 .rentAmount(dto.getRentAmount())
                                 .securityAmount(dto.getSecurityAmount())
                                 .garbageAmount(dto.getGarbageAmount())
-                                .otherAmounts(dto.getOtherAmounts() != null ? dto.getOtherAmounts() : null)
-                                .occupationId(occupation.getId())
-                                .build()
-                )
+                                .otherAmounts(dto.getOtherAmounts() != null ?
+                                        dto.getOtherAmounts() :
+                                        null)
+                                .occupationId(occupationId)
+                                .build()))
                 .flatMap(invoiceRepository::save)
                 .flatMap(invoice -> occupationTransactionService
                         .createDebitTransaction(new DebitTransactionDto(occupationId, invoice.getId()))
                         .then(Mono.just(invoice))
                 );
-    }
-
-    private Mono<Invoice> createRentInvoice(InvoiceDto dto) {
-        String occupationId = dto.getOccupationId();
-        return findOccupationById(occupationId)
-                .map(occupation ->
-                        new Invoice.InvoiceBuilder()
-                                .type(Invoice.Type.RENT)
-                                // TODO GENERATE UNIQUE INVOICE NO
-                                .invoiceNo(UUID.randomUUID().toString())
-                                .period(dto.getFromDate())
-                                .rentAmount(dto.getRentAmount())
-                                .securityAmount(dto.getSecurityAmount())
-                                .garbageAmount(dto.getGarbageAmount())
-                                .otherAmounts(dto.getOtherAmounts())
-                                .occupationId(occupation.getId())
-                                .build()
-                )
-                .flatMap(invoiceRepository::save)
-                .flatMap(invoice -> occupationTransactionService
-                        .createDebitTransaction(new DebitTransactionDto(occupationId, invoice.getId()))
-                        .then(Mono.just(invoice))
-                );
-    }
-
-    private Mono<Invoice> createPenaltyInvoice(InvoiceDto dto) {
-        String occupationId = dto.getOccupationId();
-        return findOccupationById(occupationId)
-                .map(occupation ->
-                        new Invoice.InvoiceBuilder()
-                                .type(Invoice.Type.PENALTY)
-                                // TODO GENERATE UNIQUE INVOICE NO
-                                .invoiceNo(UUID.randomUUID().toString())
-                                .otherAmounts(dto.getOtherAmounts())
-                                .occupationId(occupation.getId())
-                                .build()
-                )
-                .flatMap(invoiceRepository::save)
-                .flatMap(invoice -> occupationTransactionService
-                        .createDebitTransaction(new DebitTransactionDto(occupationId, invoice.getId()))
-                        .then(Mono.just(invoice))
-                );
-    }
-
-    private Mono<Occupation> findOccupationById(String id) {
-        return template.findById(id, Occupation.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))));
     }
 
     @Override
@@ -127,7 +83,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         return findById(id)
                 .map(receivable -> {
                     receivable.setType(dto.getType());
-                    receivable.setPeriod(dto.getFromDate());
+                    receivable.setStartDate(dto.getStartDate());
                     receivable.setRentAmount(dto.getRentAmount());
                     receivable.setSecurityAmount(dto.getSecurityAmount());
                     receivable.setGarbageAmount(dto.getGarbageAmount());
@@ -138,8 +94,8 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
-    public Flux<Invoice> findPaginated( Optional<Invoice.Type> type, Optional<String> month, int page, int pageSize,
-                                        OrderType order) {
+    public Flux<Invoice> findPaginated(Optional<Invoice.Type> type, Optional<String> month, int page, int pageSize,
+                                       OrderType order) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :

@@ -4,7 +4,6 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -46,27 +45,6 @@ public class OccupationHandler {
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for creating occupation", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("occupationId");
-        return request.bodyToMono(VacateOccupationDto.class)
-                .doOnSuccess(a -> log.info(" Received request to update {}", a))
-                .map(ValidatorUtil.validateVacateOccupationDto(new VacateOccupationDtoValidator()))
-                .doOnSuccess(a -> log.debug(" Validation of request to update occupation was successful"))
-                .flatMap(dto -> occupationService.update(id, dto))
-                .doOnSuccess(a -> log.info(" Updated occupation for tenant {} and unit {} successfully",
-                        a.getTenantId(), a.getUnitId()))
-                .doOnError(e -> log.error(" Failed to update occupation. Error ", e))
-                .flatMap(updated ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true, "Occupation updated successfully.",
-                                        updated)), Response.class))
-                .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating tenant", a.rawStatusCode()));
-    }
-
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("occupationId");
         return occupationService.findById(id)
@@ -83,10 +61,9 @@ public class OccupationHandler {
 
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> status = request.queryParam("status");
+        Optional<String> occupationNo = request.queryParam("occupationNo");
         Optional<String> unitId = request.queryParam("unitId");
         Optional<String> tenantId = request.queryParam("tenantId");
-        Optional<String> page = request.queryParam("page");
-        Optional<String> pageSize = request.queryParam("pageSize");
         Optional<String> order = request.queryParam("order");
             if (status.isPresent() &&  !EnumUtils.isValidEnum(Occupation.Status.class, status.get())) {
                 String[] arrayOfState = Stream.of(Occupation.Status.values()).map(Occupation.Status::getState).toArray(String[]::new);
@@ -94,12 +71,11 @@ public class OccupationHandler {
                 throw new CustomBadRequestException("Status should be " + states + "!");
             }
         log.info(" Received request for querying occupations");
-            return occupationService.findPaginated(
+            return occupationService.findAll(
                         status.map(Occupation.Status::valueOf),
                         unitId,
+                        occupationNo,
                         tenantId,
-                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
-                        pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
                         order.map(OrderType::valueOf).orElse(OrderType.DESC)
                 ).collectList()
                     .doOnSuccess(a -> log.info(" Query request returned {} occupation", a.size()))

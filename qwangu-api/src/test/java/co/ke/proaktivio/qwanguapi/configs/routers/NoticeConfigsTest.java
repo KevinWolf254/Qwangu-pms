@@ -52,7 +52,7 @@ class NoticeConfigsTest {
     @MockBean
     private ServerSecurityContextRepository contextRepository;
     private final LocalDate today = LocalDate.now();
-    private final LocalDateTime now = LocalDateTime.now();
+    private final LocalDate now = LocalDate.now();
 
     @Before
     public void setUp() {
@@ -79,8 +79,8 @@ class NoticeConfigsTest {
         // given
         var dto = new CreateNoticeDto(now, today.plusDays(30), "1");
         var dtoNotValid = new CreateNoticeDto(null ,null, null);
-        var notice = new Notice("1", true, now, today.plusDays(40), now, null, null,
-                null, "1");
+        var notice = new Notice("1", Notice.Status.ACTIVE, now, today.plusDays(40), "1", LocalDateTime.now(), null, null,
+                null);
         // when
         when(noticeService.create(dto)).thenReturn(Mono.just(notice));
         // then
@@ -145,10 +145,10 @@ class NoticeConfigsTest {
     void update_returnsNotice_whenSuccessful() {
         // given
         var id = "1";
-        var dto = new UpdateNoticeDto(true, now, today.plusDays(30));
+        var dto = new UpdateNoticeDto(now, today.plusDays(30), Notice.Status.ACTIVE);
         var dtoNotValid = new UpdateNoticeDto(null ,null, null);
-        var notice = new Notice("1", true, now, today.plusDays(40), now,
-                null, now, null, "1");
+        var notice = new Notice("1", Notice.Status.ACTIVE, now, today.plusDays(40), "1",
+                LocalDateTime.now(), null, LocalDateTime.now(), null);
 
         // when
         when(noticeService.update(id, dto)).thenReturn(Mono.just(notice));
@@ -227,8 +227,8 @@ class NoticeConfigsTest {
         // given
         var id = "1";
         var occupationId = "1";
-        var notice = new Notice("1", true, now, today.plusDays(40), now, null, now, null,
-                "1");
+        var notice = new Notice("1", Notice.Status.ACTIVE, now, today.plusDays(40), "1",
+                LocalDateTime.now(), null, LocalDateTime.now(), null);
         String page = "1";
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");

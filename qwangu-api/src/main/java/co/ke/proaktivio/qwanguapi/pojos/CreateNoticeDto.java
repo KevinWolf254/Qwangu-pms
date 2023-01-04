@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class CreateNoticeDto extends NoticeDto {
         private String occupationId;
 
-        public CreateNoticeDto(LocalDateTime notifiedOn, LocalDate vacatingOn, String occupationId) {
+        public CreateNoticeDto(LocalDate notifiedOn, LocalDate vacatingOn, String occupationId) {
                 super(notifiedOn, vacatingOn);
                 this.occupationId = occupationId;
         }

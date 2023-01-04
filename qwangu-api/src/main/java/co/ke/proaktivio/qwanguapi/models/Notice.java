@@ -15,9 +15,11 @@ import java.time.LocalDateTime;
 public class Notice {
     @Id
     private String id;
-    private Boolean isActive;
-    private LocalDateTime notifiedOn;
-    private LocalDate vacatingOn;
+    private Status status;
+//    private Boolean isActive;
+    private LocalDate notificationDate;
+    private LocalDate vacatingDate;
+    private String occupationId;
     @CreatedDate
     private LocalDateTime createdOn;
     @CreatedBy
@@ -26,27 +28,42 @@ public class Notice {
     private LocalDateTime modifiedOn;
     @LastModifiedBy
     private String modifiedBy;
-    private String occupationId;
+
+    @Getter
+    @RequiredArgsConstructor
+    public enum Status {
+        ACTIVE("ACTIVE"),
+        FULFILLED("FULFILLED"),
+        CANCELLED("CANCELLED");
+
+        private final String state;
+    }
 
     @NoArgsConstructor
     public static class NoticeBuilder {
-        private Boolean isActive;
-        private LocalDateTime notifiedOn;
-        private LocalDate vacatingOn;
+        private Status status;
+        //        private Boolean isActive;
+        private LocalDate notificationDate;
+        private LocalDate vacatingDate;
         private String occupationId;
 
-        public NoticeBuilder isActive(Boolean active) {
-            isActive = active;
+        public NoticeBuilder status(Status status) {
+            this.status = status;
             return this;
         }
 
-        public NoticeBuilder notifiedOn(LocalDateTime notifiedOn) {
-            this.notifiedOn = notifiedOn;
+//        public NoticeBuilder isActive(Boolean active) {
+//            isActive = active;
+//            return this;
+//        }
+
+        public NoticeBuilder notificationDate(LocalDate notifiedOn) {
+            this.notificationDate = notifiedOn;
             return this;
         }
 
-        public NoticeBuilder vacatingOn(LocalDate vacatingOn) {
-            this.vacatingOn = vacatingOn;
+        public NoticeBuilder vacatingDate(LocalDate vacatingOn) {
+            this.vacatingDate = vacatingOn;
             return this;
         }
 
@@ -57,9 +74,9 @@ public class Notice {
 
         public Notice build() {
             var notice = new Notice();
-            notice.setIsActive(this.isActive);
-            notice.setNotifiedOn(this.notifiedOn);
-            notice.setVacatingOn(this.vacatingOn);
+            notice.setStatus(this.status);
+            notice.setNotificationDate(this.notificationDate);
+            notice.setVacatingDate(this.vacatingDate);
             notice.setOccupationId(this.occupationId);
             return notice;
         }

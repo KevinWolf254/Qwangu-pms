@@ -13,6 +13,7 @@ public class ReactiveUsernameAuditor implements ReactiveAuditorAware<String> {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .map(Authentication::getPrincipal)
-                .map(Object::toString);
+                .map(Object::toString)
+                .switchIfEmpty(Mono.just("SYSTEM"));
     }
 }

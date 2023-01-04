@@ -81,7 +81,7 @@ class OccupationConfigsTest {
         LocalDate now = LocalDate.now();
         var tenant = new TenantDto("John", "Doe", "Doe", "0720000000",
                 "johndoe@gmail.com");
-        var dto = new OccupationForNewTenantDto(now, unitId, paymentId, tenant);
+        var dto = new OccupationForNewTenantDto(null, tenant, new OccupationDto(now, unitId, paymentId));
         var occupation = new Occupation.OccupationBuilder()
                 .tenantId(tenantId)
                 .startDate(now)
@@ -91,7 +91,7 @@ class OccupationConfigsTest {
         occupation.setCreatedOn(LocalDateTime.now());
 
         var dtoNotValid = new OccupationForNewTenantDto();
-        var dtoNotValidWithoutTenantDetails = new OccupationForNewTenantDto(now, unitId, paymentId, new TenantDto());
+        var dtoNotValidWithoutTenantDetails = new OccupationForNewTenantDto(null, new TenantDto(), new OccupationDto(now, unitId, paymentId));
         // when
         when(occupationService.create(dto)).thenReturn(Mono.just(occupation));
 
@@ -173,68 +173,6 @@ class OccupationConfigsTest {
     }
 
     @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    void update_returnsOccupation_whenSuccessful() {
-        // given
-        var id = "1";
-        var dto = new VacateOccupationDto(LocalDate.now());
-        var occupation = new Occupation.OccupationBuilder()
-                .tenantId("1")
-                .startDate(LocalDate.now())
-                .unitId("1")
-                .build();
-        occupation.setId("1");
-        occupation.setEndDate(LocalDate.now());
-        occupation.setStatus(Occupation.Status.VACATED);
-        occupation.setCreatedOn(LocalDateTime.now());
-        var dtoNotValid = new VacateOccupationDto();
-        // when
-        when(occupationService.update(id, dto)).thenReturn(Mono.just(occupation));
-
-        // then
-        client
-                .put()
-                .uri("/v1/occupations/{occupationId}", id)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), OccupationDto.class)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Occupation updated successfully.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.status").isEqualTo(Occupation.Status.VACATED.getState())
-                .jsonPath("$.data.startDate").isNotEmpty()
-                .jsonPath("$.data.endDate").isNotEmpty()
-                .jsonPath("$.data.tenantId").isEqualTo("1")
-                .jsonPath("$.data.unitId").isEqualTo("1")
-                .jsonPath("$.data.createdOn").isNotEmpty()
-                .jsonPath("$.data.modifiedOn").isEmpty()
-                .consumeWith(System.out::println);
-
-        // when
-        when(occupationService.update(id, dtoNotValid)).thenReturn(Mono.empty());
-        // then
-        client
-                .put()
-                .uri("/v1/occupations/{occupationId}", id)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dtoNotValid), OccupationDto.class)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("End date is required.")
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
     @DisplayName("find returns unauthorised when user is not authenticated status 401")
     void find_returnsUnauthorized_status401() {
         // given
@@ -309,12 +247,11 @@ class OccupationConfigsTest {
                         .build();
 
         // when
-        when(occupationService.findPaginated(
+        when(occupationService.findAll(
                 Optional.of(Occupation.Status.CURRENT),
+                Optional.empty(),
                 Optional.of(unitId),
                 Optional.of(tenantId),
-                finalPage,
-                finalPageSize,
                 order
         )).thenReturn(Flux.just(occupation));
 

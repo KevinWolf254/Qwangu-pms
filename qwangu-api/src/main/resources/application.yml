@@ -87,3 +87,10 @@ rent:
 
 booking:
   percentage: 20.5
+
+notice:
+  levelOne: 1
+  levelTwo: 0.75
+  levelThree: 0.5
+  levelFour: 0.25
+  levelFive: 0

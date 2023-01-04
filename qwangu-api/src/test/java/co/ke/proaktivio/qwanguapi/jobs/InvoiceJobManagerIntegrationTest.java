@@ -62,8 +62,8 @@ class InvoiceJobManagerIntegrationTest {
         currentOccupation.setStatus(Occupation.Status.CURRENT);
         var currentUnit = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
-                .booked(false)
-                .accountNo("TE99")
+//                .booked(false)
+                .number("TE99")
                 .type(Unit.Type.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
                 .floorNo(1)
@@ -81,12 +81,12 @@ class InvoiceJobManagerIntegrationTest {
                 .startDate(now)
                 .unitId("2")
                 .build();
-        bookedOccupation.setStatus(Occupation.Status.BOOKED);
+        bookedOccupation.setStatus(Occupation.Status.PENDING_OCCUPATION);
         bookedOccupation.setId("2");
         var bookedUnit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-                .booked(false)
-                .accountNo("TE100")
+//                .booked(false)
+                .number("TE100")
                 .type(Unit.Type.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
                 .floorNo(1)
@@ -133,8 +133,8 @@ class InvoiceJobManagerIntegrationTest {
         StepVerifier
                 .create(createRentInvoices)
                 .expectNextMatches(invoice -> !invoice.getId().isEmpty() && !invoice.getOccupationId().isEmpty() &&
-                        !invoice.getInvoiceNo().isEmpty() && invoice.getType().equals(Invoice.Type.RENT) &&
-                        invoice.getPeriod() != null && invoice.getRentAmount().equals(BigDecimal.valueOf(27000)) &&
+                        !invoice.getNumber().isEmpty() && invoice.getType().equals(Invoice.Type.RENT) &&
+                        invoice.getStartDate() != null && invoice.getRentAmount().equals(BigDecimal.valueOf(27000)) &&
                         invoice.getSecurityAmount().equals(BigDecimal.valueOf(500)) &&
                         invoice.getGarbageAmount().equals(BigDecimal.valueOf(300)) && invoice.getCreatedOn() != null &&
                         invoice.getModifiedOn() != null)

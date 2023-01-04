@@ -83,8 +83,8 @@ public class UnitConfigsTest {
 //                null, "1");
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-                .booked(false)
-                .accountNo("TE99")
+//                .booked(false)
+                .number("TE99")
                 .type(Unit.Type.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
                 .floorNo(0)
@@ -107,8 +107,8 @@ public class UnitConfigsTest {
 //                null, null);
         var unitNonApartment = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-                .booked(false)
-                .accountNo("TE99")
+//                .booked(false)
+                .number("TE99")
                 .type(Unit.Type.MAISONETTES)
                 .floorNo(0)
                 .noOfBedrooms(2)
@@ -262,8 +262,8 @@ public class UnitConfigsTest {
 //                null, "1");
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-                .booked(false)
-                .accountNo("TE99")
+//                .booked(false)
+                .number("TE99")
                 .type(Unit.Type.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
                 .floorNo(0)
@@ -362,8 +362,8 @@ public class UnitConfigsTest {
 //                null, apartmentId);
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-                .booked(false)
-                .accountNo(accountNo)
+//                .booked(false)
+                .number(accountNo)
                 .type(type)
                 .identifier(identifier)
                 .floorNo(floorNo)

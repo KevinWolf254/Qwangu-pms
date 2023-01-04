@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
@@ -23,7 +24,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Log4j2
 @Service
@@ -34,24 +34,28 @@ public class ReceiptServiceImpl implements ReceiptService {
     private final ReceiptRepository receiptRepository;
     private final ReactiveMongoTemplate template;
 
-    private Mono<Occupation> findOccupationById(String id) {
-        return template.findById(id, Occupation.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))));
+    private Mono<Occupation> findOccupationById(String occupationId) {
+        return template.findById(occupationId, Occupation.class);
     }
 
     @Override
     public Mono<Receipt> create(ReceiptDto dto) {
         String occupationId = dto.getOccupationId();
         return findOccupationById(occupationId)
-                .flatMap($ -> paymentService.findById(dto.getPaymentId()))
-                .flatMap($ -> receiptRepository.save(new Receipt.ReceiptBuilder()
-                        // TODO - GENERATE RANDOM RECEIPT
-                        // RCPT22101705BE
-                        .receiptNo(UUID.randomUUID().toString())
-                        .occupationId(occupationId)
-                        .paymentId(dto.getPaymentId())
-                        .build())
-                )
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation with id %s does not exist!"
+                        .formatted(occupationId))))
+                .flatMap(occupation -> paymentService.findById(dto.getPaymentId())
+                        .flatMap($ -> template
+                                .findOne(new Query()
+                                        .addCriteria(Criteria.where("occupationId").is(occupation.getId()))
+                                        .with(Sort.by(Sort.Direction.DESC, "id")), Receipt.class)
+                                .switchIfEmpty(Mono.just(new Receipt()))
+                                .flatMap(previousReceipt -> receiptRepository.save(new Receipt.ReceiptBuilder()
+                                        .number(previousReceipt, occupation)
+                                        .occupationId(occupationId)
+                                        .paymentId(dto.getPaymentId())
+                                        .build()))
+                        ))
                 .doOnSuccess(t -> log.info(" Created: {}", t))
                 .flatMap(receipt -> occupationTransactionService
                         .createCreditTransaction(new CreditTransactionDto(occupationId, receipt.getId()))
