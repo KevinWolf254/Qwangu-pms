@@ -36,7 +36,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final ReactiveMongoTemplate template;
 
     @Override
-    @Transactional
+//    @Transactional
     public Mono<Invoice> create(InvoiceDto dto) {
         String occupationId = dto.getOccupationId();
         // TODO INCLUDE BEGINNING_OF_MONTH OR MIDDLE_OF_MONTH IN INVOICE

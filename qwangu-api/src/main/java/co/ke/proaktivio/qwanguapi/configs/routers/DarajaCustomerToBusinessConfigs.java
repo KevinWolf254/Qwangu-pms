@@ -27,7 +27,7 @@ public class DarajaCustomerToBusinessConfigs {
     @RouterOperations(
             {
                     @RouterOperation(
-                            path = "/v1/mpesa/c2b/validate",
+                            path = "/v1/mobile/c2b/validate",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.POST, beanClass = DarajaCustomerToBusinessHandler.class, beanMethod = "validate",
                             operation = @Operation(
@@ -41,7 +41,7 @@ public class DarajaCustomerToBusinessConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/mpesa/c2b/confirm",
+                            path = "/v1/mobile/c2b/confirm",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.POST, beanClass = DarajaCustomerToBusinessHandler.class, beanMethod = "confirm",
                             operation = @Operation(
@@ -59,7 +59,7 @@ public class DarajaCustomerToBusinessConfigs {
     RouterFunction<ServerResponse> customerToBusinessUser(DarajaCustomerToBusinessHandler handler) {
         return route()
                 .path("v1", builder -> builder
-                        .path("mpesa/c2b", builder1 -> builder1
+                        .path("mobile/c2b", builder1 -> builder1
                                 .POST("/validate", handler::validate)
                                 .POST("/confirm", handler::confirm)
                         ))

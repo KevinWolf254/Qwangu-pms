@@ -100,11 +100,28 @@ class OccupationServiceImplIntegrationTest {
     }
 
     private Payment getPayment() {
-        var paymentId = "15";
-        return new Payment(paymentId, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
-                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
-                "TE3490", "", "49197.00", "", "254708374147",
-                "John", "", "Doe");
+//        var paymentId = "15";
+//        return new Payment(paymentId, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
+//                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
+//                "TE3490", "", "49197.00", "", "254708374147",
+//                "John", "", "Doe");
+
+        var payment = new Payment.PaymentBuilder()
+                .status(Payment.Status.NEW)
+                .type(Payment.Type.MPESA_PAY_BILL)
+                .transactionId("RKTQDM7W67")
+                .transactionType("Pay Bill")
+                .transactionTime(LocalDateTime.now())
+                .currency(Unit.Currency.KES)
+                .amount(BigDecimal.valueOf(20000))
+                .shortCode("600638")
+                .referenceNo("TE3490")
+                .balance("49197.00")
+                .mobileNumber("254708374147")
+                .firstName("John")
+                .build();
+        payment.setId("15");
+        return payment;
     }
 
     @NotNull

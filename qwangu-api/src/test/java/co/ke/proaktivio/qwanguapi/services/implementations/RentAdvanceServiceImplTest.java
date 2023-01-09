@@ -4,6 +4,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.RentAdvance;
+import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.RentAdvanceDto;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateRentAdvanceDto;
@@ -51,10 +52,25 @@ class RentAdvanceServiceImplTest {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
 
-    private final Payment payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
-            "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
-            "TE34", "", "49197.00", "", "254708374147",
-            "John", "", "Doe");
+//    private final Payment payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
+//            "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
+//            "TE34", "", "49197.00", "", "254708374147",
+//            "John", "", "Doe");
+
+    private final Payment payment = new Payment.PaymentBuilder()
+            .status(Payment.Status.NEW)
+            .type(Payment.Type.MPESA_PAY_BILL)
+            .transactionId("RKTQDM7W67")
+            .transactionType("Pay Bill")
+            .transactionTime(LocalDateTime.now())
+            .currency(Unit.Currency.KES)
+            .amount(BigDecimal.valueOf(20000))
+            .shortCode("600638")
+            .referenceNo("AFDER345345")
+            .balance("49197.00")
+            .mobileNumber("254708374147")
+            .firstName("John")
+            .build();
     private final Occupation occupation = new Occupation.OccupationBuilder()
             .tenantId("1")
             .unitId("1")
@@ -78,10 +94,25 @@ class RentAdvanceServiceImplTest {
         // given
         var dto = new RentAdvanceDto(RentAdvance.Status.HOLDING, null, null);
 
-        var payment2 = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W77",
-                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
-                "TE35", "", "49197.00", "", "254708374147",
-                "John", "", "Doe");
+//        var payment2 = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W77",
+//                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
+//                "TE35", "", "49197.00", "", "254708374147",
+//                "John", "", "Doe");
+
+        var payment2 = new Payment.PaymentBuilder()
+                .status(Payment.Status.NEW)
+                .type(Payment.Type.MPESA_PAY_BILL)
+                .transactionId("RKTQDM7W77")
+                .transactionType("Pay Bill")
+                .transactionTime(LocalDateTime.now())
+                .currency(Unit.Currency.KES)
+                .amount(BigDecimal.valueOf(20000))
+                .shortCode("600638")
+                .referenceNo("TE35")
+                .balance("49197.00")
+                .mobileNumber("254708374147")
+                .firstName("John")
+                .build();
         var dto2 = new RentAdvanceDto(RentAdvance.Status.HOLDING, null, null);
 
         // when

@@ -9,8 +9,8 @@ import java.util.Optional;
 
 public interface PaymentService {
     Mono<Payment> findById(String paymentId);
-    Flux<Payment> findPaginated(Optional<Payment.Status> status,
-                                Optional<Payment.Type> type, Optional<String> shortCode, Optional<String> referenceNo,
-                                Optional<String> mobileNumber, int page, int pageSize, OrderType order);
+    Flux<Payment> findAll(Optional<Payment.Status> status,
+                          Optional<Payment.Type> type, Optional<String> shortCode, Optional<String> transactionId,
+                          Optional<String> referenceNo, Optional<String> mobileNumber, OrderType order);
 
 }

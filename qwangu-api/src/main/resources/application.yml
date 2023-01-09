@@ -1,5 +1,15 @@
 server:
   port: 3001
+  # The format used for the keystore. It could be set to JKS in case it is a JKS file
+#  ssl:
+#    key-store-type: PKCS12
+#    # The path to the keystore containing the certificate
+#    key-store: classpath:keystore.p12
+#    # The password used to generate the certificate
+#    key-store-password: N@mber_11
+#    # The alias mapped to the certificate
+#    key-alias: keystore
+#    enabled: true
 
 springdoc:
   api-docs:
@@ -73,6 +83,7 @@ ftl:
 safaricom:
   whiteListedUrls:
     - http://127.0.0.1
+    - https://proactivio-qwangu.ddns.net
   daraja:
     basicAuthentication:
       consumerKey:

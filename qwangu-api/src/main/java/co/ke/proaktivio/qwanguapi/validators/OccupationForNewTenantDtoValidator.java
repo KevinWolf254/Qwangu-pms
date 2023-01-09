@@ -11,7 +11,6 @@ import org.springframework.validation.Validator;
 import java.util.regex.Pattern;
 
 public class OccupationForNewTenantDtoValidator implements Validator {
-    private static final int MINIMUM_LENGTH = 6;
     private final OccupationDtoValidator occupationDtoValidator;
     private final TenantDtoValidator tenantDtoValidator;
 

@@ -36,18 +36,30 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
     }
 
     @Override
-    @Transactional
     public Mono<DarajaCustomerToBusinessResponse> confirm(DarajaCustomerToBusinessDto dto) {
-        return Mono.just(dto)
-                .map(r -> {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ENGLISH);
-                    LocalDateTime transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter).atZone(ZoneId.of("Africa/Nairobi")).toLocalDateTime();
-                    return new Payment(null, Payment.Status.NEW, dto.getTransactionType().equals("Pay Bill") ? Payment.Type.MPESA_PAY_BILL : Payment.Type.MPESA_TILL, r.getTransactionId(), r.getTransactionType(), transactionTime,
-                            BigDecimal.valueOf(Double.parseDouble(r.getAmount())), r.getShortCode(), r.getReferenceNumber(), r.getInvoiceNo(), r.getAccountBalance(),
-                            r.getThirdPartyId(), r.getMobileNumber(), r.getFirstName(), r.getMiddleName(), r.getLastName());
-                })
-                .flatMap(paymentRepository::save)
-                .filter(payment -> !checkReferenceNo.test("^(ADVANCE|advance)", payment.getReferenceNo()))
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ENGLISH);
+        LocalDateTime transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter).atZone(ZoneId.of("Africa/Nairobi")).toLocalDateTime();
+
+        var payment = new Payment.PaymentBuilder()
+                .status(Payment.Status.NEW)
+                .type(dto.getTransactionType().equals("Pay Bill") ?
+                        Payment.Type.MPESA_PAY_BILL :
+                        Payment.Type.MPESA_TILL)
+                .transactionId(dto.getTransactionId())
+                .transactionType(dto.getTransactionType())
+                .transactionTime(transactionTime)
+                .currency(Unit.Currency.KES)
+                .amount(BigDecimal.valueOf(Double.parseDouble(dto.getAmount())))
+                .shortCode(dto.getShortCode())
+                .referenceNo(dto.getReferenceNumber())
+                .invoiceNo(dto.getInvoiceNo())
+                .balance(dto.getAccountBalance())
+                .thirdPartyId(dto.getThirdPartyId())
+                .mobileNumber(dto.getMobileNumber())
+                .firstName(dto.getFirstName())
+                .build();
+        return paymentRepository.save(payment)
+                .filter(p -> !checkReferenceNo.test("(?i)^(ADV#)", p.getReferenceNo()))
                 .flatMap(this::processPayment)
                 .then(Mono.just(new DarajaCustomerToBusinessResponse<>(0, "ACCEPTED")));
     }
@@ -63,6 +75,6 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
                     return payment;
                 })
                 .flatMap(paymentRepository::save)
-                .doOnSuccess(t -> log.info(" Created: {}", t));
+                .doOnSuccess(t -> log.info(" Updated: {}", t));
     }
 }

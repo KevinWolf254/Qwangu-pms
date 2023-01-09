@@ -18,7 +18,6 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -61,7 +60,7 @@ public class OccupationServiceImpl implements OccupationService {
      * // change payment status to processed
      **/
     @Override
-    @Transactional(rollbackFor = {CustomBadRequestException.class, CustomAlreadyExistsException.class})
+//    @Transactional(rollbackFor = {CustomBadRequestException.class, CustomAlreadyExistsException.class})
     public Mono<Occupation> create(OccupationForNewTenantDto dto) {
         String tenantId = dto.getTenantId();
         OccupationDto occupation = dto.getOccupation();
@@ -287,14 +286,22 @@ public class OccupationServiceImpl implements OccupationService {
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
         status.ifPresent(state -> query.addCriteria(Criteria.where("status").is(state)));
-        occupationNo.ifPresent(number -> query.addCriteria(Criteria.where("number").regex(".*" + number.trim() + ".*", "i")));
-        unitId.ifPresent(uId -> query.addCriteria(Criteria.where("unitId").is(uId)));
-        tenantId.ifPresent(tId -> query.addCriteria(Criteria.where("tenantId").is(tId)));
+        occupationNo.ifPresent(number -> {
+            if(StringUtils.hasText(number))
+                query.addCriteria(Criteria.where("number").regex(".*" + number.trim() + ".*", "i"));
+        });
+        unitId.ifPresent(uId -> {
+            if (StringUtils.hasText(uId))
+                query.addCriteria(Criteria.where("unitId").is(uId));
+        });
+        tenantId.ifPresent(tId -> {
+            if(StringUtils.hasText(tId))
+                query.addCriteria(Criteria.where("tenantId").is(tId));
+        });
 
         query.with(sort);
         return template
-                .find(query, Occupation.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("Occupations were not found!")));
+                .find(query, Occupation.class);
     }
 
     @Override

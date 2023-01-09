@@ -60,7 +60,8 @@ public class SecurityConfig {
                         "/v1/signIn",
                         "/v1/forgotPassword",
                         "/v1/tokens",
-                        "/v1/setPassword"
+                        "/v1/setPassword",
+                        "/v1/mobile/c2b/**"
                 ).permitAll()
                 .pathMatchers( "/v1/apartments/**").hasAnyRole("SUPER_ADMIN")
                 .pathMatchers( "/v1/units/**").hasAnyRole("SUPER_ADMIN")
@@ -72,7 +73,7 @@ public class SecurityConfig {
                 .pathMatchers( "/v1/authorities/**").hasAnyRole("SUPER_ADMIN")
                 .pathMatchers( "/v1/refunds/**").hasAnyRole("SUPER_ADMIN")
                 .pathMatchers( "/v1/advances/**").hasAnyRole("SUPER_ADMIN")
-                .pathMatchers("/v1/mpesa/c2b/**").access(this::whiteListIp)
+//                .pathMatchers("/v1/mobile/c2b/**").access(this::whiteListIp)
                 .anyExchange().authenticated()
                 .and()
                 .build();

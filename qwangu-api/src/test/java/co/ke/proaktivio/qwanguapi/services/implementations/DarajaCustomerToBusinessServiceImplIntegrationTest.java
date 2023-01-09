@@ -230,13 +230,23 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .totalAmountCarriedForward(BigDecimal.valueOf(27800))
                 .build();
 
-        var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
-                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(30000), "600638",
-                "YRT2345", "", "49197.00", "", "254708374147",
-                "John", "", "Doe");
+        var payment = new Payment.PaymentBuilder()
+                .status(Payment.Status.NEW)
+                .type(Payment.Type.MPESA_PAY_BILL)
+                .transactionId("RKTQDM7W67")
+                .transactionType("Pay Bill")
+                .transactionTime(LocalDateTime.now())
+                .currency(Unit.Currency.KES)
+                .amount(BigDecimal.valueOf(30000))
+                .shortCode("600638")
+                .referenceNo("YRT2345")
+                .balance("49197.00")
+                .mobileNumber("254708374147")
+                .firstName("John")
+                .build();
+
         var unit2 = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
-//                .booked(false)
                 .number("TE3490")
                 .type(Unit.Type.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
@@ -259,10 +269,21 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
         occupation2.setId("2");
         occupation2.setStatus(Occupation.Status.CURRENT);
         occupation2.setNumber("B23756");
-        var paymentForNonExistingOccupationNo = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
-                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
-                "AFDER345345", "", "49197.00", "", "254708374147",
-                "John", "", "Doe");
+
+        var paymentForNonExistingOccupationNo = new Payment.PaymentBuilder()
+                .status(Payment.Status.NEW)
+                .type(Payment.Type.MPESA_PAY_BILL)
+                .transactionId("RKTQDM7W67")
+                .transactionType("Pay Bill")
+                .transactionTime(LocalDateTime.now())
+                .currency(Unit.Currency.KES)
+                .amount(BigDecimal.valueOf(20000))
+                .shortCode("600638")
+                .referenceNo("AFDER345345")
+                .balance("49197.00")
+                .mobileNumber("254708374147")
+                .firstName("John")
+                .build();
 
         Mono<Payment> processPayments = unitRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))

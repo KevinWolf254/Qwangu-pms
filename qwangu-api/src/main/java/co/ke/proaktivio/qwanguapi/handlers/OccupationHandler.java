@@ -10,12 +10,14 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -29,8 +31,9 @@ public class OccupationHandler {
         return request
                 .bodyToMono(OccupationForNewTenantDto.class)
                 .doOnSuccess(a -> log.info(" Received request to create {}", a))
-                .map(ValidatorUtil.validateOccupationForNewTenantDto(new OccupationForNewTenantDtoValidator()))
-                .doOnSuccess(a -> log.debug(" Validation of request to create user was successful"))
+                // TODO DO VALIDATION
+//                .map(ValidatorUtil.validateOccupationForNewTenantDto(new OccupationForNewTenantDtoValidator()))
+//                .doOnSuccess(a -> log.debug(" Validation of request to create user was successful"))
                 .flatMap(occupationService::create)
                 .doOnSuccess(a -> log.info(" Created occupation for tenant {} and unit {} successfully",
                         a.getTenantId(), a.getUnitId()))
@@ -65,31 +68,33 @@ public class OccupationHandler {
         Optional<String> unitId = request.queryParam("unitId");
         Optional<String> tenantId = request.queryParam("tenantId");
         Optional<String> order = request.queryParam("order");
-            if (status.isPresent() &&  !EnumUtils.isValidEnum(Occupation.Status.class, status.get())) {
+            if (status.isPresent() && StringUtils.hasText(status.get()) && !EnumUtils.isValidEnum(Occupation.Status.class, status.get())) {
                 String[] arrayOfState = Stream.of(Occupation.Status.values()).map(Occupation.Status::getState).toArray(String[]::new);
                 String states = String.join(" or ", arrayOfState);
                 throw new CustomBadRequestException("Status should be " + states + "!");
             }
-        log.info(" Received request for querying occupations");
-            return occupationService.findAll(
-                        status.map(Occupation.Status::valueOf),
-                        unitId,
-                        occupationNo,
-                        tenantId,
-                        order.map(OrderType::valueOf).orElse(OrderType.DESC)
-                ).collectList()
-                    .doOnSuccess(a -> log.info(" Query request returned {} occupation", a.size()))
-                    .doOnError(e -> log.error(" Failed to find occupations. Error ", e))
-                    .flatMap(results ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
+        return ServerResponse
+                .ok()
+                .body(occupationService.findAll(
+                                StringUtils.hasText(status.get()) ? status.map(Occupation.Status::valueOf): Optional.empty(),
+                                unitId,
+                                occupationNo,
+                                tenantId,
+                                order.map(OrderType::valueOf).orElse(OrderType.DESC)
+                        ).collectList()
+                        .flatMap(occupations -> {
+                            if(occupations.isEmpty())
+                                return Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.OK.value(),true, "Occupations found successfully.",
-                                        results)), Response.class))
-                    .doOnSuccess(a -> log.debug(" Sent response with status code {} for querying occupations",
-                            a.rawStatusCode()));
+                                        HttpStatus.OK.value(), true, "Occupations with those parameters do  not exist!",
+                                        occupations));
+                            return Mono.just(new Response<>(
+                                    LocalDateTime.now().toString(),
+                                    request.uri().getPath(),
+                                    HttpStatus.OK.value(), true, "Occupations found successfully.",
+                                    occupations));
+                        }), Response.class);
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {

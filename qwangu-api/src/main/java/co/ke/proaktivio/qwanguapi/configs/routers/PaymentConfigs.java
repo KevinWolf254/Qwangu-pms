@@ -58,10 +58,9 @@ public class PaymentConfigs {
                                             @Parameter(in = ParameterIn.QUERY, name = "status"),
                                             @Parameter(in = ParameterIn.QUERY, name = "type"),
                                             @Parameter(in = ParameterIn.QUERY, name = "shortCode"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "transactionId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "referenceNo"),
                                             @Parameter(in = ParameterIn.QUERY, name = "mobileNumber"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
                                     }
                             )
