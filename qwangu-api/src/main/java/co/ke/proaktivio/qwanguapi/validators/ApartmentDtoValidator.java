@@ -1,6 +1,6 @@
 package co.ke.proaktivio.qwanguapi.validators;
 
-import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
+import co.ke.proaktivio.qwanguapi.pojos.PropertyDto;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -10,13 +10,13 @@ public class ApartmentDtoValidator implements Validator {
 
     @Override
     public boolean supports(Class<?> clazz) {
-        return ApartmentDto.class.isAssignableFrom(clazz);
+        return PropertyDto.class.isAssignableFrom(clazz);
     }
 
     @Override
     public void validate(Object target, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "name", "field.required", "Name is required.");
-        ApartmentDto request = (ApartmentDto) target;
+        PropertyDto request = (PropertyDto) target;
         if (request.getName() != null && request.getName().trim().length() < MINIMUM_LENGTH) {
             errors.rejectValue("name", "field.min.length", new Object[] { Integer.valueOf(MINIMUM_LENGTH) }, "Name must be at least %s characters in length.".formatted(MINIMUM_LENGTH));
         }

@@ -13,7 +13,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class UnitDto {
     private Unit.Status status;
-    private Unit.Type type;
+    private Unit.UnitType type;
     private Unit.Identifier identifier;
     private Integer floorNo;
     private Integer noOfBedrooms;

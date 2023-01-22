@@ -6,7 +6,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
-import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
+import co.ke.proaktivio.qwanguapi.repositories.PropertyRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
@@ -30,14 +30,14 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UnitServiceImpl implements UnitService {
-    private final ApartmentRepository apartmentRepository;
+    private final PropertyRepository propertyRepository;
     private final UnitRepository unitRepository;
     private final ReactiveMongoTemplate template;
     private final OccupationRepository occupationRepository;
 
     @Override
     public Mono<Unit> create(UnitDto dto) {
-        if (dto.getType().equals(Unit.Type.APARTMENT_UNIT))
+        if (dto.getType().equals(Unit.UnitType.APARTMENT_UNIT))
             return createApartmentUnit(dto);
         return createNonApartmentUnit(dto);
     }
@@ -76,7 +76,7 @@ public class UnitServiceImpl implements UnitService {
                 .exists(query, Unit.class)
                 .filter(exits -> !exits)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Unit already exists!")))
-                .flatMap(r -> apartmentRepository.findById(apartmentId))
+                .flatMap(r -> propertyRepository.findById(apartmentId))
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(apartmentId))))
                 .map(apartment -> new Unit.UnitBuilder()
@@ -107,7 +107,7 @@ public class UnitServiceImpl implements UnitService {
                         u.getType() == dto.getType())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's type!")))
                 .filter(u -> {
-                    if (u.getType() != null && u.getType().equals(Unit.Type.APARTMENT_UNIT)) {
+                    if (u.getType() != null && u.getType().equals(Unit.UnitType.APARTMENT_UNIT)) {
                         return (u.getIdentifier() != null &&
                                 u.getFloorNo() != null &&
                                 dto.getIdentifier() != null &&
@@ -119,7 +119,7 @@ public class UnitServiceImpl implements UnitService {
                 })
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's floorNo and identifier!")))
                 .filter(u -> {
-                    if (u.getType() != null && u.getType().equals(Unit.Type.APARTMENT_UNIT))
+                    if (u.getType() != null && u.getType().equals(Unit.UnitType.APARTMENT_UNIT))
                         return Objects.equals(u.getApartmentId(), dto.getApartmentId());
                     return true;
                 })
@@ -155,7 +155,7 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public Flux<Unit> find(Optional<String> apartmentId, Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.Type> type,
+    public Flux<Unit> find(Optional<String> apartmentId, Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.UnitType> type,
                            Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
                            Optional<Integer> bedrooms, Optional<Integer> bathrooms, OrderType order) {
         Sort sort = order.equals(OrderType.ASC) ?

@@ -1,10 +1,9 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.models.Apartment;
+import co.ke.proaktivio.qwanguapi.models.Property;
 import co.ke.proaktivio.qwanguapi.pojos.*;
-import co.ke.proaktivio.qwanguapi.services.ApartmentService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import co.ke.proaktivio.qwanguapi.services.PropertyService;
 import co.ke.proaktivio.qwanguapi.validators.ApartmentDtoValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -13,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -30,53 +28,54 @@ import java.util.stream.Collectors;
 @Log4j2
 @Component
 @RequiredArgsConstructor
-public class ApartmentHandler {
-    private final ApartmentService apartmentService;
+public class PropertyHandler {
+    private final PropertyService propertyService;
 
     public Mono<ServerResponse> create(ServerRequest request) {
         return request
-                .bodyToMono(ApartmentDto.class)
-                .doOnSuccess(a -> log.info(" Received request to create {}", a))
+                .bodyToMono(PropertyDto.class)
+                .doOnSuccess(a -> log.debug("Received request to create {}", a))
                 .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
-                .doOnSuccess(a -> log.debug(" Validation of request to create apartment was successful"))
-                .flatMap(apartmentService::create)
-                .doOnSuccess(a -> log.info(" Created apartment {} successfully", a.getName()))
-                .doOnError(e -> log.error(" Failed to create apartment. Error ", e))
+                .doOnSuccess(a -> log.debug("Validation of request to create apartment was successful"))
+                .flatMap(propertyService::create)
+                .doOnError(e -> log.error("Failed to create apartment. Error ", e))
                 .flatMap(created ->
                         ServerResponse
-                                .created(URI.create("v1/apartments/%s".formatted(created.getId())))
+                                .created(URI.create("v1/properties/%s".formatted(created.getId())))
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.CREATED.value(), true, "Apartment created successfully.",
+                                        HttpStatus.CREATED.value(), true, "Property created successfully.",
                                         created)), Response.class))
-                .doOnSuccess(a -> log.debug(" Sent response with status code {} for creating apartment", a.rawStatusCode()));
+                .doOnSuccess(a -> log.debug("Sent response with status code {} for creating apartment",
+                        a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("apartmentId");
+        String id = request.pathVariable("propertyId");
         return request
-                .bodyToMono(ApartmentDto.class)
-                .doOnSuccess(a -> log.info(" Received request to update {}", a))
+                .bodyToMono(PropertyDto.class)
+                .doOnSuccess(a -> log.debug("Received request to update {}", a))
                 .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
-                .doOnSuccess(a -> log.debug(" Validation of request to update apartment was successful"))
-                .flatMap(dto -> apartmentService.update(id, dto))
-                .doOnSuccess(a -> log.info(" Updated apartment {} successfully", a.getName()))
-                .doOnError(e -> log.error(" Failed to update apartment. Error ", e))
+                .doOnSuccess(a -> log.debug("Validation of request to update apartment was successful"))
+                .flatMap(dto -> propertyService.update(id, dto))
+                .doOnSuccess(a -> log.info("Updated successfully: {}", a))
+                .doOnError(e -> log.error("Failed to update apartment. Error ", e))
                 .flatMap(updated ->
                         ServerResponse
                                 .ok()
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         "",
-                                        HttpStatus.OK.value(), true,"Apartment updated successfully.",
+                                        HttpStatus.OK.value(), true,"Property updated successfully.",
                                         updated)), Response.class))
-                .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating apartment", a.rawStatusCode()));
+                .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating apartment",
+                        a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
-        String id = request.pathVariable("apartmentId");
-        return apartmentService.findById(id)
+        String id = request.pathVariable("propertyId");
+        return propertyService.findById(id)
                 .flatMap(results -> {
                     if(results == null)
                         return ServerResponse
@@ -84,17 +83,19 @@ public class ApartmentHandler {
                                         .body(Mono.just(new Response<>(
                                                 LocalDateTime.now().toString(),
                                                 request.uri().getPath(),
-                                                HttpStatus.OK.value(),true,"Apartment with id %s does not exist!".formatted(id),
+                                                HttpStatus.OK.value(),true,"Property with id %s does not exist!"
+                                                .formatted(id),
                                                 null)), Response.class);
                     return ServerResponse
                                     .ok()
                                     .body(Mono.just(new Response<>(
                                             LocalDateTime.now().toString(),
                                             request.uri().getPath(),
-                                            HttpStatus.OK.value(),true,"Apartment found successfully.",
+                                            HttpStatus.OK.value(),true,"Property found successfully.",
                                             results)), Response.class);
                 })
-                .doOnSuccess(a -> log.info(" Sent response with status code {} for querying user by id", a.rawStatusCode()));
+                .doOnSuccess(a -> log.debug("Sent response with status code {} for querying user by id",
+                        a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
@@ -103,30 +104,30 @@ public class ApartmentHandler {
 
         return ServerResponse
                 .ok()
-                .body(apartmentService
+                .body(propertyService
                         .find(name, order.map(OrderType::valueOf).orElse(OrderType.DESC))
                         .collectList()
                         .flatMap(apartments -> {
                             if(apartments.isEmpty())
-                                return Mono.just(new Response<List<Apartment>>(
+                                return Mono.just(new Response<List<Property>>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,"Apartments with those parameters do  not exist!",
+                                        HttpStatus.OK.value(),true,"Properties with those parameters do  not exist!",
                                         apartments));
-                            return Mono.just(new Response<List<Apartment>>(
+                            return Mono.just(new Response<List<Property>>(
                                     LocalDateTime.now().toString(),
                                     request.uri().getPath(),
-                                    HttpStatus.OK.value(),true,"Apartments found successfully.",
+                                    HttpStatus.OK.value(),true,"Properties found successfully.",
                                     apartments));
                         }), Response.class);
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("apartmentId");
-        log.info(" Received request to delete apartment with id {}", id);
-        return apartmentService.deleteById(id)
-                .doOnSuccess($ -> log.info(" Deleted apartment successfully"))
-                .doOnError(e -> log.error(" Failed to delete apartment. Error ", e))
+        String id = request.pathVariable("propertyId");
+        log.debug("Received request to delete apartment with id {}", id);
+        return propertyService.deleteById(id)
+                .doOnSuccess($ -> log.debug("Deleted apartment with id {} successfully", id))
+                .doOnError(e -> log.error("Failed to delete apartment. Error ", e))
                 .flatMap(success -> {
                     if(!success)
                         return ServerResponse
@@ -135,7 +136,7 @@ public class ApartmentHandler {
                                         LocalDateTime.now().toString(),
                                         "",
                                         HttpStatus.OK.value(),
-                                        false, "Apartment with id %s does not exist!".formatted(id),
+                                        false, "Property with id %s does not exist!".formatted(id),
                                         null)), Response.class);
                     return ServerResponse
                             .ok()
@@ -143,15 +144,15 @@ public class ApartmentHandler {
                                     LocalDateTime.now().toString(),
                                     "",
                                     HttpStatus.OK.value(),
-                                    true, "Apartment with id %s deleted successfully.".formatted(id),
+                                    true, "Property with id %s deleted successfully.".formatted(id),
                                     null)), Response.class);
                 })
-                .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting apartment", a.rawStatusCode()));
+                .doOnSuccess(a -> log.debug("Sent response with status code {} for deleting apartment", a.rawStatusCode()));
     }
 
-    private Function<ApartmentDto, ApartmentDto> validateApartmentDtoFunc(Validator validator) {
+    private Function<PropertyDto, PropertyDto> validateApartmentDtoFunc(Validator validator) {
         return apartmentDto -> {
-            Errors errors = new BeanPropertyBindingResult(apartmentDto, ApartmentDto.class.getName());
+            Errors errors = new BeanPropertyBindingResult(apartmentDto, PropertyDto.class.getName());
             validator.validate(apartmentDto, errors);
             if (!errors.getAllErrors().isEmpty()) {
                 String errorMessage = errors.getAllErrors().stream()

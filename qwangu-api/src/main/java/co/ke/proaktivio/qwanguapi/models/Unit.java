@@ -19,12 +19,17 @@ public class Unit {
     private Status status;
     @Indexed(unique = true)
     private String number;
-    private Type type;
+    private UnitType type;
     private Identifier identifier;
     private Integer floorNo;
+    // PS: ALL OBJECTS TO INCLUDE PHOTOS
+    // TODO OBJECT OF LIVING_ROOM
+    // TODO ADD LIST<OBJECT> OF BEDROOM - IS_ENSUITE
+    // TODO ADD LIST<OBJECT> OF BATHROOMS
+    // TODO ADD OBJECT OF KITCHEN
     private Integer noOfBedrooms;
     private Integer noOfBathrooms;
-
+    // TODO ADD IS_FURNISHED
     private Currency currency;
     // payments per month
     private BigDecimal rentPerMonth;
@@ -44,6 +49,7 @@ public class Unit {
     private LocalDateTime modifiedOn;
     @LastModifiedBy
     private String modifiedBy;
+    // TODO CHANGE TO ESTATE_ID
     private String apartmentId;
 
     public class PaymentPerMonth {
@@ -71,7 +77,7 @@ public class Unit {
 
     @Getter
     @RequiredArgsConstructor
-    public enum Type{
+    public enum UnitType {
         APARTMENT_UNIT("APARTMENT_UNIT"),
         TOWN_HOUSE("TOWN_HOUSE"),
         MAISONETTES("MAISONETTES"),
@@ -95,7 +101,7 @@ public class Unit {
     public static class UnitBuilder {
         private Status status;
         private String number;
-        private Type type;
+        private UnitType type;
         private Identifier identifier;
         private Integer floorNo;
         private Integer noOfBedrooms;
@@ -124,7 +130,7 @@ public class Unit {
             return this;
         }
 
-        public UnitBuilder type(Type type) {
+        public UnitBuilder type(UnitType type) {
             this.type = type;
             return this;
         }

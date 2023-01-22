@@ -122,8 +122,8 @@ public class UnitHandler {
         Optional<String> bathrooms = request.queryParam("noOfBathrooms");
         Optional<String> order = request.queryParam("order");
 
-        if (type.isPresent() &&  !EnumUtils.isValidEnum(Unit.Type.class, type.get())) {
-            String[] arrayOfState = Stream.of(Unit.Type.values()).map(Unit.Type::getType).toArray(String[]::new);
+        if (type.isPresent() &&  !EnumUtils.isValidEnum(Unit.UnitType.class, type.get())) {
+            String[] arrayOfState = Stream.of(Unit.UnitType.values()).map(Unit.UnitType::getType).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Type should be " + states + "!");
         }
@@ -146,7 +146,7 @@ public class UnitHandler {
                             apartmentId,
                             status.map(Unit.Status::valueOf),
                             accountNo,
-                            type.map(Unit.Type::valueOf),
+                            type.map(Unit.UnitType::valueOf),
                             finalIdentifier,
                             floorNoResult,
                             noOfBedrooms,
@@ -211,7 +211,7 @@ public class UnitHandler {
 
     private Function<UnitDto, UnitDto> validateUnitDtoFunc(Validator validator) {
         return apartmentDto -> {
-            Errors errors = new BeanPropertyBindingResult(apartmentDto, ApartmentDto.class.getName());
+            Errors errors = new BeanPropertyBindingResult(apartmentDto, PropertyDto.class.getName());
             validator.validate(apartmentDto, errors);
             if (!errors.getAllErrors().isEmpty()) {
                 String errorMessage = errors.getAllErrors().stream()

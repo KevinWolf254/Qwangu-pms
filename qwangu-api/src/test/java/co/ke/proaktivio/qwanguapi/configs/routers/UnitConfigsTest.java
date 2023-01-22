@@ -74,7 +74,7 @@ public class UnitConfigsTest {
     @WithMockUser(roles = {"SUPER_ADMIN"})
     void create_returnsUnit_whenSuccessful_withStatus201() {
         // given
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
                 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
                 BigDecimal.valueOf(300), null, "1");
 //        var unit = new Unit("1", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
@@ -85,7 +85,7 @@ public class UnitConfigsTest {
                 .status(Unit.Status.VACANT)
 //                .booked(false)
                 .number("TE99")
-                .type(Unit.Type.APARTMENT_UNIT)
+                .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
                 .floorNo(0)
                 .noOfBedrooms(2)
@@ -98,7 +98,7 @@ public class UnitConfigsTest {
                 .apartmentId("1").build();
         unit.setId("1");
         unit.setCreatedOn(LocalDateTime.now());
-        var dtoNonApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
+        var dtoNonApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.UnitType.MAISONETTES, null, null,
                 2, 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
                 BigDecimal.valueOf(500), BigDecimal.valueOf(300), null, null);
 //        var unitNonApartment = new Unit("2", Unit.Status.VACANT, false, "TE99", Unit.Type.MAISONETTES,
@@ -109,7 +109,7 @@ public class UnitConfigsTest {
                 .status(Unit.Status.VACANT)
 //                .booked(false)
                 .number("TE99")
-                .type(Unit.Type.MAISONETTES)
+                .type(Unit.UnitType.MAISONETTES)
                 .floorNo(0)
                 .noOfBedrooms(2)
                 .noOfBathrooms(1)
@@ -122,9 +122,9 @@ public class UnitConfigsTest {
         unitNonApartment.setCreatedOn(LocalDateTime.now());
         var dtoFailsValidation = new UnitDto(null, null, null, null, null, null,
                 null, null, null, null, null, null, null);
-        var dtoApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, null, null, null, null,
+        var dtoApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, null, null, null, null,
                 null, null, null, null, null, null, null);
-        var dtoNoneApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null, null, null,
+        var dtoNoneApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.UnitType.MAISONETTES, null, null, null, null,
                 null, null, null, null, null, null, null);
 
         // when
@@ -253,7 +253,7 @@ public class UnitConfigsTest {
     void update_returnsUnit_whenSuccessful_withStatus200() {
         // given
         var id = "1";
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
                 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
                 BigDecimal.valueOf(300), null, "1");
 //        var unit = new Unit(id, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
@@ -264,7 +264,7 @@ public class UnitConfigsTest {
                 .status(Unit.Status.VACANT)
 //                .booked(false)
                 .number("TE99")
-                .type(Unit.Type.APARTMENT_UNIT)
+                .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
                 .floorNo(0)
                 .noOfBedrooms(2)
@@ -306,7 +306,7 @@ public class UnitConfigsTest {
         // given
         var id = "1";
         String accountNo = "TE99";
-        Unit.Type type = Unit.Type.APARTMENT_UNIT;
+        Unit.UnitType type = Unit.UnitType.APARTMENT_UNIT;
         Unit.Identifier identifier = Unit.Identifier.A;
         int floorNo = 0;
         int noOfBedrooms = 2;
@@ -345,7 +345,7 @@ public class UnitConfigsTest {
         // given
         var id = "1";
         String accountNo = "TE99";
-        Unit.Type type = Unit.Type.APARTMENT_UNIT;
+        Unit.UnitType type = Unit.UnitType.APARTMENT_UNIT;
         Unit.Identifier identifier = Unit.Identifier.A;
         int floorNo = 0;
         int noOfBedrooms = 2;

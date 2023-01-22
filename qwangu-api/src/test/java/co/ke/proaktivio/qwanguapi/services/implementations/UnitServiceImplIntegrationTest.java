@@ -5,11 +5,11 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
-import co.ke.proaktivio.qwanguapi.models.Apartment;
+import co.ke.proaktivio.qwanguapi.models.Property;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
-import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
+import co.ke.proaktivio.qwanguapi.repositories.PropertyRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ import java.util.Optional;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class UnitServiceImplIntegrationTest {
     @Autowired
-    private ApartmentRepository apartmentRepository;
+    private PropertyRepository propertyRepository;
     @Autowired
     private UnitRepository unitRepository;
     @Autowired
@@ -62,23 +62,23 @@ class UnitServiceImplIntegrationTest {
         String id = "1";
         String name = "Luxury Apartment";
 //        LocalDateTime now = LocalDateTime.now();
-        var apartment = new Apartment(name);
+        var apartment = new Property(name);
         apartment.setId(id);
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1,
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 1,
                 2, 1, 2, Unit.Currency.KES,
                 BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, id);
-        var dtoWithNonExistingApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A,
+        var dtoWithNonExistingApartment = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A,
                 1, 2, 1, 2, Unit.Currency.KES,
                 BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, "2");
-        var dtoNotApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
+        var dtoNotApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.UnitType.MAISONETTES, null, null,
                 2, 1, 2, Unit.Currency.KES,
                 BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, null);
         // when
-        Mono<Unit> createUnit = apartmentRepository.deleteAll()
+        Mono<Unit> createUnit = propertyRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
                 .then(unitRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
-                .then(apartmentRepository.save(apartment))
+                .then(propertyRepository.save(apartment))
                         .doOnSuccess(a -> System.out.println("---- Saved " + a))
                         .then(unitService.create(dto))
                         .doOnSuccess(a -> System.out.println("---- Saved " + a));
@@ -94,7 +94,7 @@ class UnitServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(createUnitNotApartmentUnit)
-                .expectNextMatches(u -> u.getType().equals(Unit.Type.MAISONETTES) &&
+                .expectNextMatches(u -> u.getType().equals(Unit.UnitType.MAISONETTES) &&
                         u.getApartmentId() == null && u.getIdentifier() == null &&
                         u.getFloorNo() == null)
                 .verifyComplete();
@@ -124,16 +124,16 @@ class UnitServiceImplIntegrationTest {
         String id = "1";
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
-        var apartment = new Apartment(name);
+        var apartment = new Property(name);
         var otherAmounts = new HashMap<String, BigDecimal>();
         otherAmounts.put("Gym", new BigDecimal(500));
         otherAmounts.put("Swimming Pool", new BigDecimal(800));
 
         apartment.setId(id);
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1, 2,
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 1, 2,
                 1, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
                 BigDecimal.valueOf(500), null, id);
-        var dtoUpdate = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT, Unit.Identifier.A, 1,
+        var dtoUpdate = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 1,
                 2, 1, 2, Unit.Currency.KES, BigDecimal.valueOf(26000),
                 BigDecimal.valueOf(510), BigDecimal.valueOf(510), otherAmounts, "1");
 //        var unit = new Unit("301", Unit.Status.VACANT, false, "TE34", Unit.Type.APARTMENT_UNIT,
@@ -144,7 +144,7 @@ class UnitServiceImplIntegrationTest {
                 .status(Unit.Status.VACANT)
 //                .booked(false)
                 .number("TE34")
-                .type(Unit.Type.APARTMENT_UNIT)
+                .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
                 .floorNo(2)
                 .noOfBedrooms(2)
@@ -157,7 +157,7 @@ class UnitServiceImplIntegrationTest {
                 .apartmentId("1").build();
         unit.setId("301");
 
-        var dtoThatChangesUnitType = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, Unit.Identifier.A, 1,
+        var dtoThatChangesUnitType = new UnitDto(Unit.Status.VACANT, Unit.UnitType.MAISONETTES, Unit.Identifier.A, 1,
                 2, 1, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
                 BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, "1");
 //        var unit2 = new Unit("302", Unit.Status.VACANT, false, "TE35", Unit.Type.APARTMENT_UNIT,
@@ -168,7 +168,7 @@ class UnitServiceImplIntegrationTest {
                 .status(Unit.Status.VACANT)
 //                .booked(false)
                 .number("TE35")
-                .type(Unit.Type.APARTMENT_UNIT)
+                .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.C)
                 .floorNo(3)
                 .noOfBedrooms(2)
@@ -181,7 +181,7 @@ class UnitServiceImplIntegrationTest {
                 .apartmentId("1").build();
         unit2.setId("302");
 
-        var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(Unit.Status.VACANT, Unit.Type.APARTMENT_UNIT,
+        var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT,
                 Unit.Identifier.A, 1, 2, 1, 2, Unit.Currency.KES,
                 BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, "1");
 //        var unitNotForApartment = new Unit("4444", Unit.Status.VACANT, false, "SE44",
@@ -192,7 +192,7 @@ class UnitServiceImplIntegrationTest {
                 .status(Unit.Status.VACANT)
 //                .booked(false)
                 .number("SE44")
-                .type(Unit.Type.MAISONETTES)
+                .type(Unit.UnitType.MAISONETTES)
                 .noOfBedrooms(2)
                 .noOfBathrooms(1)
                 .advanceInMonths(2)
@@ -202,16 +202,16 @@ class UnitServiceImplIntegrationTest {
                 .garbagePerMonth(BigDecimal.valueOf(300)).build();
         unitNotForApartment.setId("4444");
 
-        var dtoUpdateNotForApartment = new UnitDto(Unit.Status.VACANT, Unit.Type.MAISONETTES, null, null,
+        var dtoUpdateNotForApartment = new UnitDto(Unit.Status.VACANT, Unit.UnitType.MAISONETTES, null, null,
                 5, 3, 2, Unit.Currency.KES, BigDecimal.valueOf(45000),
                 BigDecimal.valueOf(1510), BigDecimal.valueOf(1510), null, null);
 
         // when
-        Mono<Unit> createUpdateUnit = apartmentRepository.deleteAll()
+        Mono<Unit> createUpdateUnit = propertyRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
                 .then(unitRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
-                .then(apartmentRepository.save(apartment))
+                .then(propertyRepository.save(apartment))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(unitService.create(dto))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
@@ -279,13 +279,13 @@ class UnitServiceImplIntegrationTest {
     void findPaginated() { // given
         String id = "1";
         String name = "Luxury Apartment";
-        var apartment = new Apartment(name);
+        var apartment = new Property(name);
         apartment.setId(id);
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
 //                .booked(false)
                 .number("TE34")
-                .type(Unit.Type.APARTMENT_UNIT)
+                .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
                 .floorNo(2)
                 .noOfBedrooms(2)
@@ -301,7 +301,7 @@ class UnitServiceImplIntegrationTest {
                 .status(Unit.Status.VACANT)
 //                .booked(false)
                 .number("TE36")
-                .type(Unit.Type.APARTMENT_UNIT)
+                .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
                 .floorNo(2)
                 .noOfBedrooms(2)
@@ -315,16 +315,16 @@ class UnitServiceImplIntegrationTest {
         unit2.setId("303");
 
         // when
-        Flux<Unit> findUnit = apartmentRepository.deleteAll()
+        Flux<Unit> findUnit = propertyRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
                 .then(unitRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
-                .then(apartmentRepository.save(apartment))
+                .then(propertyRepository.save(apartment))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(unitRepository.save(unit))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(unitService.find(Optional.of(id), Optional.of(Unit.Status.VACANT), Optional.of("TE34"),
-                        Optional.of(Unit.Type.APARTMENT_UNIT), Optional.of(Unit.Identifier.B), Optional.of(2),
+                        Optional.of(Unit.UnitType.APARTMENT_UNIT), Optional.of(Unit.Identifier.B), Optional.of(2),
                         Optional.of(2), Optional.of(1), OrderType.ASC))
                 .doOnNext(u -> System.out.println("---- Found " +u));
         // then
@@ -335,7 +335,7 @@ class UnitServiceImplIntegrationTest {
 
         // when
         Flux<Unit> findUnitNonExisting = unitService.find(Optional.of(id), Optional.of(Unit.Status.VACANT),
-                Optional.of("TE35"), Optional.of(Unit.Type.APARTMENT_UNIT), Optional.of(Unit.Identifier.E),
+                Optional.of("TE35"), Optional.of(Unit.UnitType.APARTMENT_UNIT), Optional.of(Unit.Identifier.E),
                 Optional.of(2), Optional.of(2), Optional.of(1), OrderType.ASC)
                 .doOnNext(a -> System.out.println("---- Found " +a));
         // then
@@ -372,7 +372,7 @@ class UnitServiceImplIntegrationTest {
                 .status(Unit.Status.VACANT)
 //                .booked(false)
                 .number("TE99")
-                .type(Unit.Type.APARTMENT_UNIT)
+                .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
                 .floorNo(2)
                 .noOfBedrooms(2)
@@ -386,7 +386,7 @@ class UnitServiceImplIntegrationTest {
         unit.setId("9999");
 
         // when
-        Mono<Boolean> createUnitThenDelete = apartmentRepository.deleteAll()
+        Mono<Boolean> createUnitThenDelete = propertyRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
                 .then(unitRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))

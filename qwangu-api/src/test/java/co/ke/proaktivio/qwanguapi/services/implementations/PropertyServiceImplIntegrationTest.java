@@ -4,11 +4,11 @@ import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
-import co.ke.proaktivio.qwanguapi.models.Apartment;
-import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
+import co.ke.proaktivio.qwanguapi.models.Property;
+import co.ke.proaktivio.qwanguapi.pojos.PropertyDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.repositories.ApartmentRepository;
-import co.ke.proaktivio.qwanguapi.services.ApartmentService;
+import co.ke.proaktivio.qwanguapi.repositories.PropertyRepository;
+import co.ke.proaktivio.qwanguapi.services.PropertyService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,23 +25,22 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class ApartmentServiceImplIntegrationTest {
+class PropertyServiceImplIntegrationTest {
     @Autowired
-    private ApartmentRepository apartmentRepository;
+    private PropertyRepository propertyRepository;
     @Autowired
-    private ApartmentService apartmentService;
+    private PropertyService propertyService;
     @MockBean
     private BootstrapConfig bootstrapConfig;
     @MockBean
     private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
 
-    private final String name = "Luxury Apartment";
-    private final ApartmentDto dto = new ApartmentDto(name);
+    private final String name = "Luxury property";
+    private final PropertyDto dto = new PropertyDto(name);
 
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName
@@ -56,57 +55,57 @@ class ApartmentServiceImplIntegrationTest {
     //-XX:+AllowRedefinitionToAddDeleteMethods
 
     private Mono<Void> deleteAll() {
-        return apartmentRepository.deleteAll()
-                .doOnSuccess($ -> System.out.println("---- Deleted all Apartments!"));
+        return propertyRepository.deleteAll()
+                .doOnSuccess($ -> System.out.println("---- Deleted all properties!"));
     }
 
     @Test
-    @DisplayName("create returns a Mono of Apartment when name does not exist")
-    void create_returnMonoOfApartment_whenSuccessful() {
+    @DisplayName("create returns a property when property name does not exist")
+    void create_returnMonoOfProperty_whenSuccessful() {
         // when
-        Mono<Apartment> saved = deleteAll()
-                .then(apartmentService.create(dto));
+        Mono<Property> saved = deleteAll()
+                .then(propertyService.create(dto));
         // then
         StepVerifier.create(saved)
-                .expectNextMatches(apartment ->
-                        StringUtils.hasText(apartment.getId()) &&
-                                StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(name) &&
-                                apartment.getCreatedOn() != null && StringUtils.hasText(apartment.getCreatedOn().toString()))
+                .expectNextMatches(property ->
+                        StringUtils.hasText(property.getId()) &&
+                                StringUtils.hasText(property.getName()) && property.getName().equalsIgnoreCase(name) &&
+                                property.getCreatedOn() != null && StringUtils.hasText(property.getCreatedOn().toString()))
                 .verifyComplete();
     }
 
     @Test
     @DisplayName("create returns a CustomAlreadyExistsException when name already exists")
-    void create_returnsCustomAlreadyExistsException_whenApartmentNameExists() {
+    void create_returnsCustomAlreadyExistsException_whenPropertyNameExists() {
         // when
-        Mono<Apartment> saved = deleteAll()
-                .then(apartmentService.create(dto))
+        Mono<Property> saved = deleteAll()
+                .then(propertyService.create(dto))
                 .thenReturn(dto)
-                .flatMap(d -> apartmentService.create(d));
+                .flatMap(d -> propertyService.create(d));
 
         // then
         StepVerifier.create(saved)
                 .expectErrorMatches(e -> e instanceof CustomAlreadyExistsException &&
-                        e.getMessage().equalsIgnoreCase("Apartment %s already exists!".formatted(name)))
+                        e.getMessage().equalsIgnoreCase("Property %s already exists!".formatted(name)))
                 .verify();
     }
 
     @Test
-    @DisplayName("update returns an updated apartment when successful")
-    void update_returnsMonoOfAnUpdatedApartment_whenSuccessful() {
+    @DisplayName("update returns an updated property when successful")
+    void update_returnsMonoOfAnUpdatedProperty_whenSuccessful() {
         // given
-        String updatedName = "Thika road Apartments";
+        String updatedName = "Thika road propertys";
         //when
-        Mono<Apartment> updated = deleteAll()
-                .then(apartmentService.create(dto))
+        Mono<Property> updated = deleteAll()
+                .then(propertyService.create(dto))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
-                .flatMap(a -> apartmentService.update(a.getId(), new ApartmentDto(updatedName)));
+                .flatMap(a -> propertyService.update(a.getId(), new PropertyDto(updatedName)));
 
         // then
         StepVerifier.create(updated)
-                .expectNextMatches(apartment -> StringUtils.hasText(apartment.getId()) &&
-                        StringUtils.hasText(apartment.getName()) && apartment.getName().equalsIgnoreCase(updatedName) &&
-                        apartment.getModifiedOn() != null && StringUtils.hasText(apartment.getModifiedOn().toString()))
+                .expectNextMatches(property -> StringUtils.hasText(property.getId()) &&
+                        StringUtils.hasText(property.getName()) && property.getName().equalsIgnoreCase(updatedName) &&
+                        property.getModifiedOn() != null && StringUtils.hasText(property.getModifiedOn().toString()))
                 .verifyComplete();
     }
 
@@ -114,13 +113,13 @@ class ApartmentServiceImplIntegrationTest {
     @DisplayName("update returns a CustomNotFoundException when id does not exist")
     void update_returnsCustomNotFoundException_whenIdDoesNotExist() {
         // when
-        Mono<Apartment> saved = deleteAll()
-                .then(apartmentService.update("12345", dto));
+        Mono<Property> saved = deleteAll()
+                .then(propertyService.update("12345", dto));
 
         // then
         StepVerifier.create(saved)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Apartment with id %s does not exists!".formatted("12345")))
+                        e.getMessage().equalsIgnoreCase("property with id %s does not exists!".formatted("12345")))
                 .verify();
     }
 
@@ -128,32 +127,32 @@ class ApartmentServiceImplIntegrationTest {
     @DisplayName("update returns a CustomAlreadyExistsException when name already exists")
     void update_returnsCustomAlreadyExistsException_whenNameAlreadyExists() {
         // when
-        Apartment apartment01 = new Apartment(name);
-        var apartment02 = new Apartment("Luxury Apartments B");
-        Mono<Apartment> saved = deleteAll()
-                .then(apartmentRepository.save(apartment01))
+        Property property01 = new Property(name);
+        var property02 = new Property("Luxury properties B");
+        Mono<Property> saved = deleteAll()
+                .then(propertyRepository.save(property01))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
-                .flatMap(apartment -> apartmentRepository.save(apartment02))
+                .flatMap(property -> propertyRepository.save(property02))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
-                .flatMap(a -> apartmentService.update(a.getId(), dto));
+                .flatMap(a -> propertyService.update(a.getId(), dto));
 
         // then
         StepVerifier.create(saved)
                 .expectErrorMatches(e -> e instanceof CustomAlreadyExistsException &&
-                        e.getMessage().equalsIgnoreCase("Apartment %s already exists!".formatted(name)))
+                        e.getMessage().equalsIgnoreCase("property %s already exists!".formatted(name)))
                 .verify();
     }
 
     @Test
-    @DisplayName("find paginated returns a flux of apartments when successful")
-    void findPaginated_returnsFluxOfApartments_whenSuccessful() {
+    @DisplayName("find paginated returns a flux of properties when successful")
+    void findPaginated_returnsFluxOfProperties_whenSuccessful() {
         //when
-        Flux<Apartment> saved = deleteAll()
+        Flux<Property> saved = deleteAll()
                 .thenMany(Flux
-                        .just(new ApartmentDto("Luxury Apartments"), new ApartmentDto("Luxury Apartments B")))
-                .flatMap(a -> apartmentService.create(a))
+                        .just(new PropertyDto("Luxury properties"), new PropertyDto("Luxury properties B")))
+                .flatMap(a -> propertyService.create(a))
                 .doOnNext(a -> System.out.println("---- Created " +a))
-                .thenMany(apartmentService
+                .thenMany(propertyService
                         .find(Optional.empty(),
                                 OrderType.ASC))
                 .doOnNext(a -> System.out.println("---- Found " +a));
@@ -161,30 +160,30 @@ class ApartmentServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(saved)
-                .expectNextMatches(aprt -> aprt.getName().equalsIgnoreCase("Luxury Apartments") ||
-                        aprt.getName().equalsIgnoreCase("Luxury Apartments B"))
-                .expectNextMatches(aprt -> aprt.getName().equalsIgnoreCase("Luxury Apartments") ||
-                        aprt.getName().equalsIgnoreCase("Luxury Apartments B"))
+                .expectNextMatches(aprt -> aprt.getName().equalsIgnoreCase("Luxury properties") ||
+                        aprt.getName().equalsIgnoreCase("Luxury properties B"))
+                .expectNextMatches(aprt -> aprt.getName().equalsIgnoreCase("Luxury properties") ||
+                        aprt.getName().equalsIgnoreCase("Luxury properties B"))
                 .verifyComplete();
     }
 
     @Test
-    @DisplayName("findPaginated returns a CustomNotFoundException when none exist!")
-    void findPaginated_returnsCustomNotFoundException_whenNoApartmentsExists() {
+    @DisplayName("find returns a CustomNotFoundException when none exist!")
+    void find_returnsCustomNotFoundException_whenPropertiesDoNotExist() {
         // given
 
         //when
-        Flux<Apartment> saved = deleteAll()
-                .thenMany(apartmentService.find(Optional.empty(),
+        Flux<Property> saved = deleteAll()
+                .thenMany(propertyService.find(Optional.empty(),
                         OrderType.ASC))
-                .doOnError(a -> System.out.println("---- Found no apartments!"));
+                .doOnError(a -> System.out.println("---- Found no properties!"));
 
         // then
         StepVerifier
                 .create(saved)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Apartments were not found!"))
-                .verify();
+                .expectNextCount(0)
+//                .expectNextMatches(r -> r..getMessage().equalsIgnoreCase("Properties were not found!"))
+                .verifyComplete();
     }
 
     @Test
@@ -192,8 +191,8 @@ class ApartmentServiceImplIntegrationTest {
     void delete_returnsTrue_whenSuccessful() {
         // when
         Mono<Boolean> deleted = deleteAll()
-                .then(apartmentService.create(dto))
-                .flatMap(a -> apartmentService.deleteById(a.getId()));
+                .then(propertyService.create(dto))
+                .flatMap(a -> propertyService.deleteById(a.getId()));
 
         // then
         StepVerifier.create(deleted)
@@ -206,12 +205,12 @@ class ApartmentServiceImplIntegrationTest {
     void delete_returnsCustomNotFoundException_whenIdDoesNotExist() {
         // when
         Mono<Boolean> deleted = deleteAll()
-                .then(apartmentService.deleteById("11234"));
+                .then(propertyService.deleteById("11234"));
 
         // then
         StepVerifier.create(deleted)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Apartment with id %s does not exist!".formatted("11234")))
+                        e.getMessage().equalsIgnoreCase("Property with id %s does not exist!".formatted("11234")))
                 .verify();
     }
 }

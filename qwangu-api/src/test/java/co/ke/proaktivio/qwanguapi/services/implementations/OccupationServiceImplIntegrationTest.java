@@ -84,7 +84,7 @@ class OccupationServiceImplIntegrationTest {
         Unit unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
                 .number("TE99")
-                .type(Unit.Type.APARTMENT_UNIT)
+                .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
                 .floorNo(2)
                 .noOfBedrooms(2)

@@ -13,7 +13,7 @@ public interface UnitService {
     Mono<Unit> create(UnitDto dto);
     Mono<Unit> update(String id, UnitDto dto);
     Mono<Unit> findById(String unitId);
-    Flux<Unit> find(Optional<String> apartmentId, Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.Type> type,
+    Flux<Unit> find(Optional<String> apartmentId, Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.UnitType> type,
                     Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
                     Optional<Integer> bedrooms, Optional<Integer> bathrooms, OrderType order);
     Flux<Unit> findByOccupationIds(List<String> occupationIds);

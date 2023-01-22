@@ -5,14 +5,12 @@ import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.handlers.ApartmentHandler;
+import co.ke.proaktivio.qwanguapi.handlers.PropertyHandler;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
-import co.ke.proaktivio.qwanguapi.models.Apartment;
-import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
+import co.ke.proaktivio.qwanguapi.models.Property;
+import co.ke.proaktivio.qwanguapi.pojos.PropertyDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.services.ApartmentService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import co.ke.proaktivio.qwanguapi.services.PropertyService;
 import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,7 +32,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -43,15 +40,15 @@ import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {ApartmentConfigs.class, ApartmentHandler.class, SecurityConfig.class,
+@ContextConfiguration(classes = {PropertyConfigs.class, PropertyHandler.class, SecurityConfig.class,
         GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
-class ApartmentConfigsTest {
+class PropertyConfigsTest {
     @Autowired
     private ApplicationContext context;
     @Autowired
     private WebTestClient client;
     @MockBean
-    private ApartmentService apartmentService;
+    private PropertyService propertyService;
 
     @MockBean
     private ReactiveAuthenticationManager authenticationManager;
@@ -68,39 +65,39 @@ class ApartmentConfigsTest {
         // then
         client
                 .post()
-                .uri("/v1/apartments")
+                .uri("/v1/properties")
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns a Mono of Apartment when name does not exist")
-    void create_returnsApartment_whenSuccessful_withStatus201() {
+    @DisplayName("create returns a Mono of property when name does not exist")
+    void create_returnsProperty_whenSuccessful_withStatus201() {
         // given
-        String name = "Luxury Apartments";
-        var dto = new ApartmentDto(name);
+        String name = "Luxury properties";
+        var dto = new PropertyDto(name);
         LocalDateTime now = LocalDateTime.now();
-        var apartment = new Apartment(name);
-        apartment.setId("1");
-        apartment.setCreatedOn(LocalDateTime.now());
+        var property = new Property(name);
+        property.setId("1");
+        property.setCreatedOn(LocalDateTime.now());
 
         //when
-        when(apartmentService.create(dto)).thenReturn(Mono.just(apartment));
+        when(propertyService.create(dto)).thenReturn(Mono.just(property));
 
         // then
         client
                 .post()
-                .uri("/v1/apartments")
+                .uri("/v1/properties")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentType("application/json")
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Apartment created successfully.")
+                .jsonPath("$.message").isEqualTo("Property created successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.name").isEqualTo(name)
@@ -114,44 +111,44 @@ class ApartmentConfigsTest {
     @DisplayName("create returns CustomAlreadyExistsException with status 400")
     void create_returnsCustomAlreadyExistsException_status400() {
         // given
-        String name = "Luxury Apartments";
-        var dto = new ApartmentDto(name);
+        String name = "Luxury properties";
+        var dto = new PropertyDto(name);
 
         //when
-        when(apartmentService.create(dto)).thenThrow(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name)));
+        when(propertyService.create(dto)).thenThrow(new CustomAlreadyExistsException("Property %s already exists!".formatted(name)));
 
         //then
         client
                 .post()
-                .uri("/v1/apartments")
+                .uri("/v1/properties")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("Apartment %s already exists!".formatted(name))
+                .jsonPath("$.message").isEqualTo("Property %s already exists!".formatted(name))
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns CustomBadRequestException when apartment name is null or blank with status 403")
-    void create_returnsCustomBadRequestException_whenApartmentNameIsNullOrBlank_status403() {
+    @DisplayName("create returns CustomBadRequestException when property name is null or blank with status 403")
+    void create_returnsCustomBadRequestException_whenPropertyNameIsNullOrBlank_status403() {
         // given
-        var dto = new ApartmentDto("");
+        var dto = new PropertyDto("");
 
         //when
-        when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name is required. Name must be at least 6 characters in length."));
+        when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name is required. Name must be at least 6 characters in length."));
 
         // then
         client.post()
-                .uri("/v1/apartments")
+                .uri("/v1/properties")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType("application/json")
@@ -165,19 +162,19 @@ class ApartmentConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns CustomBadRequestException when apartment name length is less than 6 with status 403")
-    void create_returnsCustomBadRequestException_whenApartmentNameLengthLessThan6_status403() {
+    @DisplayName("create returns CustomBadRequestException when property name length is less than 6 with status 403")
+    void create_returnsCustomBadRequestException_whenPropertyNameLengthLessThan6_status403() {
         // given
-        var dto = new ApartmentDto("Apart");
+        var dto = new PropertyDto("Apart");
 
         //when
-        when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
+        when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
 
         // then
         client.post()
-                .uri("/v1/apartments")
+                .uri("/v1/properties")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType("application/json")
@@ -194,17 +191,17 @@ class ApartmentConfigsTest {
     @DisplayName("create returns Exception with status 500")
     void create_returnsException_status500() {
         // given
-        String name = "Luxury Apartments";
-        var dto = new ApartmentDto(name);
+        String name = "Luxury properties";
+        var dto = new PropertyDto(name);
 
         //when
-        when(apartmentService.create(dto)).thenThrow(new RuntimeException("Something happened!"));
+        when(propertyService.create(dto)).thenThrow(new RuntimeException("Something happened!"));
 
         //then
         client.post()
-                .uri("/v1/apartments")
+                .uri("/v1/properties")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isEqualTo(500)
                 .expectBody()
@@ -226,7 +223,7 @@ class ApartmentConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/apartments/{id}",id)
+                .uri("/v1/properties/{id}",id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -234,36 +231,36 @@ class ApartmentConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns a Mono of updated Apartment when name does not exist")
-    void update_returnsUpdatedApartment_status200() {
+    @DisplayName("update returns a Mono of updated property when name does not exist")
+    void update_returnsUpdatedProperty_status200() {
         // given
-        String name = "Luxury Apartments";
-        var dto = new ApartmentDto(name);
+        String name = "Luxury properties";
+        var dto = new PropertyDto(name);
 
         String id = "1";
-        String name2 = "Luxury Apartments B";
+        String name2 = "Luxury properties B";
         LocalDateTime now = LocalDateTime.now();
-        var apartment = new Apartment(name2);
-        apartment.setId("1");
-        apartment.setCreatedOn(now);
-        apartment.setModifiedOn(now);
+        var property = new Property(name2);
+        property.setId("1");
+        property.setCreatedOn(now);
+        property.setModifiedOn(now);
 
         //when
-        when(apartmentService.update(id, dto)).thenReturn(Mono.just(apartment));
+        when(propertyService.update(id, dto)).thenReturn(Mono.just(property));
 
         // then
         client
                 .put()
-                .uri("/v1/apartments/{apartmentId}",id)
+                .uri("/v1/properties/{propertyId}",id)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Apartment updated successfully.")
+                .jsonPath("$.message").isEqualTo("Property updated successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.name").isEqualTo(name2)
@@ -273,21 +270,21 @@ class ApartmentConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns CustomBadRequestException when apartment name is null or blank with status 403")
-    void update_returnsCustomBadRequestException_whenApartmentNameIsNullOrBlank_status403() {
+    @DisplayName("update returns CustomBadRequestException when property name is null or blank with status 403")
+    void update_returnsCustomBadRequestException_whenPropertyNameIsNullOrBlank_status403() {
         // given
         String id = "1";
-        var dto = new ApartmentDto(null);
+        var dto = new PropertyDto(null);
 
         //when
-        when(apartmentService.update(id, dto)).thenThrow(new CustomBadRequestException("Name is required."));
+        when(propertyService.update(id, dto)).thenThrow(new CustomBadRequestException("Name is required."));
 
         // then
         client
                 .put()
-                .uri("/v1/apartments/{apartmentId}",id)
+                .uri("/v1/properties/{propertyId}",id)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType("application/json")
@@ -301,19 +298,19 @@ class ApartmentConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns CustomBadRequestException when apartment name length is less than 6 with status 403")
-    void update_returnsCustomBadRequestException_whenApartmentNameLengthLessThan6_status403() {
+    @DisplayName("update returns CustomBadRequestException when property name length is less than 6 with status 403")
+    void update_returnsCustomBadRequestException_whenPropertyNameLengthLessThan6_status403() {
         // given
-        var dto = new ApartmentDto("Apart");
+        var dto = new PropertyDto("Apart");
 
         //when
-        when(apartmentService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
+        when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
 
         // then
         client.put()
-                .uri("/v1/apartments/{apartmentId}", "1")
+                .uri("/v1/properties/{propertyId}", "1")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType("application/json")
@@ -331,24 +328,24 @@ class ApartmentConfigsTest {
     void update_returnsCustomAlreadyExistsException_status400() {
         // given
         String id = "1";
-        String name = "Luxury Apartments";
-        var dto = new ApartmentDto(name);
+        String name = "Luxury properties";
+        var dto = new PropertyDto(name);
 
         //when
-        when(apartmentService.update(id, dto)).thenThrow(new CustomAlreadyExistsException("Apartment %s already exists!".formatted(name)));
+        when(propertyService.update(id, dto)).thenThrow(new CustomAlreadyExistsException("Property %s already exists!".formatted(name)));
 
         //then
         client.put()
-                .uri("/v1/apartments/{apartmentId}", id)
+                .uri("/v1/properties/{propertyId}", id)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("Apartment %s already exists!".formatted(name))
+                .jsonPath("$.message").isEqualTo("Property %s already exists!".formatted(name))
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -359,17 +356,17 @@ class ApartmentConfigsTest {
     void update_returnsException_status500() {
         // given
         String id = "1";
-        String name = "Luxury Apartments";
-        var dto = new ApartmentDto(name);
+        String name = "Luxury properties";
+        var dto = new PropertyDto(name);
 
         //when
-        when(apartmentService.update(id, dto)).thenThrow(new RuntimeException("Something happened!"));
+        when(propertyService.update(id, dto)).thenThrow(new RuntimeException("Something happened!"));
 
         //then
         client.put()
-                .uri("/v1/apartments/{apartmentId}", id)
+                .uri("/v1/properties/{propertyId}", id)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isEqualTo(500)
                 .expectBody()
@@ -390,7 +387,7 @@ class ApartmentConfigsTest {
         // then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
-                        .path("/v1/apartments")
+                        .path("/v1/properties")
                         .queryParam("id", 1)
                         .queryParam("name", "name")
                         .queryParam("page", 1)
@@ -406,26 +403,26 @@ class ApartmentConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("find returns a Flux of Apartments")
-    void find_returnsFluxOfApartments_status200() {
+    @DisplayName("find returns a Flux of properties")
+    void find_returnsFluxOfProperties_status200() {
         // given
-        String name = "Luxury Apartments";
+        String name = "Luxury properties";
         LocalDateTime now = LocalDateTime.now();
-        var apartment = new Apartment(name);
-        apartment.setId("1");
-        apartment.setCreatedOn(now);
+        var property = new Property(name);
+        property.setId("1");
+        property.setCreatedOn(now);
 
         OrderType order = OrderType.ASC;
 
         // when
-        when(apartmentService.find(
+        when(propertyService.find(
                 Optional.of(name),
-                order)).thenReturn(Flux.just(apartment));
+                order)).thenReturn(Flux.just(property));
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
-                        .path("/v1/apartments")
+                        .path("/v1/properties")
                         .queryParam("name", name)
                         .queryParam("order", order)
                         .build();
@@ -438,7 +435,7 @@ class ApartmentConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Apartments found successfully.")
+                .jsonPath("$.message").isEqualTo("Properties found successfully.")
                 .jsonPath("$.data").isArray()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
                 .jsonPath("$.data.[0].name").isEqualTo(name)
@@ -451,11 +448,11 @@ class ApartmentConfigsTest {
     @DisplayName("find returns CustomNotFoundException with status 404")
     void find_returnsCustomNotFoundException_status404() {
         // given
-        String name = "Luxury Apartments";
+        String name = "Luxury properties";
         String order = OrderType.ASC.name();
 
         // when
-        when(apartmentService.find(
+        when(propertyService.find(
                 Optional.of(name),
                 OrderType.valueOf(order)))
                 .thenReturn(Flux.just());
@@ -463,7 +460,7 @@ class ApartmentConfigsTest {
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
-                        .path("/v1/apartments")
+                        .path("/v1/properties")
                         .queryParam("name", name)
                         .queryParam("order", order)
                         .build();
@@ -476,7 +473,7 @@ class ApartmentConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(true)
                 .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
-                .jsonPath("$.message").isEqualTo("Apartments with those parameters do  not exist!")
+                .jsonPath("$.message").isEqualTo("Properties with those parameters do  not exist!")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -486,11 +483,11 @@ class ApartmentConfigsTest {
     @DisplayName("find returns Exception with status 500")
     void find_returnsException_status500() {
         // given
-        String name = "Luxury Apartments";
+        String name = "Luxury properties";
 
         // when
         OrderType order = OrderType.ASC;
-        when(apartmentService.find(
+        when(propertyService.find(
                 Optional.of(name),
                 order))
                 .thenReturn(Flux.error(new RuntimeException("Something happened!")));
@@ -498,7 +495,7 @@ class ApartmentConfigsTest {
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
-                        .path("/v1/apartments")
+                        .path("/v1/properties")
                         .queryParam("name", name)
                         .queryParam("order", order)
                         .build();
@@ -526,7 +523,7 @@ class ApartmentConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/apartments/{id}", id)
+                .uri("/v1/properties/{id}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -540,20 +537,20 @@ class ApartmentConfigsTest {
         String id = "1";
 
         // when
-        when(apartmentService.deleteById(id))
+        when(propertyService.deleteById(id))
                 .thenReturn(Mono.just(true));
 
         // then
         client
                 .delete()
-                .uri("/v1/apartments/{apartmentId}", id)
+                .uri("/v1/properties/{propertyId}", id)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Apartment with id %s deleted successfully.".formatted(id))
+                .jsonPath("$.message").isEqualTo("Property with id %s deleted successfully.".formatted(id))
                 .consumeWith(System.out::println);
     }
 
@@ -565,20 +562,20 @@ class ApartmentConfigsTest {
         String id = "1";
 
         // when
-        when(apartmentService.deleteById(id))
+        when(propertyService.deleteById(id))
                 .thenReturn(Mono.just(false));
 
         // then
         client
                 .delete()
-                .uri("/v1/apartments/{apartmentId}", id)
+                .uri("/v1/properties/{propertyId}", id)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
-                .jsonPath("$.message").isEqualTo("Apartment with id %s does not exist!".formatted(id))
+                .jsonPath("$.message").isEqualTo("Property with id %s does not exist!".formatted(id))
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -591,13 +588,13 @@ class ApartmentConfigsTest {
         String id = "1";
 
         // when
-        when(apartmentService.deleteById(id))
+        when(propertyService.deleteById(id))
                 .thenReturn(Mono.error(new RuntimeException("Something happened!")));
 
         // then
         client
                 .delete()
-                .uri("/v1/apartments/{apartmentId}", id)
+                .uri("/v1/properties/{propertyId}", id)
                 .exchange()
                 .expectStatus().isEqualTo(500)
                 .expectBody()

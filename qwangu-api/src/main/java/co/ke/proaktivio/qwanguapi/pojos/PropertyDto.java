@@ -6,6 +6,6 @@ import lombok.*;
 @NoArgsConstructor
 @EqualsAndHashCode
 @Data
-public class ApartmentDto {
+public class PropertyDto {
     private String name;
 }

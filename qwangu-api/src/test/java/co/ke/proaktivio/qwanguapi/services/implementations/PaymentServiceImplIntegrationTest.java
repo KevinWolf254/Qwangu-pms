@@ -99,7 +99,7 @@ class PaymentServiceImplIntegrationTest {
                 .doOnNext(p -> System.out.println("---- Created: " + p))
                 .thenMany(paymentService.findAll(Optional.empty(),
                         Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                        OrderType.DESC))
+                        Optional.empty(), OrderType.DESC))
                 .doOnNext(p -> System.out.println("---- Found: " +p));
         // then
         StepVerifier

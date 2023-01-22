@@ -18,7 +18,6 @@ import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,7 +69,7 @@ class NoticeJobManagerIntegrationTest {
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
                 .number("TE34")
-                .type(Unit.Type.APARTMENT_UNIT)
+                .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
                 .floorNo(2)
                 .noOfBedrooms(2)

@@ -36,7 +36,6 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -517,7 +516,7 @@ class UserConfigsTest {
         client.put()
                 .uri("/v1/users/%s".formatted(id))
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), ApartmentDto.class)
+                .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
                 .expectStatus().isEqualTo(500)
                 .expectBody()

@@ -1,8 +1,7 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.handlers.ApartmentHandler;
-import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
-import co.ke.proaktivio.qwanguapi.pojos.ApartmentDto;
+import co.ke.proaktivio.qwanguapi.handlers.PropertyHandler;
+import co.ke.proaktivio.qwanguapi.pojos.PropertyDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,97 +25,97 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration
-public class ApartmentConfigs {
+public class PropertyConfigs {
 
     @Bean
     @RouterOperations(
             {
                     @RouterOperation(
-                            path = "/v1/apartments",
+                            path = "/v1/properties",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = ApartmentHandler.class, beanMethod = "create",
+                            method = RequestMethod.POST, beanClass = PropertyHandler.class, beanMethod = "create",
                             operation = @Operation(
                                     operationId = "create",
-                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApartmentDto.class))),
+                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PropertyDto.class))),
                                     responses = {
-                                            @ApiResponse(responseCode = "200", description = "Apartments created successfully.",
+                                            @ApiResponse(responseCode = "200", description = "Properties created successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "Apartment already exists!",
+                                            @ApiResponse(responseCode = "400", description = "Property already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Apartments were not found!",
+                                            @ApiResponse(responseCode = "404", description = "Properties were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/apartments/{apartmentId}",
+                            path = "/v1/properties/{propertyId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.PUT, beanClass = ApartmentHandler.class, beanMethod = "update",
+                            method = RequestMethod.PUT, beanClass = PropertyHandler.class, beanMethod = "update",
                             operation = @Operation(
                                     operationId = "update",
-                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApartmentDto.class))),
+                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PropertyDto.class))),
                                     responses = {
-                                            @ApiResponse(responseCode = "200", description = "Apartments updated successfully.",
+                                            @ApiResponse(responseCode = "200", description = "Properties updated successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "Apartment already exists!",
+                                            @ApiResponse(responseCode = "400", description = "Property already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Apartment was not found!",
+                                            @ApiResponse(responseCode = "404", description = "Property was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "apartmentId")},
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "propertyId")},
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/apartments/{apartmentId}",
+                            path = "/v1/properties/{propertyId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.DELETE, beanClass = ApartmentHandler.class, beanMethod = "delete",
+                            method = RequestMethod.DELETE, beanClass = PropertyHandler.class, beanMethod = "delete",
                             operation = @Operation(
                                     operationId = "delete",
                                     responses = {
-                                            @ApiResponse(responseCode = "200", description = "Apartment deleted successfully.",
+                                            @ApiResponse(responseCode = "200", description = "Property deleted successfully.",
                                                     content = @Content(schema = @Schema(implementation = Boolean.class))),
-                                            @ApiResponse(responseCode = "400", description = "Apartment does not exists!",
+                                            @ApiResponse(responseCode = "400", description = "Property does not exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Apartment was not found!",
+                                            @ApiResponse(responseCode = "404", description = "Property was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "apartmentId")},
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "propertyId")},
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/apartments/{apartmentId}",
+                            path = "/v1/properties/{propertyId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = ApartmentHandler.class, beanMethod = "findById",
+                            method = RequestMethod.GET, beanClass = PropertyHandler.class, beanMethod = "findById",
                             operation = @Operation(
                                     operationId = "findById",
                                     responses = {
-                                            @ApiResponse(responseCode = "200", description = "Apartment fund successfully.",
+                                            @ApiResponse(responseCode = "200", description = "Property found successfully.",
                                                     content = @Content(schema = @Schema(implementation = Boolean.class))),
-                                            @ApiResponse(responseCode = "400", description = "User does not exists!",
+                                            @ApiResponse(responseCode = "400", description = "Property does not exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "User was not found!",
+                                            @ApiResponse(responseCode = "404", description = "Property was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "apartmentId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "propertyId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/apartments",
+                            path = "/v1/properties",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = ApartmentHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = PropertyHandler.class, beanMethod = "find",
                             operation = @Operation(
                                     operationId = "find",
                                     responses = {
-                                            @ApiResponse(responseCode = "200", description = "Apartments found successfully.",
+                                            @ApiResponse(responseCode = "200", description = "Properties found successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Apartments were not found!",
+                                            @ApiResponse(responseCode = "404", description = "Properties were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "apartmentId"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "propertyId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "name"),
                                             @Parameter(in = ParameterIn.QUERY, name = "page"),
                                             @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
@@ -127,14 +126,14 @@ public class ApartmentConfigs {
                     )
             }
     )
-    RouterFunction<ServerResponse> apartmentRoute(ApartmentHandler handler) {
+    RouterFunction<ServerResponse> apartmentRoute(PropertyHandler handler) {
         return route()
-                .path("v1/apartments", builder -> builder
+                .path("v1/properties", builder -> builder
                         .GET(handler::find)
                         .POST(handler::create)
-                        .PUT("/{apartmentId}", handler::update)
-                        .GET("/{apartmentId}", handler::findById)
-                        .DELETE("/{apartmentId}", handler::delete)
+                        .PUT("/{propertyId}", handler::update)
+                        .GET("/{propertyId}", handler::findById)
+                        .DELETE("/{propertyId}", handler::delete)
                 ).build();
     }
 }

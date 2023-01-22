@@ -63,20 +63,20 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                     .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
         }
         // TODO FOR ALL HANDLERS RETURN 200 WHEN RESULT IS NULL/EMPTY
-//        if (e instanceof CustomNotFoundException) {
-//            return ServerResponse
-//                    .status(HttpStatus.NOT_FOUND)
-//                    .contentType(MediaType.APPLICATION_JSON)
-//                    .body(Mono.just(
-//                            new Response<>(
-//                                    LocalDateTime.now().toString(),
-//                                    path,
-//                                    HttpStatus.NOT_FOUND.value(),
-//                                    false,
-//                                    e.getMessage(), null)
-//                    ), Response.class)
-//                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
-//        }
+        if (e instanceof CustomNotFoundException) {
+            return ServerResponse
+                    .status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Mono.just(
+                            new Response<>(
+                                    LocalDateTime.now().toString(),
+                                    path,
+                                    HttpStatus.NOT_FOUND.value(),
+                                    false,
+                                    e.getMessage(), null)
+                    ), Response.class)
+                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
+        }
         if (e instanceof UsernameNotFoundException || e instanceof JwtException) {
             return ServerResponse
                     .status(HttpStatus.UNAUTHORIZED)

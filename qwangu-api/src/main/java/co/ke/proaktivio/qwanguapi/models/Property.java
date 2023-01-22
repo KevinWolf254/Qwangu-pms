@@ -9,14 +9,20 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@Document(value = "APARTMENT")
-public class Apartment {
+@Document(value = "PROPERTY")
+public class Property {
     @Id
     private String id;
+    private PropertyType type;
     @Indexed(unique = true)
     private String name;
+    private String description;
     // TODO INCLUDE NO OF FLOORS
-    // TODO INCLUDE AMENITIES
+    // TODO INCLUDE CONTACTS
+    // TODO INCLUDE LOCATION
+    // TODO INCLUDE AMENITIES = SWIMMING_POOL, GYM, E.T.C PS: INCLUDE PHOTOS
+    // TODO ADD OBJECT OF PARKING - INCLUDE PHOTOS
+    // TODO ADD OBJECT OF NEARBY
     @CreatedDate
     private LocalDateTime createdOn;
     @CreatedBy
@@ -26,7 +32,16 @@ public class Apartment {
     @LastModifiedBy
     private String modifiedBy;
 
-    public Apartment(String name) {
+    @Getter
+    @RequiredArgsConstructor
+    public enum PropertyType {
+        APARTMENT("APARTMENT"),
+        HOUSE("HOUSE");
+
+        private final String name;
+    }
+
+    public Property(String name) {
         this.name = name;
     }
 }
