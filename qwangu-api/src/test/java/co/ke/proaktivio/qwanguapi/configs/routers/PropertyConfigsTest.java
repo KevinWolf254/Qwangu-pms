@@ -69,18 +69,29 @@ class PropertyConfigsTest {
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
+    private PropertyDto getPropertyDto() {
+        String name = "Luxury properties";
+        var dto = new PropertyDto(Property.PropertyType.APARTMENT, name, "A stunning 4 Bedroom Villas all " +
+                "Bedroom En-suite + Dsq in the high leafy suburbs of Kiambu Rd tacked away in neighborhood rich with " +
+                "exotic trees and beautiful flora. They are placed in a serene environment yet so close to Runda, shopping " +
+                "center and Nairobi CBD. It’s a highly sort after neighborhood due to close proximities to Shopping malls, " +
+                "educational institutions, social and health facilities, eateries and wineries");
+        return dto;
+    }
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns a Mono of property when name does not exist")
     void create_returnsProperty_whenSuccessful_withStatus201() {
         // given
-        String name = "Luxury properties";
-        var dto = new PropertyDto(name);
-        LocalDateTime now = LocalDateTime.now();
-        var property = new Property(name);
+        var dto = getPropertyDto();
+        var property = new Property.PropertyBuilder()
+                .name(dto.getName())
+                .type(dto.getType())
+                .description(dto.getDescription())
+                .build();
         property.setId("1");
-        property.setCreatedOn(LocalDateTime.now());
+//        property.setCreatedOn(LocalDateTime.now());
 
         //when
         when(propertyService.create(dto)).thenReturn(Mono.just(property));
@@ -100,7 +111,7 @@ class PropertyConfigsTest {
                 .jsonPath("$.message").isEqualTo("Property created successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.name").isEqualTo(name)
+                .jsonPath("$.data.name").isEqualTo("Luxury properties")
                 .jsonPath("$.data.createdOn").isNotEmpty()
                 .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
@@ -111,11 +122,16 @@ class PropertyConfigsTest {
     @DisplayName("create returns CustomAlreadyExistsException with status 400")
     void create_returnsCustomAlreadyExistsException_status400() {
         // given
-        String name = "Luxury properties";
-        var dto = new PropertyDto(name);
-
+        var dto = getPropertyDto();
+        var property = new Property.PropertyBuilder()
+                .name(dto.getName())
+                .type(dto.getType())
+                .description(dto.getDescription())
+                .build();
+        property.setId("1");
         //when
-        when(propertyService.create(dto)).thenThrow(new CustomAlreadyExistsException("Property %s already exists!".formatted(name)));
+        when(propertyService.create(dto)).thenThrow(new CustomAlreadyExistsException("Property %s already exists!"
+                .formatted("Luxury properties")));
 
         //then
         client
@@ -129,7 +145,8 @@ class PropertyConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("Property %s already exists!".formatted(name))
+                .jsonPath("$.message").isEqualTo("Property %s already exists!"
+                        .formatted("Luxury properties"))
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -139,7 +156,8 @@ class PropertyConfigsTest {
     @DisplayName("create returns CustomBadRequestException when property name is null or blank with status 403")
     void create_returnsCustomBadRequestException_whenPropertyNameIsNullOrBlank_status403() {
         // given
-        var dto = new PropertyDto("");
+        var dto = getPropertyDto();
+        dto.setName("");
 
         //when
         when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name is required. Name must be at least 6 characters in length."));
@@ -162,10 +180,37 @@ class PropertyConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
+    @DisplayName("create returns CustomBadRequestException when property type is null or blank with status 403")
+    void create_returnsCustomBadRequestException_whenPropertyTypeIsNullOrBlank_status403() {
+        // given
+        var dto = getPropertyDto();
+        dto.setType(null);
+
+        //when
+        when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Type is required."));
+
+        // then
+        client.post()
+                .uri("/v1/properties")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), PropertyDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Type is required.")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomBadRequestException when property name length is less than 6 with status 403")
     void create_returnsCustomBadRequestException_whenPropertyNameLengthLessThan6_status403() {
         // given
-        var dto = new PropertyDto("Apart");
+        var dto = getPropertyDto();
+        dto.setName("Apart");
 
         //when
         when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
@@ -191,8 +236,7 @@ class PropertyConfigsTest {
     @DisplayName("create returns Exception with status 500")
     void create_returnsException_status500() {
         // given
-        String name = "Luxury properties";
-        var dto = new PropertyDto(name);
+        var dto = getPropertyDto();
 
         //when
         when(propertyService.create(dto)).thenThrow(new RuntimeException("Something happened!"));
@@ -234,16 +278,16 @@ class PropertyConfigsTest {
     @DisplayName("update returns a Mono of updated property when name does not exist")
     void update_returnsUpdatedProperty_status200() {
         // given
-        String name = "Luxury properties";
-        var dto = new PropertyDto(name);
+        var dto = getPropertyDto();
 
         String id = "1";
         String name2 = "Luxury properties B";
-        LocalDateTime now = LocalDateTime.now();
-        var property = new Property(name2);
-        property.setId("1");
-        property.setCreatedOn(now);
-        property.setModifiedOn(now);
+        var property = new Property.PropertyBuilder()
+                .name(name2)
+                .type(dto.getType())
+                .description(dto.getDescription())
+                .build();
+        property.setId(id);
 
         //when
         when(propertyService.update(id, dto)).thenReturn(Mono.just(property));
@@ -274,7 +318,8 @@ class PropertyConfigsTest {
     void update_returnsCustomBadRequestException_whenPropertyNameIsNullOrBlank_status403() {
         // given
         String id = "1";
-        var dto = new PropertyDto(null);
+        var dto = getPropertyDto();
+        dto.setName(null);
 
         //when
         when(propertyService.update(id, dto)).thenThrow(new CustomBadRequestException("Name is required."));
@@ -301,7 +346,8 @@ class PropertyConfigsTest {
     @DisplayName("update returns CustomBadRequestException when property name length is less than 6 with status 403")
     void update_returnsCustomBadRequestException_whenPropertyNameLengthLessThan6_status403() {
         // given
-        var dto = new PropertyDto("Apart");
+        var dto = getPropertyDto();
+        dto.setName("Apart");
 
         //when
         when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
@@ -329,7 +375,7 @@ class PropertyConfigsTest {
         // given
         String id = "1";
         String name = "Luxury properties";
-        var dto = new PropertyDto(name);
+        var dto = getPropertyDto();
 
         //when
         when(propertyService.update(id, dto)).thenThrow(new CustomAlreadyExistsException("Property %s already exists!".formatted(name)));
@@ -357,7 +403,7 @@ class PropertyConfigsTest {
         // given
         String id = "1";
         String name = "Luxury properties";
-        var dto = new PropertyDto(name);
+        var dto = getPropertyDto();
 
         //when
         when(propertyService.update(id, dto)).thenThrow(new RuntimeException("Something happened!"));
@@ -408,15 +454,17 @@ class PropertyConfigsTest {
         // given
         String name = "Luxury properties";
         LocalDateTime now = LocalDateTime.now();
-        var property = new Property(name);
+        var property = new Property.PropertyBuilder()
+                .name(name)
+                .type(Property.PropertyType.APARTMENT)
+                .description("")
+                .build();
         property.setId("1");
-        property.setCreatedOn(now);
 
         OrderType order = OrderType.ASC;
 
         // when
-        when(propertyService.find(
-                Optional.of(name),
+        when(propertyService.find(name, Property.PropertyType.APARTMENT,
                 order)).thenReturn(Flux.just(property));
 
         //then
@@ -452,8 +500,7 @@ class PropertyConfigsTest {
         String order = OrderType.ASC.name();
 
         // when
-        when(propertyService.find(
-                Optional.of(name),
+        when(propertyService.find(name, Property.PropertyType.APARTMENT,
                 OrderType.valueOf(order)))
                 .thenReturn(Flux.just());
 
@@ -487,8 +534,7 @@ class PropertyConfigsTest {
 
         // when
         OrderType order = OrderType.ASC;
-        when(propertyService.find(
-                Optional.of(name),
+        when(propertyService.find(name, Property.PropertyType.APARTMENT,
                 order))
                 .thenReturn(Flux.error(new RuntimeException("Something happened!")));
 

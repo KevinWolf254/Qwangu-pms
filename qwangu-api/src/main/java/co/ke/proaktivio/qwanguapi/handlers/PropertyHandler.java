@@ -2,11 +2,13 @@ package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Property;
+import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.PropertyService;
-import co.ke.proaktivio.qwanguapi.validators.ApartmentDtoValidator;
+import co.ke.proaktivio.qwanguapi.validators.PropertyDtoValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Log4j2
 @Component
@@ -35,7 +38,7 @@ public class PropertyHandler {
         return request
                 .bodyToMono(PropertyDto.class)
                 .doOnSuccess(a -> log.debug("Received request to create {}", a))
-                .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
+                .map(validateApartmentDtoFunc(new PropertyDtoValidator()))
                 .doOnSuccess(a -> log.debug("Validation of request to create apartment was successful"))
                 .flatMap(propertyService::create)
                 .doOnError(e -> log.error("Failed to create apartment. Error ", e))
@@ -56,7 +59,7 @@ public class PropertyHandler {
         return request
                 .bodyToMono(PropertyDto.class)
                 .doOnSuccess(a -> log.debug("Received request to update {}", a))
-                .map(validateApartmentDtoFunc(new ApartmentDtoValidator()))
+                .map(validateApartmentDtoFunc(new PropertyDtoValidator()))
                 .doOnSuccess(a -> log.debug("Validation of request to update apartment was successful"))
                 .flatMap(dto -> propertyService.update(id, dto))
                 .doOnSuccess(a -> log.info("Updated successfully: {}", a))
@@ -99,13 +102,23 @@ public class PropertyHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
+        Optional<String> type = request.queryParam("type");
         Optional<String> name = request.queryParam("name");
         Optional<String> order = request.queryParam("order");
+
+        if (type.isPresent() &&  !EnumUtils.isValidEnum(Property.PropertyType.class, type.get())) {
+            String[] arrayOfState = Stream.of(Property.PropertyType.values()).map(Property.PropertyType::getName)
+                    .toArray(String[]::new);
+            String states = String.join(" or ", arrayOfState);
+            throw new CustomBadRequestException("Property type should be " + states + "!");
+        }
+        log.debug(" Validation of request param Unit.Type was successful");
 
         return ServerResponse
                 .ok()
                 .body(propertyService
-                        .find(name, order.map(OrderType::valueOf).orElse(OrderType.DESC))
+                        .find(name.orElse(null), type.map(Property.PropertyType::valueOf).orElse(null),
+                                order.map(OrderType::valueOf).orElse(OrderType.DESC))
                         .collectList()
                         .flatMap(apartments -> {
                             if(apartments.isEmpty())

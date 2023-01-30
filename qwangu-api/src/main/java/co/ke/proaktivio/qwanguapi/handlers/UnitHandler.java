@@ -125,7 +125,7 @@ public class UnitHandler {
         if (type.isPresent() &&  !EnumUtils.isValidEnum(Unit.UnitType.class, type.get())) {
             String[] arrayOfState = Stream.of(Unit.UnitType.values()).map(Unit.UnitType::getType).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
-            throw new CustomBadRequestException("Type should be " + states + "!");
+            throw new CustomBadRequestException("Unit type should be " + states + "!");
         }
         log.debug(" Validation of request param Unit.Type was successful");
 

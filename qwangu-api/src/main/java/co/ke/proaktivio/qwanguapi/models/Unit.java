@@ -24,7 +24,7 @@ public class Unit {
     private Integer floorNo;
     // PS: ALL OBJECTS TO INCLUDE PHOTOS
     // TODO OBJECT OF LIVING_ROOM
-    // TODO ADD LIST<OBJECT> OF BEDROOM - IS_ENSUITE
+    // TODO ADD LIST<OBJECT> OF BEDROOM - IS_EN_SUITE
     // TODO ADD LIST<OBJECT> OF BATHROOMS
     // TODO ADD OBJECT OF KITCHEN
     private Integer noOfBedrooms;

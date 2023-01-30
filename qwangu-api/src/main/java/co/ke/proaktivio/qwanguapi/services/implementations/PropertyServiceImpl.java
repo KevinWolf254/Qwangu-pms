@@ -14,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
@@ -39,7 +40,11 @@ public class PropertyServiceImpl implements PropertyService {
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Property %s already exists!".formatted(name))))
                 .doOnSuccess(a -> log.debug("Checks for property {} was successful", dto.getName()))
-                .map($ -> new Property(name))
+                .map($ -> new Property.PropertyBuilder()
+                        .name(name)
+                        .type(dto.getType())
+                        .description(dto.getDescription())
+                        .build())
                 .flatMap(template::save)
                 .doOnSuccess(a -> log.info("Property created successfully: {}", a));
     }
@@ -57,7 +62,7 @@ public class PropertyServiceImpl implements PropertyService {
                                 .formatted(apartmentName))))
                         .map($ -> {
                             apartment.setName(dto.getName());
-                            apartment.setModifiedOn(LocalDateTime.now());
+                            apartment.setDescription(dto.getDescription());
                             return apartment;
                         }))
                 .doOnSuccess(a -> log.debug("Checks for Property {} was successful", dto.getName()))
@@ -77,15 +82,16 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    public Flux<Property> find(Optional<String> optionalApartmentName, OrderType order) {
+    public Flux<Property> find(@Nullable String name, @Nullable Property.PropertyType type,
+                               OrderType order) {
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        optionalApartmentName.ifPresent(s -> {
-            if(StringUtils.hasText(s))
-                query.addCriteria(Criteria.where("name").regex(".*" +s.trim()+ ".*", "i"));
-        });
+        if(type != null)
+            query.addCriteria(Criteria.where("type").is(type));
+        if(StringUtils.hasText(name))
+            query.addCriteria(Criteria.where("name").regex(".*" +name.trim()+ ".*", "i"));
         query.with(sort);
         return template
                 .find(query, Property.class)

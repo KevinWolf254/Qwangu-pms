@@ -41,7 +41,32 @@ public class Property {
         private final String name;
     }
 
-    public Property(String name) {
-        this.name = name;
+    public static class PropertyBuilder {
+        private PropertyType type;
+        private String name;
+        private String description;
+
+        public PropertyBuilder type(PropertyType type) {
+            this.type = type;
+            return this;
+        }
+
+        public PropertyBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public PropertyBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Property build() {
+            var property = new Property();
+            property.type = this.type;
+            property.name = this.name;
+            property.description = this.description;
+            return property;
+        }
     }
 }

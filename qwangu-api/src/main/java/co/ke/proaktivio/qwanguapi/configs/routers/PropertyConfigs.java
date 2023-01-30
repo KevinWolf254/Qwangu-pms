@@ -116,9 +116,8 @@ public class PropertyConfigs {
                                     },
                                     parameters = {
                                             @Parameter(in = ParameterIn.QUERY, name = "propertyId"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "type"),
                                             @Parameter(in = ParameterIn.QUERY, name = "name"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
                                     },
                                     security = @SecurityRequirement(name = "Bearer authentication")

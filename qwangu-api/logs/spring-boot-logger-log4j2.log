@@ -1,0 +1,18 @@
+2022-08-23 20:55:32,568 INFO o.s.b.StartupInfoLogger [restartedMain] Starting QwanguApiApplication using Java 17.0.4 on g752vt with PID 8730 (/home/kevin/intelli_j_workspace/Qwangu-pms/qwangu-api/target/classes started by kevin in /home/kevin/intelli_j_workspace/Qwangu-pms/qwangu-api)
+2022-08-23 20:55:32,572 INFO o.s.b.SpringApplication [restartedMain] No active profile set, falling back to 1 default profile: "default"
+2022-08-23 20:55:32,618 INFO o.s.b.l.DeferredLog [restartedMain] Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2022-08-23 20:55:32,618 INFO o.s.b.l.DeferredLog [restartedMain] For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2022-08-23 20:55:33,350 INFO o.s.d.r.c.RepositoryConfigurationDelegate [restartedMain] Bootstrapping Spring Data Reactive MongoDB repositories in DEFAULT mode.
+2022-08-23 20:55:33,494 INFO o.s.d.r.c.RepositoryConfigurationDelegate [restartedMain] Finished Spring Data repository scanning in 139 ms. Found 16 Reactive MongoDB repository interfaces.
+2022-08-23 20:55:34,110 INFO c.m.d.l.SLF4JLogger [restartedMain] Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms'}
+2022-08-23 20:55:34,235 INFO c.m.d.l.SLF4JLogger [cluster-rtt-ClusterId{value='630514965f8a03196ed3c94c', description='null'}-localhost:27017] Opened connection [connectionId{localValue:2, serverValue:57}] to localhost:27017
+2022-08-23 20:55:34,235 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='630514965f8a03196ed3c94c', description='null'}-localhost:27017] Opened connection [connectionId{localValue:1, serverValue:56}] to localhost:27017
+2022-08-23 20:55:34,235 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='630514965f8a03196ed3c94c', description='null'}-localhost:27017] Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=13, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=44786894}
+2022-08-23 20:55:34,295 INFO o.s.b.d.a.OptionalLiveReloadServer [restartedMain] LiveReload server is running on port 35729
+2022-08-23 20:55:34,753 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-3-3] Opened connection [connectionId{localValue:3, serverValue:58}] to localhost:27017
+2022-08-23 20:55:34,754 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-3-4] Opened connection [connectionId{localValue:4, serverValue:59}] to localhost:27017
+2022-08-23 20:55:34,857 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-3-6] Opened connection [connectionId{localValue:6, serverValue:61}] to localhost:27017
+2022-08-23 20:55:34,873 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-3-5] Opened connection [connectionId{localValue:5, serverValue:60}] to localhost:27017
+2022-08-23 20:55:36,103 INFO o.s.b.w.e.n.NettyWebServer [restartedMain] Netty started on port 3001
+2022-08-23 20:55:36,117 INFO o.s.b.StartupInfoLogger [restartedMain] Started QwanguApiApplication in 4.039 seconds (JVM running for 4.847)
+2022-08-23 20:55:36,195 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-5] ---- Created: null
