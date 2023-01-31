@@ -62,7 +62,8 @@ class UnitServiceImplIntegrationTest {
         String id = "1";
         String name = "Luxury Apartment";
 //        LocalDateTime now = LocalDateTime.now();
-        var apartment = new Property(name);
+        var apartment = new Property();
+        apartment.setName(name);
         apartment.setId(id);
         var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 1,
                 2, 1, 2, Unit.Currency.KES,
@@ -124,7 +125,8 @@ class UnitServiceImplIntegrationTest {
         String id = "1";
         String name = "Luxury Apartment";
         LocalDateTime now = LocalDateTime.now();
-        var apartment = new Property(name);
+        var apartment = new Property();
+        apartment.setName(name);
         var otherAmounts = new HashMap<String, BigDecimal>();
         otherAmounts.put("Gym", new BigDecimal(500));
         otherAmounts.put("Swimming Pool", new BigDecimal(800));
@@ -279,7 +281,8 @@ class UnitServiceImplIntegrationTest {
     void findPaginated() { // given
         String id = "1";
         String name = "Luxury Apartment";
-        var apartment = new Property(name);
+        var apartment = new Property();
+        apartment.setName(name);
         apartment.setId(id);
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)

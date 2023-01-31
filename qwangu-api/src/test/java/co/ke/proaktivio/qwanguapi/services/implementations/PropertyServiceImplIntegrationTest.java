@@ -40,7 +40,7 @@ class PropertyServiceImplIntegrationTest {
     private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
 
     private final String name = "Luxury property";
-    private final PropertyDto dto = new PropertyDto(name);
+    private final PropertyDto dto = new PropertyDto(Property.PropertyType.APARTMENT, name, "");
 
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName
@@ -99,7 +99,7 @@ class PropertyServiceImplIntegrationTest {
         Mono<Property> updated = deleteAll()
                 .then(propertyService.create(dto))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
-                .flatMap(a -> propertyService.update(a.getId(), new PropertyDto(updatedName)));
+                .flatMap(a -> propertyService.update(a.getId(), new PropertyDto(Property.PropertyType.APARTMENT, updatedName, "")));
 
         // then
         StepVerifier.create(updated)
@@ -127,8 +127,10 @@ class PropertyServiceImplIntegrationTest {
     @DisplayName("update returns a CustomAlreadyExistsException when name already exists")
     void update_returnsCustomAlreadyExistsException_whenNameAlreadyExists() {
         // when
-        Property property01 = new Property(name);
-        var property02 = new Property("Luxury properties B");
+        Property property01 = new Property();
+        property01.setName(name);
+        var property02 = new Property();
+        property02.setName("Luxury properties B");
         Mono<Property> saved = deleteAll()
                 .then(propertyRepository.save(property01))
                 .doOnSuccess(a -> System.out.println("---- Created: " + a))
@@ -147,13 +149,16 @@ class PropertyServiceImplIntegrationTest {
     @DisplayName("find paginated returns a flux of properties when successful")
     void findPaginated_returnsFluxOfProperties_whenSuccessful() {
         //when
+
         Flux<Property> saved = deleteAll()
                 .thenMany(Flux
-                        .just(new PropertyDto("Luxury properties"), new PropertyDto("Luxury properties B")))
+                        .just(new PropertyDto(Property.PropertyType.APARTMENT, "Luxury properties", ""),
+                                new PropertyDto(Property.PropertyType.APARTMENT, "Luxury properties B", "")))
                 .flatMap(a -> propertyService.create(a))
                 .doOnNext(a -> System.out.println("---- Created " +a))
                 .thenMany(propertyService
-                        .find(Optional.empty(),
+                        .find(null,
+                                Property.PropertyType.APARTMENT,
                                 OrderType.ASC))
                 .doOnNext(a -> System.out.println("---- Found " +a));
 
@@ -174,7 +179,8 @@ class PropertyServiceImplIntegrationTest {
 
         //when
         Flux<Property> saved = deleteAll()
-                .thenMany(propertyService.find(Optional.empty(),
+                .thenMany(propertyService.find(null,
+                        Property.PropertyType.APARTMENT,
                         OrderType.ASC))
                 .doOnError(a -> System.out.println("---- Found no properties!"));
 
