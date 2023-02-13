@@ -80,7 +80,7 @@ class NoticeJobManagerIntegrationTest {
                 .securityPerMonth(BigDecimal.valueOf(510))
                 .garbagePerMonth(BigDecimal.valueOf(300))
                 .otherAmounts(otherAmounts)
-                .apartmentId("1")
+                .propertyId("1")
                 .build();
         unit.setId("1");
         return unit;

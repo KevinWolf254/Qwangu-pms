@@ -201,7 +201,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(500))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         unit.setId("1");
         var occupation = new Occupation.OccupationBuilder()
                 .tenantId("1")
@@ -258,7 +258,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(500))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         unit2.setId("2");
         var occupation2 = new Occupation.OccupationBuilder()
                 .tenantId("2")

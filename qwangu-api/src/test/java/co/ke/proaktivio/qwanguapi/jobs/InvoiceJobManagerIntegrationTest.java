@@ -74,7 +74,7 @@ class InvoiceJobManagerIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(500))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         currentUnit.setId("1");
         var bookedOccupation = new Occupation.OccupationBuilder()
                 .tenantId("2")
@@ -97,7 +97,7 @@ class InvoiceJobManagerIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(500))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         bookedUnit.setId("2");
 
         var occupationTransaction = new OccupationTransaction.OccupationTransactionBuilder()

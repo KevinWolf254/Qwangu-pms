@@ -94,7 +94,7 @@ class OccupationServiceImplIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(510))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         unit.setId("12");
         return unit;
     }

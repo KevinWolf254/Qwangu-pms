@@ -106,7 +106,7 @@ public class PropertyHandler {
         Optional<String> name = request.queryParam("name");
         Optional<String> order = request.queryParam("order");
 
-        if (type.isPresent() &&  !EnumUtils.isValidEnum(Property.PropertyType.class, type.get())) {
+        if (type.isPresent() && !EnumUtils.isValidEnum(Property.PropertyType.class, type.get())) {
             String[] arrayOfState = Stream.of(Property.PropertyType.values()).map(Property.PropertyType::getName)
                     .toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
@@ -117,17 +117,20 @@ public class PropertyHandler {
         return ServerResponse
                 .ok()
                 .body(propertyService
-                        .find(name.orElse(null), type.map(Property.PropertyType::valueOf).orElse(null),
-                                order.map(OrderType::valueOf).orElse(OrderType.DESC))
+                        .find(
+                                name.orElse(null),
+                                type.map(Property.PropertyType::valueOf).orElse(null),
+                                order.map(OrderType::valueOf).orElse(OrderType.DESC)
+                        )
                         .collectList()
                         .flatMap(apartments -> {
                             if(apartments.isEmpty())
-                                return Mono.just(new Response<List<Property>>(
+                                return Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,"Properties with those parameters do  not exist!",
+                                        HttpStatus.OK.value(),true,"Properties with those parameters do not exist!",
                                         apartments));
-                            return Mono.just(new Response<List<Property>>(
+                            return Mono.just(new Response<>(
                                     LocalDateTime.now().toString(),
                                     request.uri().getPath(),
                                     HttpStatus.OK.value(),true,"Properties found successfully.",

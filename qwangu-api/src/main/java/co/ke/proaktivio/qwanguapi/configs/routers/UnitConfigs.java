@@ -1,9 +1,7 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.handlers.OccupationHandler;
 import co.ke.proaktivio.qwanguapi.handlers.UnitHandler;
 import co.ke.proaktivio.qwanguapi.models.Unit;
-import co.ke.proaktivio.qwanguapi.pojos.FindUnitsDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
 import io.swagger.v3.oas.annotations.Operation;

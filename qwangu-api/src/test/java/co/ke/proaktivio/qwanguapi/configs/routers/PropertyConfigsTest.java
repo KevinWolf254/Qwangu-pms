@@ -56,7 +56,9 @@ class PropertyConfigsTest {
     private ServerSecurityContextRepository contextRepository;
 
     @Before
-    public void setUp() {client = WebTestClient.bindToApplicationContext(context).build();}
+    public void setUp() {
+        client = WebTestClient.bindToApplicationContext(context).build();
+    }
 
     @Test
     @DisplayName("create returns unauthorised when user is not authenticated status 401")
@@ -69,6 +71,7 @@ class PropertyConfigsTest {
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
+
     private PropertyDto getPropertyDto() {
         String name = "Luxury properties";
         var dto = new PropertyDto(Property.PropertyType.APARTMENT, name, "A stunning 4 Bedroom Villas all " +
@@ -91,7 +94,7 @@ class PropertyConfigsTest {
                 .description(dto.getDescription())
                 .build();
         property.setId("1");
-//        property.setCreatedOn(LocalDateTime.now());
+        property.setCreatedOn(LocalDateTime.now());
 
         //when
         when(propertyService.create(dto)).thenReturn(Mono.just(property));
@@ -160,7 +163,7 @@ class PropertyConfigsTest {
         dto.setName("");
 
         //when
-        when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name is required. Name must be at least 6 characters in length."));
+        when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name is required."));
 
         // then
         client.post()
@@ -173,7 +176,34 @@ class PropertyConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Name is required. Name must be at least 6 characters in length.")
+                .jsonPath("$.message").isEqualTo("Name is required.")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    @DisplayName("create returns CustomBadRequestException when property name is less than 3 characters with status 403")
+    void create_returnsCustomBadRequestException_whenPropertyNameIsLessThan3Characters_status403() {
+        // given
+        var dto = getPropertyDto();
+        dto.setName("K");
+
+        //when
+        when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 3 characters in length."));
+
+        // then
+        client.post()
+                .uri("/v1/properties")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), PropertyDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Name must be at least 3 characters in length.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -200,10 +230,11 @@ class PropertyConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Type is required.")
+                .jsonPath("$.message").isEqualTo("Property type is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
+
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("create returns CustomBadRequestException when property name length is less than 6 with status 403")
@@ -267,7 +298,7 @@ class PropertyConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/properties/{id}",id)
+                .uri("/v1/properties/{id}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -288,6 +319,8 @@ class PropertyConfigsTest {
                 .description(dto.getDescription())
                 .build();
         property.setId(id);
+        property.setCreatedOn(LocalDateTime.now());
+        property.setModifiedOn(LocalDateTime.now());
 
         //when
         when(propertyService.update(id, dto)).thenReturn(Mono.just(property));
@@ -295,7 +328,7 @@ class PropertyConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/properties/{propertyId}",id)
+                .uri("/v1/properties/{propertyId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
@@ -327,7 +360,7 @@ class PropertyConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/properties/{propertyId}",id)
+                .uri("/v1/properties/{propertyId}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), PropertyDto.class)
                 .exchange()
@@ -343,14 +376,14 @@ class PropertyConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns CustomBadRequestException when property name length is less than 6 with status 403")
-    void update_returnsCustomBadRequestException_whenPropertyNameLengthLessThan6_status403() {
+    @DisplayName("update returns CustomBadRequestException when property name length is less than 3 with status 403")
+    void update_returnsCustomBadRequestException_whenPropertyNameLengthLessThan3_status403() {
         // given
         var dto = getPropertyDto();
-        dto.setName("Apart");
+        dto.setName("Ap");
 
         //when
-        when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 6 characters in length."));
+        when(propertyService.create(dto)).thenThrow(new CustomBadRequestException("Name must be at least 3 characters in length."));
 
         // then
         client.put()
@@ -363,7 +396,7 @@ class PropertyConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Name must be at least 6 characters in length.")
+                .jsonPath("$.message").isEqualTo("Name must be at least 3 characters in length.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -454,24 +487,26 @@ class PropertyConfigsTest {
         // given
         String name = "Luxury properties";
         LocalDateTime now = LocalDateTime.now();
+        Property.PropertyType type = Property.PropertyType.APARTMENT;
         var property = new Property.PropertyBuilder()
                 .name(name)
-                .type(Property.PropertyType.APARTMENT)
+                .type(type)
                 .description("")
                 .build();
         property.setId("1");
+        property.setCreatedOn(now);
 
         OrderType order = OrderType.ASC;
 
         // when
-        when(propertyService.find(name, Property.PropertyType.APARTMENT,
-                order)).thenReturn(Flux.just(property));
+        when(propertyService.find(name, type, order)).thenReturn(Flux.just(property));
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/properties")
                         .queryParam("name", name)
+                        .queryParam("type", type)
                         .queryParam("order", order)
                         .build();
         client
@@ -498,17 +533,17 @@ class PropertyConfigsTest {
         // given
         String name = "Luxury properties";
         String order = OrderType.ASC.name();
+        Property.PropertyType type = Property.PropertyType.APARTMENT;
 
         // when
-        when(propertyService.find(name, Property.PropertyType.APARTMENT,
-                OrderType.valueOf(order)))
-                .thenReturn(Flux.just());
+        when(propertyService.find(name, type, OrderType.valueOf(order))).thenReturn(Flux.just());
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/properties")
                         .queryParam("name", name)
+                        .queryParam("type", type)
                         .queryParam("order", order)
                         .build();
         client
@@ -520,7 +555,7 @@ class PropertyConfigsTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(true)
                 .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
-                .jsonPath("$.message").isEqualTo("Properties with those parameters do  not exist!")
+                .jsonPath("$.message").isEqualTo("Properties with those parameters do not exist!")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -531,18 +566,18 @@ class PropertyConfigsTest {
     void find_returnsException_status500() {
         // given
         String name = "Luxury properties";
+        Property.PropertyType type = Property.PropertyType.APARTMENT;
 
         // when
         OrderType order = OrderType.ASC;
-        when(propertyService.find(name, Property.PropertyType.APARTMENT,
-                order))
-                .thenReturn(Flux.error(new RuntimeException("Something happened!")));
+        when(propertyService.find(name, type, order)).thenReturn(Flux.error(new RuntimeException("Something happened!")));
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/properties")
                         .queryParam("name", name)
+                        .queryParam("type", type)
                         .queryParam("order", order)
                         .build();
         client

@@ -69,21 +69,10 @@ public class UnitConfigsTest {
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
-    
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    void create_returnsUnit_whenSuccessful_withStatus201() {
-        // given
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
-                2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
-                BigDecimal.valueOf(300), null, "1");
-//        var unit = new Unit("1", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, "1");
+
+    private Unit getUnit() {
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-//                .booked(false)
                 .number("TE99")
                 .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
@@ -95,38 +84,20 @@ public class UnitConfigsTest {
                 .rentPerMonth(BigDecimal.valueOf(25000))
                 .securityPerMonth(BigDecimal.valueOf(500))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         unit.setId("1");
         unit.setCreatedOn(LocalDateTime.now());
-        var dtoNonApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.UnitType.MAISONETTES, null, null,
-                2, 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
-                BigDecimal.valueOf(500), BigDecimal.valueOf(300), null, null);
-//        var unitNonApartment = new Unit("2", Unit.Status.VACANT, false, "TE99", Unit.Type.MAISONETTES,
-//                null, 0, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, null);
-        var unitNonApartment = new Unit.UnitBuilder()
-                .status(Unit.Status.VACANT)
-//                .booked(false)
-                .number("TE99")
-                .type(Unit.UnitType.MAISONETTES)
-                .floorNo(0)
-                .noOfBedrooms(2)
-                .noOfBathrooms(1)
-                .advanceInMonths(2)
-                .currency(Unit.Currency.KES)
-                .rentPerMonth(BigDecimal.valueOf(25000))
-                .securityPerMonth(BigDecimal.valueOf(500))
-                .garbagePerMonth(BigDecimal.valueOf(300)).build();
-        unitNonApartment.setId("2");
-        unitNonApartment.setCreatedOn(LocalDateTime.now());
-        var dtoFailsValidation = new UnitDto(null, null, null, null, null, null,
-                null, null, null, null, null, null, null);
-        var dtoApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, null, null, null, null,
-                null, null, null, null, null, null, null);
-        var dtoNoneApartmentUnitFailsValidation = new UnitDto(Unit.Status.VACANT, Unit.UnitType.MAISONETTES, null, null, null, null,
-                null, null, null, null, null, null, null);
+        return unit;
+    }
 
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void create_returnsUnit_whenSuccessful_withStatus201() {
+        // given
+        var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 0,
+                2, 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
+                BigDecimal.valueOf(500), BigDecimal.valueOf(300), null, "1");
+        Unit unit = getUnit();
         // when
         when(unitService.create(dto)).thenReturn(Mono.just(unit));
 
@@ -145,36 +116,20 @@ public class UnitConfigsTest {
                 .jsonPath("$.message").isEqualTo("Unit created successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.accountNo").isEqualTo("TE99")
+                .jsonPath("$.data.number").isEqualTo("TE99")
                 .jsonPath("$.data.createdOn").isNotEmpty()
                 .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
+    }
 
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void create_returnsBadRequest_whenFailsValidation_withStatus400() {
+        // given
+        var dtoFailsValidation = new UnitDto(null, null, null, null, null, null,
+                null, null, null, null, null, null, null);
         // when
-        when(unitService.create(dtoNonApartmentUnit)).thenReturn(Mono.just(unitNonApartment));
-
-        // then
-        client
-                .post()
-                .uri("/v1/units")
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dtoNonApartmentUnit), UnitDto.class)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Unit created successfully.")
-                .jsonPath("$.data").isNotEmpty()
-                .jsonPath("$.data.id").isEqualTo("2")
-                .jsonPath("$.data.accountNo").isEqualTo("TE99")
-                .jsonPath("$.data.createdOn").isNotEmpty()
-                .jsonPath("$.data.modifiedOn").isEmpty()
-                .consumeWith(System.out::println);
-
-        // when
-        when(unitService.create(dtoFailsValidation)).thenReturn(Mono.just(unitNonApartment));
+        when(unitService.create(dtoFailsValidation)).thenReturn(Mono.empty());
 
         // then
         client
@@ -188,49 +143,43 @@ public class UnitConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Type is required. No of bedrooms is required. No of bathrooms is required. Advance in months is required. Currency is required. Rent per month is required. Security per month is required. Garbage per month is required.")
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-
-        // when
-        when(unitService.create(dtoApartmentUnitFailsValidation)).thenReturn(Mono.just(unitNonApartment));
-
-        // then
-        client
-                .post()
-                .uri("/v1/units")
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dtoApartmentUnitFailsValidation), UnitDto.class)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Identifier is required. Floor No is required. No of bedrooms is required. No of bathrooms is required. Advance in months is required. Currency is required. Rent per month is required. Security per month is required. Garbage per month is required. Apartment Id is required.")
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-
-        // when
-        when(unitService.create(dtoNoneApartmentUnitFailsValidation)).thenReturn(Mono.just(unitNonApartment));
-
-        // then
-        client
-                .post()
-                .uri("/v1/units")
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dtoNoneApartmentUnitFailsValidation), UnitDto.class)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("No of bedrooms is required. No of bathrooms is required. Advance in months is required. Currency is required. Rent per month is required. Security per month is required. Garbage per month is required.")
+                .jsonPath("$.message").isEqualTo("Type is required. No of bedrooms is required. " +
+                        "No of bathrooms is required. Advance in months is required. Currency is required. " +
+                        "Rent per month is required. Security per month is required. Garbage per month is required. " +
+                        "Property Id is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
 
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void create_returnsBadRequest_whenApartmentUnitFailsValidation_withStatus400() {
+        // given
+        var dtoFailsValidation = new UnitDto(null, Unit.UnitType.APARTMENT_UNIT, null, null,
+                null, null, null, null, null,
+                null, null, null, null);
+        // when
+        when(unitService.create(dtoFailsValidation)).thenReturn(Mono.empty());
+
+        // then
+        client
+                .post()
+                .uri("/v1/units")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dtoFailsValidation), UnitDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Identifier is required. Floor No is required. " +
+                        "No of bedrooms is required. No of bathrooms is required. Advance in months is required. " +
+                        "Currency is required. Rent per month is required. Security per month is required. " +
+                        "Garbage per month is required. Property Id is required.")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
 
     @Test
     @DisplayName("update returns unauthorised when user is not authenticated status 401")
@@ -256,13 +205,8 @@ public class UnitConfigsTest {
         var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 0, 2,
                 2, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
                 BigDecimal.valueOf(300), null, "1");
-//        var unit = new Unit(id, Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.A, 0, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, "1");
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-//                .booked(false)
                 .number("TE99")
                 .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
@@ -294,7 +238,7 @@ public class UnitConfigsTest {
                 .jsonPath("$.message").isEqualTo("Unit updated successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.accountNo").isEqualTo("TE99")
+                .jsonPath("$.data.number").isEqualTo("TE99")
                 .jsonPath("$.data.createdOn").isNotEmpty()
                 .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
@@ -350,19 +294,14 @@ public class UnitConfigsTest {
         int floorNo = 0;
         int noOfBedrooms = 2;
         int noOfBathrooms = 1;
-        String apartmentId = "1";
+        String propertyId = "1";
         String page = "1";
         String pageSize = "10";
         Integer finalPage = CustomUtils.convertToInteger(page, "Page");
         Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
-//        var unit = new Unit(id, Unit.Status.VACANT, false, accountNo, type, identifier,
-//                floorNo, noOfBedrooms, noOfBathrooms, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(25000), BigDecimal.valueOf(500),BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, apartmentId);
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-//                .booked(false)
                 .number(accountNo)
                 .type(type)
                 .identifier(identifier)
@@ -374,7 +313,7 @@ public class UnitConfigsTest {
                 .rentPerMonth(BigDecimal.valueOf(25000))
                 .securityPerMonth(BigDecimal.valueOf(500))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId(apartmentId).build();
+                .propertyId(propertyId).build();
         unit.setId(id);
 
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
@@ -388,7 +327,7 @@ public class UnitConfigsTest {
                         .queryParam("floorNo", floorNo)
                         .queryParam("noOfBedrooms", noOfBedrooms)
                         .queryParam("noOfBathrooms", noOfBathrooms)
-                        .queryParam("apartmentId", apartmentId)
+                        .queryParam("propertyId", propertyId)
                         .queryParam("page", page)
                         .queryParam("pageSize", pageSize)
                         .queryParam("order", order)
@@ -396,7 +335,7 @@ public class UnitConfigsTest {
 
         // when
         when(unitService.find(
-                Optional.of(apartmentId),
+                Optional.of(propertyId),
                 Optional.of(Unit.Status.VACANT),
                 Optional.of(accountNo),
                 Optional.of(type),
@@ -420,7 +359,7 @@ public class UnitConfigsTest {
                 .jsonPath("$.message").isEqualTo("Units found successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
-                .jsonPath("$.data.[0].accountNo").isEqualTo("TE99")
+                .jsonPath("$.data.[0].number").isEqualTo("TE99")
                 .consumeWith(System.out::println);
 
         Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
@@ -457,7 +396,7 @@ public class UnitConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Type should be APARTMENT_UNIT or TOWN_HOUSE or MAISONETTES or VILLA!")
+                .jsonPath("$.message").isEqualTo("Unit type should be APARTMENT_UNIT or TOWN_HOUSE or MAISONETTES or VILLA!")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -477,6 +416,7 @@ public class UnitConfigsTest {
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
+
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
     @DisplayName("Delete by id returns a Mono of boolean when id exists")

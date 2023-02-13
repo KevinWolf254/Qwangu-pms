@@ -11,6 +11,7 @@ import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
 import co.ke.proaktivio.qwanguapi.repositories.PropertyRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,60 +56,56 @@ class UnitServiceImplIntegrationTest {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
 
-    @Test
-    @DisplayName("create a unit that is unique and apartment exists.")
-    void create() {
-        // given
-        String id = "1";
-        String name = "Luxury Apartment";
-//        LocalDateTime now = LocalDateTime.now();
-        var apartment = new Property();
-        apartment.setName(name);
-        apartment.setId(id);
-        var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 1,
-                2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, id);
-        var dtoWithNonExistingApartment = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A,
-                1, 2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, "2");
-        var dtoNotApartmentUnit = new UnitDto(Unit.Status.VACANT, Unit.UnitType.MAISONETTES, null, null,
-                2, 1, 2, Unit.Currency.KES,
-                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, null);
-        // when
-        Mono<Unit> createUnit = propertyRepository.deleteAll()
-                .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
+    @NotNull
+    private Mono<Void> reset() {
+        return propertyRepository.deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all Properties!"))
                 .then(unitRepository.deleteAll())
-                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
-                .then(propertyRepository.save(apartment))
-                        .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                        .then(unitService.create(dto))
-                        .doOnSuccess(a -> System.out.println("---- Saved " + a));
+                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"));
+    }
+
+    @NotNull
+    private static Property getProperty() {
+        String name = "Luxury Apartment";
+        var property = new Property();
+        property.setType(Property.PropertyType.APARTMENT);
+        property.setName(name);
+        property.setId("1");
+        return property;
+    }
+
+    @NotNull
+    private static UnitDto getUnitDto() {
+        return new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 1,
+                2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, "1");
+    }
+
+    @Test
+    void createApartmentUnit_returnsApartmentUnit() {
+        // given
+        Property property = getProperty();
+        UnitDto dto = getUnitDto();
+        // when
+        Mono<Unit> createUnit = reset()
+                .then(propertyRepository.save(property))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(unitService.create(dto))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a));
 
         // then
         StepVerifier
                 .create(createUnit)
                 .expectNextCount(1)
                 .verifyComplete();
+    }
 
+    @Test
+    void create_returnsCustomAlreadyExistsException_whenUnitAlreadyExists() {
+        // given
+        var dto = getUnitDto();
         // when
-        Mono<Unit> createUnitNotApartmentUnit = unitService.create(dtoNotApartmentUnit);
-        // then
-        StepVerifier
-                .create(createUnitNotApartmentUnit)
-                .expectNextMatches(u -> u.getType().equals(Unit.UnitType.MAISONETTES) &&
-                        u.getApartmentId() == null && u.getIdentifier() == null &&
-                        u.getFloorNo() == null)
-                .verifyComplete();
-
-        // when
-        Mono<Unit> createUnitWithNonExistingApartment = unitService.create(dtoWithNonExistingApartment);
-        // then
-        StepVerifier
-                .create(createUnitWithNonExistingApartment)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Apartment with id 2 does not exist!"))
-                .verify();
-        // when
+        this.createApartmentUnit_returnsApartmentUnit();
         Mono<Unit> createUnitThatAlreadyExists = unitService.create(dto);
         // then
         StepVerifier
@@ -119,32 +116,59 @@ class UnitServiceImplIntegrationTest {
     }
 
     @Test
+    void create_returnsCustomBadRequestException_whenUnitTypeAndPropertyTypeDoNotMatch() {
+        // given
+        Property property = getProperty();
+        var dto = getUnitDto();
+        dto.setType(Unit.UnitType.VILLA);
+        // when
+        Mono<Unit> createUnitWithNonMatchingPropertyType = reset()
+                .then(propertyRepository.save(property))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(unitService.create(dto))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a));
+        // then
+        StepVerifier
+                .create(createUnitWithNonMatchingPropertyType)
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
+                        e.getMessage().equals("Unit must be of the right type!"))
+                .verify();
+    }
+
+    @Test
+    void create_returnCustomBadRequestException_whenPropertyIdDoesNotExist() {
+        // given
+        var propertyId = "2";
+        var dtoWithNonExistingApartment = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A,
+                1, 2, 1, 2, Unit.Currency.KES,
+                BigDecimal.valueOf(25000), BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, propertyId);
+        // when
+        Mono<Unit> createUnitWithNonExistingApartment = unitService.create(dtoWithNonExistingApartment);
+        // then
+        StepVerifier
+                .create(createUnitWithNonExistingApartment)
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
+                        e.getMessage().equals("Property with id %s does not exist!".formatted(propertyId)))
+                .verify();
+    }
+
+    @Test
     @DisplayName("update a unit that exists.")
     void update() {
         // given
-        String id = "1";
-        String name = "Luxury Apartment";
-        LocalDateTime now = LocalDateTime.now();
-        var apartment = new Property();
-        apartment.setName(name);
+        var property = getProperty();
         var otherAmounts = new HashMap<String, BigDecimal>();
         otherAmounts.put("Gym", new BigDecimal(500));
         otherAmounts.put("Swimming Pool", new BigDecimal(800));
 
-        apartment.setId(id);
         var dto = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 1, 2,
                 1, 2, Unit.Currency.KES, BigDecimal.valueOf(25000), BigDecimal.valueOf(500),
-                BigDecimal.valueOf(500), null, id);
+                BigDecimal.valueOf(500), null, property.getId());
         var dtoUpdate = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT, Unit.Identifier.A, 1,
                 2, 1, 2, Unit.Currency.KES, BigDecimal.valueOf(26000),
                 BigDecimal.valueOf(510), BigDecimal.valueOf(510), otherAmounts, "1");
-//        var unit = new Unit("301", Unit.Status.VACANT, false, "TE34", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, "1");
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-//                .booked(false)
                 .number("TE34")
                 .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
@@ -156,19 +180,14 @@ class UnitServiceImplIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(510))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         unit.setId("301");
 
         var dtoThatChangesUnitType = new UnitDto(Unit.Status.VACANT, Unit.UnitType.MAISONETTES, Unit.Identifier.A, 1,
                 2, 1, 2, Unit.Currency.KES, BigDecimal.valueOf(25000),
                 BigDecimal.valueOf(500), BigDecimal.valueOf(500), null, "1");
-//        var unit2 = new Unit("302", Unit.Status.VACANT, false, "TE35", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.C, 3, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, "1");
         var unit2 = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-//                .booked(false)
                 .number("TE35")
                 .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.C)
@@ -180,7 +199,7 @@ class UnitServiceImplIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(510))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         unit2.setId("302");
 
         var dtoThatChangesUnitIdentifierAndFloorNo = new UnitDto(Unit.Status.VACANT, Unit.UnitType.APARTMENT_UNIT,
@@ -209,11 +228,8 @@ class UnitServiceImplIntegrationTest {
                 BigDecimal.valueOf(1510), BigDecimal.valueOf(1510), null, null);
 
         // when
-        Mono<Unit> createUpdateUnit = propertyRepository.deleteAll()
-                .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
-                .then(unitRepository.deleteAll())
-                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
-                .then(propertyRepository.save(apartment))
+        Mono<Unit> createUpdateUnit = reset()
+                .then(propertyRepository.save(property))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(unitService.create(dto))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
@@ -237,7 +253,7 @@ class UnitServiceImplIntegrationTest {
         StepVerifier
                 .create(createUnitAndUpdateNotForApartment)
                 .expectNextMatches(u -> u.getIdentifier() == null &&
-                        u.getFloorNo() == null && u.getApartmentId() == null &&
+                        u.getFloorNo() == null && u.getPropertyId() == null &&
                         u.getId().equals("4444") &&
                         u.getModifiedOn() != null &&
                         u.getRentPerMonth().equals(BigDecimal.valueOf(45000)) &&
@@ -277,16 +293,16 @@ class UnitServiceImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("findPaginated a unit that exists.")
-    void findPaginated() { // given
-        String id = "1";
+    void find_returnsUnits_whenUnitExists() {
+        // given
+        String propertyId = "1";
         String name = "Luxury Apartment";
-        var apartment = new Property();
-        apartment.setName(name);
-        apartment.setId(id);
+        var property = new Property();
+        property.setName(name);
+        property.setId(propertyId);
+
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-//                .booked(false)
                 .number("TE34")
                 .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
@@ -298,11 +314,40 @@ class UnitServiceImplIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(510))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId(propertyId)
+                .build();
         unit.setId("301");
+
+        // when
+        Flux<Unit> findUnit = propertyRepository.deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all Properties!"))
+                .then(unitRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
+                .then(propertyRepository.save(property))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(unitRepository.save(unit))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .thenMany(unitService.find(
+                        Optional.of(propertyId),
+                        Optional.of(Unit.Status.VACANT),
+                        Optional.of("TE34"),
+                        Optional.of(Unit.UnitType.APARTMENT_UNIT),
+                        Optional.of(Unit.Identifier.B),
+                        Optional.of(2),
+                        Optional.of(2),
+                        Optional.of(1),
+                        OrderType.ASC))
+                .doOnNext(u -> System.out.println("---- Found " + u));
+
+        // then
+        StepVerifier
+                .create(findUnit)
+                .expectNextMatches(u -> u.getId().equals("301"))
+                .verifyComplete();
+
+        // given
         var unit2 = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-//                .booked(false)
                 .number("TE36")
                 .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)
@@ -314,47 +359,24 @@ class UnitServiceImplIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(510))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         unit2.setId("303");
-
-        // when
-        Flux<Unit> findUnit = propertyRepository.deleteAll()
-                .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
-                .then(unitRepository.deleteAll())
-                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
-                .then(propertyRepository.save(apartment))
-                .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .then(unitRepository.save(unit))
-                .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.find(Optional.of(id), Optional.of(Unit.Status.VACANT), Optional.of("TE34"),
-                        Optional.of(Unit.UnitType.APARTMENT_UNIT), Optional.of(Unit.Identifier.B), Optional.of(2),
-                        Optional.of(2), Optional.of(1), OrderType.ASC))
-                .doOnNext(u -> System.out.println("---- Found " +u));
-        // then
-        StepVerifier
-                .create(findUnit)
-                .expectNextMatches(u -> u.getId().equals("301"))
-                .verifyComplete();
-
-        // when
-        Flux<Unit> findUnitNonExisting = unitService.find(Optional.of(id), Optional.of(Unit.Status.VACANT),
-                Optional.of("TE35"), Optional.of(Unit.UnitType.APARTMENT_UNIT), Optional.of(Unit.Identifier.E),
-                Optional.of(2), Optional.of(2), Optional.of(1), OrderType.ASC)
-                .doOnNext(a -> System.out.println("---- Found " +a));
-        // then
-        StepVerifier
-                .create(findUnitNonExisting)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Units were not found!"))
-                .verify();
 
         // when
         Flux<Unit> createUnitAndFindAllOnSecondFloor = unitRepository.save(unit2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.find(Optional.of(id), Optional.empty(),Optional.empty(),
-                        Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                        Optional.empty(),  OrderType.DESC))
-                .doOnNext(a -> System.out.println(" Found " +a));
+                .thenMany(unitService.find(
+                        Optional.of(propertyId),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        OrderType.DESC))
+                .doOnNext(a -> System.out.println(" Found " + a));
+
         // then
         StepVerifier
                 .create(createUnitAndFindAllOnSecondFloor)
@@ -364,16 +386,33 @@ class UnitServiceImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("deleteById a unit that exists.")
-    void deleteById() {
+    void find_returnsEmpty_whenNoUnitExists() {
         // given
-//        var unit = new Unit("9999", Unit.Status.VACANT, false, "TE99", Unit.Type.APARTMENT_UNIT,
-//                Unit.Identifier.B, 2, 2, 1, 2, Unit.Currency.KES,
-//                BigDecimal.valueOf(27000), BigDecimal.valueOf(510), BigDecimal.valueOf(300), LocalDateTime.now(),
-//                null, "1");
+        var propertyId = "5";
+
+        // when
+        Flux<Unit> findUnitNonExisting = unitService.find(
+                        Optional.of(propertyId),
+                        Optional.of(Unit.Status.VACANT),
+                        Optional.of("TE35"),
+                        Optional.of(Unit.UnitType.APARTMENT_UNIT),
+                        Optional.of(Unit.Identifier.E),
+                        Optional.of(2),
+                        Optional.of(2),
+                        Optional.of(1),
+                        OrderType.ASC);
+        // then
+        StepVerifier
+                .create(findUnitNonExisting)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    void deleteById_returnsTrue_whenUnitExists() {
+        // given
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
-//                .booked(false)
                 .number("TE99")
                 .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.B)
@@ -385,14 +424,11 @@ class UnitServiceImplIntegrationTest {
                 .rentPerMonth(BigDecimal.valueOf(27000))
                 .securityPerMonth(BigDecimal.valueOf(510))
                 .garbagePerMonth(BigDecimal.valueOf(300))
-                .apartmentId("1").build();
+                .propertyId("1").build();
         unit.setId("9999");
 
         // when
-        Mono<Boolean> createUnitThenDelete = propertyRepository.deleteAll()
-                .doOnSuccess(t -> System.out.println("---- Deleted all Apartments!"))
-                .then(unitRepository.deleteAll())
-                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
+        Mono<Boolean> createUnitThenDelete = reset()
                 .then(unitRepository.save(unit))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(unitService.deleteById("9999"));
@@ -401,15 +437,19 @@ class UnitServiceImplIntegrationTest {
                 .create(createUnitThenDelete)
                 .expectNext(true)
                 .verifyComplete();
+    }
 
+    @Test
+    void deleteById_returnsCustomNotFoundException_whenUnitDoesNotExist() {
+        // given
+        var unitId = "3090";
         // when
-        Mono<Boolean> deleteUnitThatDoesNotExist = unitService.deleteById("3090");
+        Mono<Boolean> deleteUnitThatDoesNotExist = unitService.deleteById(unitId);
         // then
         StepVerifier
                 .create(deleteUnitThatDoesNotExist)
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Unit with id 3090 does not exist!"))
+                        e.getMessage().equals("Unit with id %s does not exist!".formatted(unitId)))
                 .verify();
-
     }
 }

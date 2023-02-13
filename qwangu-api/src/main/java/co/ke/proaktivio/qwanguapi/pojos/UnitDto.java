@@ -24,5 +24,5 @@ public class UnitDto {
     private BigDecimal securityPerMonth;
     private BigDecimal garbagePerMonth;
     private Map<String, BigDecimal> otherAmounts;
-    private String apartmentId;
+    private String propertyId;
 }

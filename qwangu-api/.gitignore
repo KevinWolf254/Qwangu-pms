@@ -34,3 +34,4 @@ build/
 
 ## OTHERS ##
 ./async.log
+/logs/

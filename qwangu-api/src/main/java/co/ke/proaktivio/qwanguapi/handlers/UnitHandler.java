@@ -112,7 +112,7 @@ public class UnitHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> apartmentId = request.queryParam("apartmentId");
+        Optional<String> propertyId = request.queryParam("propertyId");
         Optional<String> status = request.queryParam("status");
         Optional<String> accountNo = request.queryParam("accountNo");
         Optional<String> type = request.queryParam("type");
@@ -143,7 +143,7 @@ public class UnitHandler {
             OrderType finalOrder = order.map(OrderType::valueOf).orElse(OrderType.DESC);
 
             return unitService.find(
-                            apartmentId,
+                            propertyId,
                             status.map(Unit.Status::valueOf),
                             accountNo,
                             type.map(Unit.UnitType::valueOf),

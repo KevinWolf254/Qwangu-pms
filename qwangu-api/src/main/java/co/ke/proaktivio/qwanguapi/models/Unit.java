@@ -27,9 +27,9 @@ public class Unit {
     // TODO ADD LIST<OBJECT> OF BEDROOM - IS_EN_SUITE
     // TODO ADD LIST<OBJECT> OF BATHROOMS
     // TODO ADD OBJECT OF KITCHEN
+    // TODO ADD IS FULLY_FURNISHED
     private Integer noOfBedrooms;
     private Integer noOfBathrooms;
-    // TODO ADD IS_FURNISHED
     private Currency currency;
     // payments per month
     private BigDecimal rentPerMonth;
@@ -49,8 +49,7 @@ public class Unit {
     private LocalDateTime modifiedOn;
     @LastModifiedBy
     private String modifiedBy;
-    // TODO CHANGE TO ESTATE_ID
-    private String apartmentId;
+    private String propertyId;
 
     public class PaymentPerMonth {
         private BigDecimal rent; // 27000
@@ -106,7 +105,7 @@ public class Unit {
         private Integer floorNo;
         private Integer noOfBedrooms;
         private Integer noOfBathrooms;
-        private String apartmentId;
+        private String propertyId;
 
         private Currency currency;
         // payment per month
@@ -185,8 +184,8 @@ public class Unit {
             return this;
         }
 
-        public UnitBuilder apartmentId(String apartmentId) {
-            this.apartmentId = apartmentId;
+        public UnitBuilder propertyId(String propertyId) {
+            this.propertyId = propertyId;
             return this;
         }
 
@@ -208,7 +207,6 @@ public class Unit {
         public Unit build() {
             var unit = new Unit();
             unit.setStatus(this.status);
-//            unit.setIsBooked(this.isBooked);
             unit.setNumber(this.number);
             unit.setType(this.type);
             unit.setIdentifier(this.identifier);
@@ -220,7 +218,7 @@ public class Unit {
             unit.setRentPerMonth(this.rentPerMonth);
             unit.setSecurityPerMonth(this.securityPerMonth);
             unit.setGarbagePerMonth(this.garbagePerMonth);
-            unit.setApartmentId(this.apartmentId);
+            unit.setPropertyId(this.propertyId);
             unit.setOtherAmountsPerMonth(this.otherAmounts);
             unit.setSecurityAdvance(this.securityAdvance);
             unit.setGarbageAdvance(this.garbageAdvance);

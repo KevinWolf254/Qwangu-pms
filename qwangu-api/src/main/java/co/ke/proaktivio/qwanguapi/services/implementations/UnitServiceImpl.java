@@ -3,6 +3,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
+import co.ke.proaktivio.qwanguapi.models.Property;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
@@ -37,52 +38,37 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public Mono<Unit> create(UnitDto dto) {
-        if (dto.getType().equals(Unit.UnitType.APARTMENT_UNIT))
-            return createApartmentUnit(dto);
-        return createNonApartmentUnit(dto);
-    }
-
-    private Mono<Unit> createNonApartmentUnit(UnitDto dto) {
-        var accountNo = RandomStringUtils.randomAlphanumeric(4);
-        return Mono.just(dto)
-                .map(d -> new Unit.UnitBuilder()
-                        .status(Unit.Status.VACANT)
-                        .number(accountNo.toUpperCase())
-                        .identifier(dto.getIdentifier())
-                        .type(d.getType())
-                        .noOfBedrooms(d.getNoOfBedrooms())
-                        .noOfBathrooms(d.getNoOfBathrooms())
-                        .advanceInMonths(d.getAdvanceInMonths())
-                        .currency(d.getCurrency())
-                        .rentPerMonth(d.getRentPerMonth())
-                        .securityPerMonth(d.getSecurityPerMonth())
-                        .garbagePerMonth(d.getGarbagePerMonth())
-                        .otherAmounts(d.getOtherAmounts()).build())
-                .flatMap(unitRepository::save);
-    }
-
-    private Mono<Unit> createApartmentUnit(UnitDto dto) {
-        String apartmentId = dto.getApartmentId();
+        // TODO ENSURE PROPERTY_ID IS THE SAME AS THE TYPE
+        String propertyId = dto.getPropertyId();
         Integer floorNo = dto.getFloorNo();
         Unit.Identifier identifier = dto.getIdentifier();
         var accountNo = RandomStringUtils.randomAlphanumeric(4);
         Query query = new Query()
                 .addCriteria(Criteria
-                        .where("apartmentId").is(apartmentId)
+                        .where("propertyId").is(propertyId)
                         .and("floorNo").is(floorNo)
                         .and("identifier").is(identifier));
 
+        Unit.UnitType unitType = dto.getType();
         return template
                 .exists(query, Unit.class)
                 .filter(exits -> !exits)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Unit already exists!")))
-                .flatMap(r -> propertyRepository.findById(apartmentId))
+                .flatMap(r -> propertyRepository.findById(propertyId))
                 .filter(Objects::nonNull)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Apartment with id %s does not exist!".formatted(apartmentId))))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Property with id %s does not exist!"
+                        .formatted(propertyId))))
+                .filter(property -> {
+                    Property.PropertyType propertyType = property.getType();
+                    return (propertyType.equals(Property.PropertyType.APARTMENT) && unitType.equals(Unit.UnitType.APARTMENT_UNIT)) ||
+                            (propertyType.equals(Property.PropertyType.HOUSE) && (unitType.equals(Unit.UnitType.VILLA) ||
+                                    unitType.equals(Unit.UnitType.MAISONETTES) || unitType.equals(Unit.UnitType.TOWN_HOUSE)));
+                })
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Unit must be of the right type!")))
                 .map(apartment -> new Unit.UnitBuilder()
                         .status(Unit.Status.VACANT)
                         .number(accountNo.toUpperCase())
-                        .type(dto.getType())
+                        .type(unitType)
                         .identifier(dto.getIdentifier())
                         .floorNo(dto.getFloorNo())
                         .noOfBedrooms(dto.getNoOfBedrooms())
@@ -92,10 +78,73 @@ public class UnitServiceImpl implements UnitService {
                         .rentPerMonth(dto.getRentPerMonth())
                         .securityPerMonth(dto.getSecurityPerMonth())
                         .garbagePerMonth(dto.getGarbagePerMonth())
-                        .apartmentId(apartment.getId())
+                        .propertyId(apartment.getId())
                         .otherAmounts(dto.getOtherAmounts()).build())
                 .flatMap(unitRepository::save);
     }
+
+//    @Override
+//    public Mono<Unit> create(UnitDto dto) {
+//        if (dto.getType().equals(Unit.UnitType.APARTMENT_UNIT))
+//            return createApartmentUnit(dto);
+//        return createNonApartmentUnit(dto);
+//    }
+
+//    private Mono<Unit> createNonApartmentUnit(UnitDto dto) {
+//        var accountNo = RandomStringUtils.randomAlphanumeric(4);
+//        return Mono.just(dto)
+//                .map(d -> new Unit.UnitBuilder()
+//                        .status(Unit.Status.VACANT)
+//                        .number(accountNo.toUpperCase())
+//                        .identifier(dto.getIdentifier())
+//                        .type(d.getType())
+//                        .noOfBedrooms(d.getNoOfBedrooms())
+//                        .noOfBathrooms(d.getNoOfBathrooms())
+//                        .advanceInMonths(d.getAdvanceInMonths())
+//                        .currency(d.getCurrency())
+//                        .rentPerMonth(d.getRentPerMonth())
+//                        .securityPerMonth(d.getSecurityPerMonth())
+//                        .garbagePerMonth(d.getGarbagePerMonth())
+//                        .otherAmounts(d.getOtherAmounts()).build())
+//                .flatMap(unitRepository::save);
+//    }
+
+//    private Mono<Unit> createApartmentUnit(UnitDto dto) {
+//        String apartmentId = dto.getApartmentId();
+//        Integer floorNo = dto.getFloorNo();
+//        Unit.Identifier identifier = dto.getIdentifier();
+//        var accountNo = RandomStringUtils.randomAlphanumeric(4);
+//        Query query = new Query()
+//                .addCriteria(Criteria
+//                        .where("apartmentId").is(apartmentId)
+//                        .and("floorNo").is(floorNo)
+//                        .and("identifier").is(identifier));
+//
+//        return template
+//                .exists(query, Unit.class)
+//                .filter(exits -> !exits)
+//                .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Unit already exists!")))
+//                .flatMap(r -> propertyRepository.findById(apartmentId))
+//                .filter(Objects::nonNull)
+//                .switchIfEmpty(Mono.error(new CustomBadRequestException("Property with id %s does not exist!"
+//                        .formatted(apartmentId))))
+//                .map(apartment -> new Unit.UnitBuilder()
+//                        .status(Unit.Status.VACANT)
+//                        .number(accountNo.toUpperCase())
+//                        .type(dto.getType())
+//                        .identifier(dto.getIdentifier())
+//                        .floorNo(dto.getFloorNo())
+//                        .noOfBedrooms(dto.getNoOfBedrooms())
+//                        .noOfBathrooms(dto.getNoOfBathrooms())
+//                        .advanceInMonths(dto.getAdvanceInMonths())
+//                        .currency(dto.getCurrency())
+//                        .rentPerMonth(dto.getRentPerMonth())
+//                        .securityPerMonth(dto.getSecurityPerMonth())
+//                        .garbagePerMonth(dto.getGarbagePerMonth())
+//                        .apartmentId(apartment.getId())
+//                        .otherAmounts(dto.getOtherAmounts()).build())
+//                .flatMap(unitRepository::save);
+//    }
 
     @Override
     public Mono<Unit> update(String id, UnitDto dto) {
@@ -120,10 +169,10 @@ public class UnitServiceImpl implements UnitService {
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's floorNo and identifier!")))
                 .filter(u -> {
                     if (u.getType() != null && u.getType().equals(Unit.UnitType.APARTMENT_UNIT))
-                        return Objects.equals(u.getApartmentId(), dto.getApartmentId());
+                        return Objects.equals(u.getPropertyId(), dto.getPropertyId());
                     return true;
                 })
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's Apartment!")))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Can not change the unit's Property!")))
                 .map(u -> {
                     if (dto.getStatus() != null)
                         u.setStatus(dto.getStatus());
@@ -155,21 +204,21 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public Flux<Unit> find(Optional<String> apartmentId, Optional<Unit.Status> status, Optional<String> accountNo, Optional<Unit.UnitType> type,
-                           Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
+    public Flux<Unit> find(Optional<String> propertyId, Optional<Unit.Status> status, Optional<String> accountNo,
+                           Optional<Unit.UnitType> type, Optional<Unit.Identifier> identifier, Optional<Integer> floorNo,
                            Optional<Integer> bedrooms, Optional<Integer> bathrooms, OrderType order) {
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        apartmentId.ifPresent(aprtId -> {
-            if(StringUtils.hasText(aprtId))
-                query.addCriteria(Criteria.where("apartmentId").is(aprtId));
+        propertyId.ifPresent(ptyId -> {
+            if (StringUtils.hasText(ptyId))
+                query.addCriteria(Criteria.where("propertyId").is(ptyId));
         });
         status.ifPresent(i -> query.addCriteria(Criteria.where("status").is(i)));
         accountNo.ifPresent(acct -> {
-            if(StringUtils.hasText(acct))
-                query.addCriteria(Criteria.where("accountNo").regex(".*" +acct.trim()+ ".*", "i"));
+            if (StringUtils.hasText(acct))
+                query.addCriteria(Criteria.where("number").regex(".*" + acct.trim() + ".*", "i"));
         });
         type.ifPresent(t -> query.addCriteria(Criteria.where("type").is(t)));
         identifier.ifPresent(t -> query.addCriteria(Criteria.where("identifier").is(t)));
