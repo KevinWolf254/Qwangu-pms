@@ -97,9 +97,9 @@ public class OccupationConfigs {
     RouterFunction<ServerResponse> occupationRoute(OccupationHandler handler) {
         return route()
                 .path("v1/occupations", builder -> builder
+                        .GET("/{occupationId}", handler::findById)
                         .GET(handler::find)
                         .POST(handler::create)
-                        .GET("/{occupationId}", handler::findById)
                         .DELETE("/{occupationId}", handler::delete)
                 ).build();
     }

@@ -30,14 +30,13 @@ public class OccupationHandler {
     public Mono<ServerResponse> create(ServerRequest request) {
         return request
                 .bodyToMono(OccupationForNewTenantDto.class)
-                .doOnSuccess(a -> log.info(" Received request to create {}", a))
-                // TODO DO VALIDATION
-//                .map(ValidatorUtil.validateOccupationForNewTenantDto(new OccupationForNewTenantDtoValidator()))
-//                .doOnSuccess(a -> log.debug(" Validation of request to create user was successful"))
+                .doOnSuccess(dto -> log.debug(" Received request to create {}", dto))
+                .map(ValidatorUtil.validateOccupationForNewTenantDto(new OccupationForNewTenantDtoValidator()))
+                .doOnSuccess(a -> log.debug(" Validation of request to create user was successful"))
                 .flatMap(occupationService::create)
                 .doOnSuccess(a -> log.info(" Created occupation for tenant {} and unit {} successfully",
                         a.getTenantId(), a.getUnitId()))
-                .doOnError(e -> log.error(" Failed to create occupation. Error ", e))
+                .doOnError(e -> log.error(" Failed to create occupation. Error {}", e.getMessage()))
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/occupations/%s".formatted(created.getId())))
                         .body(Mono.just(new Response<>(
@@ -64,7 +63,7 @@ public class OccupationHandler {
 
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> status = request.queryParam("status");
-        Optional<String> occupationNo = request.queryParam("occupationNo");
+        Optional<String> number = request.queryParam("number");
         Optional<String> unitId = request.queryParam("unitId");
         Optional<String> tenantId = request.queryParam("tenantId");
         Optional<String> order = request.queryParam("order");
@@ -77,8 +76,8 @@ public class OccupationHandler {
                 .ok()
                 .body(occupationService.findAll(
                                 StringUtils.hasText(status.get()) ? status.map(Occupation.Status::valueOf): Optional.empty(),
+                                number,
                                 unitId,
-                                occupationNo,
                                 tenantId,
                                 order.map(OrderType::valueOf).orElse(OrderType.DESC)
                         ).collectList()

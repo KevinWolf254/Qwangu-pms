@@ -14,25 +14,9 @@ public class OccupationDtoValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-//        validateStatus((OccupationDto) target, errors);
-        validateStartDate((OccupationDto) target, errors);
-        validateUnitId((OccupationDto) target, errors);
-        validatePaymentId((OccupationDto) target, errors);
-    }
-
-//    private void validateStatus(OccupationDto request, Errors errors) {
-//        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "status", "field.required", "Status is required.");
-//    }
-
-    private void validateStartDate(OccupationDto request, Errors errors) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "startDate", "field.required", "Start date is required.");
-    }
-
-    private void validateUnitId(OccupationDto request, Errors errors) {
+        if(((OccupationDto) target).getStartDate() == null)
+            errors.rejectValue("startDate", "field.required", "Start date is required.");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "unitId", "field.required", "Unit id is required.");
-    }
-
-    private void validatePaymentId(OccupationDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "paymentId", "field.required", "Payment id is required.");
     }
 }

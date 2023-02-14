@@ -9,6 +9,7 @@ import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,21 @@ class OccupationConfigsTest {
         client = WebTestClient.bindToApplicationContext(context).build();
     }
 
+    @NotNull
+    private static Occupation getOccupation() {
+        String tenantId = "1", unitId = "1";
+        Occupation occupation = new Occupation.OccupationBuilder()
+                .tenantId(tenantId)
+                .startDate(LocalDate.now())
+                .unitId(unitId)
+                .build();
+        occupation.setId("1");
+        occupation.setNumber("234567");
+        occupation.setStatus(Occupation.Status.CURRENT);
+        occupation.setCreatedOn(LocalDateTime.now());
+        return occupation;
+    }
+
     @Test
     @DisplayName("create returns unauthorised when user is not authenticated status 401")
     void create_returnsUnauthorized_status401() {
@@ -74,24 +90,13 @@ class OccupationConfigsTest {
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
     void create_returnsOccupation_whenSuccessful() {
-        // given
-        String tenantId = "1";
-        String unitId = "1";
-        String paymentId = "1";
+        var paymentId = "1";
         LocalDate now = LocalDate.now();
         var tenant = new TenantDto("John", "Doe", "Doe", "0720000000",
                 "johndoe@gmail.com");
-        var dto = new OccupationForNewTenantDto(null, tenant, new OccupationDto(now, unitId, paymentId));
-        var occupation = new Occupation.OccupationBuilder()
-                .tenantId(tenantId)
-                .startDate(now)
-                .unitId(unitId)
-                .build();
-        occupation.setId("1");
-        occupation.setCreatedOn(LocalDateTime.now());
+        var dto = new OccupationForNewTenantDto(null, tenant, new OccupationDto(now, "1", paymentId));
+        Occupation occupation = getOccupation();
 
-        var dtoNotValid = new OccupationForNewTenantDto();
-        var dtoNotValidWithoutTenantDetails = new OccupationForNewTenantDto(null, new TenantDto(), new OccupationDto(now, unitId, paymentId));
         // when
         when(occupationService.create(dto)).thenReturn(Mono.just(occupation));
 
@@ -112,13 +117,19 @@ class OccupationConfigsTest {
                 .jsonPath("$.data.id").isEqualTo("1")
                 .jsonPath("$.data.status").isEqualTo(Occupation.Status.CURRENT.getState())
                 .jsonPath("$.data.endDate").isEmpty()
-                .jsonPath("$.data.unitId").isEqualTo(unitId)
+                .jsonPath("$.data.unitId").isEqualTo("1")
                 .jsonPath("$.data.createdOn").isNotEmpty()
                 .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void create_returnsBadRequest_whenValidationFails() {
+        var dtoNotValid = new OccupationForNewTenantDto();
 
         // when
-        when(occupationService.create(dtoNotValid)).thenReturn(Mono.just(occupation));
+        when(occupationService.create(dtoNotValid)).thenReturn(Mono.empty());
         // then
         client
                 .post()
@@ -131,27 +142,7 @@ class OccupationConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Start date is required. Unit id is required. Payment id is required. Tenant is required!")
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-
-
-        // when
-        when(occupationService.create(dtoNotValidWithoutTenantDetails)).thenReturn(Mono.just(occupation));
-
-        // then
-        client
-                .post()
-                .uri("/v1/occupations")
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dtoNotValidWithoutTenantDetails), OccupationForNewTenantDto.class)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("First name is required. Surname is required. Mobile number is required. Email address is required.")
+                .jsonPath("$.message").isEqualTo("Occupation is required. Tenant or Tenant id is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -173,23 +164,59 @@ class OccupationConfigsTest {
     }
 
     @Test
+    void findById_returnsUnauthorized_status401() {
+        // given
+        var occupationId = "1";
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .get()
+                .uri("/v1/occupations/{occupationId}", occupationId)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void findById_returnsOccupation_whenSuccessful() {
+        // given
+        var occupationId = "1";
+        Occupation occupation = getOccupation();
+        //when
+        when(occupationService.findById(occupationId)).thenReturn(Mono.just(occupation));
+
+        // then
+        client
+                .get()
+                .uri("/v1/occupations/{occupationId}", occupationId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("Occupation found successfully.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.id").isEqualTo("1")
+                .jsonPath("$.data.status").isEqualTo(Occupation.Status.CURRENT.getState())
+                .jsonPath("$.data.startDate").isNotEmpty()
+                .jsonPath("$.data.endDate").isEmpty()
+                .jsonPath("$.data.tenantId").isEqualTo("1")
+                .jsonPath("$.data.unitId").isEqualTo("1")
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.modifiedOn").isEmpty()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
     @DisplayName("find returns unauthorised when user is not authenticated status 401")
     void find_returnsUnauthorized_status401() {
-        // given
-        var id = "1";
-        String unitId = "1";
-        String tenantId = "1";
-
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/occupations")
-                        .queryParam("occupationId", id)
                         .queryParam("status", "CURRENT")
-                        .queryParam("unitId", unitId)
-                        .queryParam("tenantId", tenantId)
-                        .queryParam("page", 1)
-                        .queryParam("pageSize", 10)
-                        .queryParam("order", OrderType.ASC)
                         .build();
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
@@ -206,50 +233,26 @@ class OccupationConfigsTest {
     @WithMockUser(roles = {"SUPER_ADMIN"})
     void find_returnsOccupations_whenSuccessful() {
         // given
-        String id = "1";
-        String unitId = "1";
-        String tenantId = "1";
-        String page = "1";
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
-        var occupation = new Occupation.OccupationBuilder()
-                .tenantId("1")
-                .startDate(LocalDate.now())
-                .unitId("1")
-                .build();
-        occupation.setId("1");
-        occupation.setStatus(Occupation.Status.CURRENT);
-        occupation.setCreatedOn(LocalDateTime.now());
+        var occupation = getOccupation();
+        String number = occupation.getNumber();
+        String unitId = occupation.getUnitId();
+        String tenantId = occupation.getTenantId();
+
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/occupations")
-                        .queryParam("occupationId", id)
                         .queryParam("status", "CURRENT")
+                        .queryParam("number", number)
                         .queryParam("unitId", unitId)
                         .queryParam("tenantId", tenantId)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
-                        .queryParam("order", order)
-                        .build();
-
-        Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
-                uriBuilder
-                        .path("/v1/occupations")
-                        .queryParam("occupationId", id)
-                        .queryParam("status", "NOT_TYPE")
-                        .queryParam("unitId", unitId)
-                        .queryParam("tenantId", tenantId)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
                         .queryParam("order", order)
                         .build();
 
         // when
         when(occupationService.findAll(
                 Optional.of(Occupation.Status.CURRENT),
-                Optional.empty(),
+                Optional.of(number),
                 Optional.of(unitId),
                 Optional.of(tenantId),
                 order
@@ -276,6 +279,33 @@ class OccupationConfigsTest {
                 .jsonPath("$.data.[0].createdOn").isNotEmpty()
                 .jsonPath("$.data.[0].modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void find_returnsBadRequest_whenStatusIsInvalid() {
+        // given
+        String id = "1";
+        String unitId = "1";
+        String tenantId = "1";
+        OrderType order = OrderType.ASC;
+        var occupation = new Occupation.OccupationBuilder()
+                .tenantId("1")
+                .startDate(LocalDate.now())
+                .unitId("1")
+                .build();
+        occupation.setId("1");
+        occupation.setStatus(Occupation.Status.CURRENT);
+        occupation.setCreatedOn(LocalDateTime.now());
+
+        Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
+                uriBuilder
+                        .path("/v1/occupations")
+                        .queryParam("status", "NOT_TYPE")
+                        .queryParam("unitId", unitId)
+                        .queryParam("tenantId", tenantId)
+                        .queryParam("order", order)
+                        .build();
 
         // then
         client
@@ -287,7 +317,7 @@ class OccupationConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Status should be BOOKED or CURRENT or VACATED!")
+                .jsonPath("$.message").isEqualTo("Status should be PENDING_OCCUPATION or CURRENT or PENDING_VACATING or VACATED!")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
