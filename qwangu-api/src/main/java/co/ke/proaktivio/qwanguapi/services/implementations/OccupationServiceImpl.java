@@ -3,16 +3,14 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Invoice;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Payment;
-import co.ke.proaktivio.qwanguapi.models.Unit;
+import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
 import co.ke.proaktivio.qwanguapi.services.*;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -28,6 +26,7 @@ import java.util.Optional;
 
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OccupationServiceImpl implements OccupationService {
@@ -101,8 +100,8 @@ public class OccupationServiceImpl implements OccupationService {
                             .findOne(occupationPendingVacating, Occupation.class)
                             .switchIfEmpty(Mono.error(new CustomBadRequestException("Unit is unavailable. Occupant has not given a vacating notice!")))
                             .flatMap(occupationVacating -> noticeService
-                                    .findByOccupationIdAndIsActive(occupationVacating.getId(), true)
-                                    .filter(notice -> notice.getVacatingDate().isBefore(occupation.getStartDate()) || notice.getVacatingDate().equals(occupation.getStartDate()))
+                                    .findByOccupationIdAndIsActive(occupationVacating.getId(), Notice.Status.ACTIVE)
+                                    .filter(notice -> occupation.getStartDate().isAfter(notice.getVacatingDate()))
                                     .switchIfEmpty(Mono.error(new CustomBadRequestException("Invalid occupation date. It should be after the current occupant's vacating date!"))))
                             .then(tenantService.findById(tenantId))
                             .switchIfEmpty(Mono.error(new CustomBadRequestException("Tenant with id %s does not exist!".formatted(tenantId))));
@@ -218,7 +217,7 @@ public class OccupationServiceImpl implements OccupationService {
         return findByUnitIdAndOccupationStatus(unitId, Occupation.Status.CURRENT)
                 .flatMap(occupation -> {
                     if (occupation != null) {
-                        return noticeService.findByOccupationIdAndIsActive(occupation.getId(), true)
+                        return noticeService.findByOccupationIdAndIsActive(occupation.getId(), Notice.Status.ACTIVE)
                                 .flatMap(notice -> {
                                     if (notice != null) {
                                         return Mono.just(false);
@@ -304,6 +303,7 @@ public class OccupationServiceImpl implements OccupationService {
                 .find(query, Occupation.class);
     }
 
+    // TODO ENSURE CAN NOT DELETE WHEN STATUS IS PENDING_OCCUPATION, CURRENT, PENDING_VACATING
     @Override
     public Mono<Boolean> deleteById(String id) {
         return template

@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface NoticeService {
     Mono<Notice> create(CreateNoticeDto dto);
     Mono<Notice> update(String id, UpdateNoticeDto dto);
-    Mono<Notice> findByOccupationIdAndIsActive(String occupationId, Boolean isActive);
+    Mono<Notice> findByOccupationIdAndIsActive(String occupationId, Notice.Status status);
     Flux<Notice> findPaginated(Optional<String> id, Optional<Boolean> isActive, Optional<String> occupationId, int page, int pageSize, OrderType order);
     Mono<Boolean> deleteById(String id);
 }

@@ -16,7 +16,6 @@ public class Notice {
     @Id
     private String id;
     private Status status;
-//    private Boolean isActive;
     private LocalDate notificationDate;
     private LocalDate vacatingDate;
     private String occupationId;

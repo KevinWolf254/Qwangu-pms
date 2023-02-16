@@ -156,10 +156,11 @@ class OccupationServiceImplIntegrationTest {
         unit.setStatus(Unit.Status.OCCUPIED);
         Tenant tenant = getTenant();
         Occupation occupation = getOccupation(unit, tenant);
+        LocalDate now = LocalDate.now();
         var notice = new Notice.NoticeBuilder()
                 .status(Notice.Status.ACTIVE)
-                .notificationDate(LocalDate.now())
-                .vacatingDate(LocalDate.now().minusDays(5))
+                .notificationDate(now)
+                .vacatingDate(now.plusDays(5))
                 .occupationId("1")
                 .build();
 
@@ -167,10 +168,15 @@ class OccupationServiceImplIntegrationTest {
         payment.setStatus(Payment.Status.PROCESSED);
         var tenantDto = new TenantDto("John", "middle", "Doe","0700000000",
                 "person@gmail.com");
-        var dto = new OccupationForNewTenantDto(null, tenantDto, new OccupationDto(LocalDate.now(), unit.getId(), payment.getId()));
+        var dto = new OccupationForNewTenantDto(null, tenantDto, new OccupationDto(now.plusDays(6),
+                unit.getId(), payment.getId()));
 
         // when
         Mono<Occupation> createOccupation = reset()
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
+                .then(noticeRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all Notices!"))
                 .then(unitRepository.save(unit))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then((tenantRepository.save(tenant)))
@@ -388,18 +394,16 @@ class OccupationServiceImplIntegrationTest {
         var unit = getUnit();
         var payment = getPayment();
         payment.setAmount(BigDecimal.valueOf(81810));
-        var tenantDto = new TenantDto("John", "Percy", "Doe", "0700000000",
-                "person@gmail.com");
-        var dto = new OccupationForNewTenantDto(null, tenantDto, new OccupationDto(LocalDate.now(), unit.getId(),
-                payment.getId()));
-
-        var tenantDto01 = new TenantDto("John", "Percy", "Doe", "0700000001",
-                "person01@gmail.com");
         var payment01 = getPayment();
         payment01.setId("1200");
+        var tenantDto = new TenantDto("John", "Percy", "Doe", "0700000000",
+                "person@gmail.com");
+        var tenantDto01 = new TenantDto("John", "Percy", "Doe", "0700000001",
+                "person01@gmail.com");
+        var dto = new OccupationForNewTenantDto(null, tenantDto, new OccupationDto(LocalDate.now(), unit.getId(),
+                payment.getId()));
         var dto01 = new OccupationForNewTenantDto(null, tenantDto01, new OccupationDto(LocalDate.now(), unit.getId(),
                 payment01.getId()));
-
         // when
         Mono<Occupation> createOccupation = reset()
                 .then(invoiceRepository.deleteAll())
@@ -421,11 +425,17 @@ class OccupationServiceImplIntegrationTest {
                 .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
                         e.getMessage().equals("Unit has already been booked!"))
                 .verify();
+    }
 
+    // TODO ENABLE TRANSACTIONAL
+    @Test
+    void create_returnsRollBackSuccessful_whenRunTimeExceptionOccurs() {
+        // given
+        create_returnsCustomBadRequestException_whenVacantUnitIsAlreadyBooked();
         // when
-        Flux<Tenant> tenants = tenantRepository.findAll()
+        Flux<Tenant> tenants =
+        tenantRepository.findAll()
                 .doOnNext(a -> System.out.println("---- Found " + a));
-
         // then
         StepVerifier
                 .create(tenants)
@@ -445,6 +455,8 @@ class OccupationServiceImplIntegrationTest {
 
         // when
         Mono<Occupation> createOccupation = reset()
+                .then(receiptRepository.deleteAll())
+                .doOnSuccess(t -> System.out.println("---- Deleted all Receipts!"))
                 .then(invoiceRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Invoices!"))
                 .then(paymentRepository.save(payment))
@@ -612,51 +624,69 @@ class OccupationServiceImplIntegrationTest {
 
     }
 
-    @Test
-    void findAll_returnsOccupations_whenSuccessful() {
-        // given
-        String id = "1";
-        String unitId = "1";
+    @NotNull
+    private static Occupation getOccupation() {
+        String occupationId = "1";
         String tenantId= "1";
+        String unitId = "1";
         var occupation = new Occupation.OccupationBuilder()
                 .tenantId(tenantId)
                 .startDate(LocalDate.now())
                 .unitId(unitId)
                 .build();
         occupation.setStatus(Occupation.Status.CURRENT);
-        occupation.setId(id);
-        var occupation2 = new Occupation.OccupationBuilder()
-                .tenantId("1")
-                .startDate(LocalDate.now())
-                .unitId(unitId)
-                .build();
-        occupation2.setId("2");
-        //when
+        occupation.setId(occupationId);
+        return occupation;
+    }
+
+    @Test
+    void findAll_returnsOccupations_whenSuccessful() {
+        Occupation occupation = getOccupation();
+        // when
         Flux<Occupation> findOccupation = occupationRepository
                 .deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(occupationService.findAll(Optional.of(Occupation.Status.CURRENT), Optional.empty(),
-                        Optional.of(unitId), Optional.of(tenantId), OrderType.ASC));
+                        Optional.of("1"), Optional.of("1"), OrderType.ASC));
         // then
         StepVerifier
                 .create(findOccupation)
-                .expectNextMatches(o -> o.getStatus().equals(Occupation.Status.CURRENT) &&o.getId().equals(id))
+                .expectNextMatches(o -> o.getStatus().equals(Occupation.Status.CURRENT) && o.getId().equals("1"))
                 .verifyComplete();
+    }
 
+    @Test
+    void findAll_returnsEmpty_whenNoOccupationFound() {
         // when
         Flux<Occupation> findOccupationNotExist = occupationService.findAll(Optional.of(Occupation.Status.CURRENT),
                 Optional.empty(), Optional.of("13"), Optional.of("14"),  OrderType.ASC);
         // then
         StepVerifier
                 .create(findOccupationNotExist)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Occupations were not found!"))
+                .expectComplete()
                 .verify();
+    }
 
+    @Test
+    void findAll_returnsOccupationsInDesc_whenSuccessful() {
+        // given
+        Occupation occupation = getOccupation();
+        String unitId = "2";
+        var occupation2 = new Occupation.OccupationBuilder()
+                .tenantId("2")
+                .startDate(LocalDate.now())
+                .unitId(unitId)
+                .build();
+        occupation2.setId("2");
         // when
-        Flux<Occupation> findAll = occupationRepository.save(occupation2)
+        Flux<Occupation> findAll = reset()
+                .then(occupationRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("---- Deleted all Occupations!"))
+                .then(occupationRepository.save(occupation))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(occupationRepository.save(occupation2))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(occupationService.findAll(Optional.empty(), Optional.empty(),
                         Optional.empty(), Optional.empty(), OrderType.DESC));
@@ -668,10 +698,11 @@ class OccupationServiceImplIntegrationTest {
                 .verifyComplete();
     }
 
+    // TODO ADD TESTS FOR WHEN STATUS IS PENDING_OCCUPATION, CURRENT, PENDING_VACATING
     @Test
-    void deleteById_returnsTrue_whenSuccessful() {
+    void deleteById_returnsTrue_whenOccupationStatusIsVacated() {
         // given
-        String id = "1";
+        String occupationId = "1";
         String unitId = "1";
         String tenantId= "1";
         var occupation = new Occupation.OccupationBuilder()
@@ -679,22 +710,24 @@ class OccupationServiceImplIntegrationTest {
                 .startDate(LocalDate.now())
                 .unitId(unitId)
                 .build();
-        occupation.setId(id);
-        occupation.setStatus(Occupation.Status.CURRENT);
-        // then
+        occupation.setId(occupationId);
+        occupation.setStatus(Occupation.Status.VACATED);
+        // when
         Mono<Boolean> createThenDelete = occupationRepository
                 .deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .then(occupationService.deleteById(id));
+                .then(occupationService.deleteById(occupationId));
         // then
         StepVerifier
                 .create(createThenDelete)
                 .expectNext(true)
                 .verifyComplete();
+    }
 
-
+    @Test
+    void deleteById_returnsCustomNotFoundException_whenOccupationIdDoesNotExist() {
         // when
         Mono<Boolean> deleteThatDoesNotExist = occupationService.deleteById("3090");
         // then

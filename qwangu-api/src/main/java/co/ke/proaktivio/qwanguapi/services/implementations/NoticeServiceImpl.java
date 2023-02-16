@@ -80,11 +80,11 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public Mono<Notice> findByOccupationIdAndIsActive(String occupationId, Boolean isActive) {
+    public Mono<Notice> findByOccupationIdAndIsActive(String occupationId, Notice.Status status) {
         return template.findOne(new Query()
                 .addCriteria(Criteria
                         .where("occupationId").is(occupationId)
-                        .and("isActive").is(isActive)), Notice.class);
+                        .and("status").is(status.getState())), Notice.class);
     }
 
     @Override
