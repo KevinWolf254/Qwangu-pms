@@ -161,8 +161,7 @@ class TenantServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(findNotExist)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Tenants were not found!"))
+                .expectComplete()
                 .verify();
 
         // when
@@ -206,8 +205,7 @@ class TenantServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(deleteThatDoesNotExist)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Tenant with id 3090 does not exist!"))
+                .expectComplete()
                 .verify();
     }
 }
