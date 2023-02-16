@@ -231,6 +231,38 @@ class OccupationConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
+    void find_returnsEmpty_whenNoOccupationExists() {
+        Function<UriBuilder, URI> uriFunc = uriBuilder ->
+                uriBuilder
+                        .path("/v1/occupations")
+                        .queryParam("status", "CURRENT")
+                        .build();
+
+        // when
+        when(occupationService.findAll(
+                Optional.of(Occupation.Status.CURRENT),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                OrderType.DESC
+        )).thenReturn(Flux.empty());
+        // then
+        client
+                .get()
+                .uri(uriFunc)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Occupations with those parameters do not exist!")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     void find_returnsOccupations_whenSuccessful() {
         // given
         OrderType order = OrderType.ASC;

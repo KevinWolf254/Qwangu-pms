@@ -67,11 +67,11 @@ public class OccupationHandler {
         Optional<String> unitId = request.queryParam("unitId");
         Optional<String> tenantId = request.queryParam("tenantId");
         Optional<String> order = request.queryParam("order");
-            if (status.isPresent() && StringUtils.hasText(status.get()) && !EnumUtils.isValidEnum(Occupation.Status.class, status.get())) {
-                String[] arrayOfState = Stream.of(Occupation.Status.values()).map(Occupation.Status::getState).toArray(String[]::new);
-                String states = String.join(" or ", arrayOfState);
-                throw new CustomBadRequestException("Status should be " + states + "!");
-            }
+        if (status.isPresent() && StringUtils.hasText(status.get()) && !EnumUtils.isValidEnum(Occupation.Status.class, status.get())) {
+            String[] arrayOfState = Stream.of(Occupation.Status.values()).map(Occupation.Status::getState).toArray(String[]::new);
+            String states = String.join(" or ", arrayOfState);
+            throw new CustomBadRequestException("Status should be " + states + "!");
+        }
         return ServerResponse
                 .ok()
                 .body(occupationService.findAll(
@@ -82,16 +82,12 @@ public class OccupationHandler {
                                 order.map(OrderType::valueOf).orElse(OrderType.DESC)
                         ).collectList()
                         .flatMap(occupations -> {
-                            if(occupations.isEmpty())
-                                return Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(), true, "Occupations with those parameters do  not exist!",
-                                        occupations));
+                            var success = !occupations.isEmpty();
+                            var message = occupations.isEmpty() ? "Occupations with those parameters do not exist!" : "Occupations found successfully.";
                             return Mono.just(new Response<>(
                                     LocalDateTime.now().toString(),
                                     request.uri().getPath(),
-                                    HttpStatus.OK.value(), true, "Occupations found successfully.",
+                                    HttpStatus.OK.value(), success, message,
                                     occupations));
                         }), Response.class);
     }

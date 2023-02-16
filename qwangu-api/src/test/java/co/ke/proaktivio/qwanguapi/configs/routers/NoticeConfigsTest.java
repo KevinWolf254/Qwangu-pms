@@ -98,9 +98,9 @@ class NoticeConfigsTest {
                 .jsonPath("$.message").isEqualTo("Notice created successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.isActive").isEqualTo(true)
-                .jsonPath("$.data.notifiedOn").isNotEmpty()
-                .jsonPath("$.data.vacatingOn").isNotEmpty()
+                .jsonPath("$.data.status").isEqualTo(Notice.Status.ACTIVE.getState())
+                .jsonPath("$.data.notificationDate").isNotEmpty()
+                .jsonPath("$.data.vacatingDate").isNotEmpty()
                 .jsonPath("$.data.createdOn").isNotEmpty()
                 .jsonPath("$.data.modifiedOn").isEmpty()
                 .consumeWith(System.out::println);
@@ -167,9 +167,9 @@ class NoticeConfigsTest {
                 .jsonPath("$.message").isEqualTo("Notice updated successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.isActive").isEqualTo(true)
-                .jsonPath("$.data.notifiedOn").isNotEmpty()
-                .jsonPath("$.data.vacatingOn").isNotEmpty()
+                .jsonPath("$.data.status").isEqualTo(Notice.Status.ACTIVE.getState())
+                .jsonPath("$.data.notificationDate").isNotEmpty()
+                .jsonPath("$.data.vacatingDate").isNotEmpty()
                 .jsonPath("$.data.createdOn").isNotEmpty()
                 .jsonPath("$.data.modifiedOn").isNotEmpty()
                 .consumeWith(System.out::println);
@@ -188,7 +188,7 @@ class NoticeConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("IsActive is required. Notification date required. Vacating date is required.")
+                .jsonPath("$.message").isEqualTo("Status is required. Notification date required. Vacating date is required.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -204,7 +204,6 @@ class NoticeConfigsTest {
                 uriBuilder
                         .path("/v1/notices")
                         .queryParam("noticeId", id)
-                        .queryParam("isActive", true)
                         .queryParam("occupationId", occupationId)
                         .queryParam("page", 1)
                         .queryParam("pageSize", 10)
@@ -223,41 +222,71 @@ class NoticeConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
+    void find_returnsEmpty_whenNoNoticesExist() {
+        var id = "1";
+        var occupationId = "1";
+        OrderType order = OrderType.ASC;
+        Notice.Status active = Notice.Status.ACTIVE;
+        Function<UriBuilder, URI> uriFunc = uriBuilder ->
+                uriBuilder
+                        .path("/v1/notices")
+                        .queryParam("noticeId", id)
+                        .queryParam("status", active.getState())
+                        .queryParam("occupationId", occupationId)
+                        .queryParam("order", order)
+                        .build();
+
+        // when
+        when(noticeService.findPaginated(
+                Optional.of(id),
+                Optional.of(active),
+                Optional.of(occupationId),
+                order
+        )).thenReturn(Flux.empty());
+        // then
+        client
+                .get()
+                .uri(uriFunc)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Notices with those parameters do not exist!")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
     void find_returnsNotices_whenSuccessful() {
         // given
         var id = "1";
         var occupationId = "1";
         var notice = new Notice("1", Notice.Status.ACTIVE, now, today.plusDays(40), "1",
                 LocalDateTime.now(), null, LocalDateTime.now(), null);
-        String page = "1";
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
 
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/notices")
                         .queryParam("noticeId", id)
-                        .queryParam("isActive", "true")
+                        .queryParam("status", "ACTIVE")
                         .queryParam("occupationId", occupationId)
-                        .queryParam("page", 1)
-                        .queryParam("pageSize", 10)
                         .queryParam("order", OrderType.ASC)
                         .build();
 
         Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
                 uriBuilder
                         .path("/v1/notices")
-                        .queryParam("isActive", "NOT_VALID")
+                        .queryParam("status", "NOT_VALID")
                         .build();
         // when
         when(noticeService.findPaginated(
                 Optional.of(id),
-                Optional.of(true),
+                Optional.of(Notice.Status.ACTIVE),
                 Optional.of(occupationId),
-                finalPage,
-                finalPageSize,
                 order
         )).thenReturn(Flux.just(notice));
         // then
@@ -273,9 +302,9 @@ class NoticeConfigsTest {
                 .jsonPath("$.message").isEqualTo("Notices found successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
-                .jsonPath("$.data.[0].isActive").isEqualTo(true)
-                .jsonPath("$.data.[0].notifiedOn").isNotEmpty()
-                .jsonPath("$.data.[0].vacatingOn").isNotEmpty()
+                .jsonPath("$.data.[0].status").isEqualTo(Notice.Status.ACTIVE.getState())
+                .jsonPath("$.data.[0].notificationDate").isNotEmpty()
+                .jsonPath("$.data.[0].vacatingDate").isNotEmpty()
                 .jsonPath("$.data.[0].createdOn").isNotEmpty()
                 .jsonPath("$.data.[0].modifiedOn").isNotEmpty()
                 .consumeWith(System.out::println);
@@ -290,7 +319,7 @@ class NoticeConfigsTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("isActive should be a true or false!")
+                .jsonPath("$.message").isEqualTo("Status should be ACTIVE or FULFILLED or CANCELLED!")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }

@@ -47,10 +47,6 @@ class NoticeServiceImplIntegrationTest {
 
     private final LocalDate now = LocalDate.now();
     private final LocalDate today = LocalDate.now();
-//    private final Occupation occupation = new Occupation("1", Occupation.Status.CURRENT, LocalDateTime.now(), null, "1",
-//            "1", LocalDateTime.now(), null, null, null);
-//    private Occupation occupationMoved = new Occupation("2", Occupation.Status.PREVIOUS, LocalDateTime.now(),
-//            null, "2", "2", LocalDateTime.now(), null, null, null);
     private final Notice notice = new Notice("1", Notice.Status.ACTIVE, now, today.plusDays(40), "1", null,
             null, null, null);
     private final Notice noticeWithOccupationMoved = new Notice("2", Notice.Status.ACTIVE, now, today.plusDays(40), "2",
@@ -219,8 +215,8 @@ class NoticeServiceImplIntegrationTest {
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(noticeService.findPaginated(Optional.of("1"), Optional.empty(), Optional.empty(),
-                        1, 10, OrderType.ASC));
+                .thenMany(noticeService.findPaginated(Optional.of("1"), Optional.empty(),
+                        Optional.empty(), OrderType.ASC));
         // then
         StepVerifier
                 .create(find)
@@ -231,7 +227,7 @@ class NoticeServiceImplIntegrationTest {
         Flux<Notice> findAll = noticeRepository.save(noticeWithOccupationMoved)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(noticeService.findPaginated(Optional.empty(), Optional.empty(), Optional.empty(),
-                        1, 10, OrderType.DESC));
+                        OrderType.DESC));
         // then
         StepVerifier
                 .create(findAll)
@@ -240,15 +236,13 @@ class NoticeServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Notice> findThrowsCustomNotFoundException = noticeService.findPaginated(Optional.of("3000"), Optional.empty(), Optional.of("1"),
-                1, 10, OrderType.ASC);
+        Flux<Notice> findThrowsCustomNotFoundException = noticeService.findPaginated(Optional.of("3000"),
+                Optional.empty(), Optional.of("1"), OrderType.ASC);
         // then
         StepVerifier
                 .create(findThrowsCustomNotFoundException)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equals("Notices were not found!"))
+                .expectComplete()
                 .verify();
-
     }
 
     @Test

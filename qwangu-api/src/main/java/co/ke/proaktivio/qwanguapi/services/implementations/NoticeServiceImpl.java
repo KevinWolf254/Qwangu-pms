@@ -88,21 +88,18 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public Flux<Notice> findPaginated(Optional<String> id, Optional<Boolean> isActive, Optional<String> occupationId,
-                                      int page, int pageSize, OrderType order) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
+    public Flux<Notice> findPaginated(Optional<String> id, Optional<Notice.Status> status, Optional<String> occupationId,
+                                      OrderType order) {
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
         id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
-        isActive.ifPresent(s -> query.addCriteria(Criteria.where("isActive").is(s)));
+        status.ifPresent(s -> query.addCriteria(Criteria.where("status").is(s)));
         occupationId.ifPresent(i -> query.addCriteria(Criteria.where("occupationId").is(i)));
-        query.with(pageable)
-                .with(sort);
+        query.with(sort);
         return template
-                .find(query, Notice.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("Notices were not found!")));
+                .find(query, Notice.class);
     }
 
     @Override
