@@ -1,10 +1,5 @@
 package co.ke.proaktivio.qwanguapi.pojos;
 
-import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
-import lombok.*;
-
-import java.math.BigDecimal;
-
 //@Data
 //@NoArgsConstructor
 //@AllArgsConstructor

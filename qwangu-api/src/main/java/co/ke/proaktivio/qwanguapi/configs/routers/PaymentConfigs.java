@@ -1,6 +1,5 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.handlers.OccupationHandler;
 import co.ke.proaktivio.qwanguapi.handlers.PaymentHandler;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,7 +8,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;

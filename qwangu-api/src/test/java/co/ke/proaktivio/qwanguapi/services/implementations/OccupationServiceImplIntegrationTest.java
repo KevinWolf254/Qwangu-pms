@@ -8,13 +8,11 @@ import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
-import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -39,11 +37,7 @@ class OccupationServiceImplIntegrationTest {
     @Autowired
     private PaymentRepository paymentRepository;
     @Autowired
-    private ReactiveMongoTemplate template;
-    @Autowired
     private OccupationService occupationService;
-    @Autowired
-    private OccupationTransactionService occupationTransactionService;
     @Autowired
     private UnitRepository unitRepository;
     @Autowired

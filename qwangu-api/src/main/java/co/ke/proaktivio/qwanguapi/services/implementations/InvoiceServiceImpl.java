@@ -1,8 +1,8 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.DebitTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
@@ -19,13 +19,10 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 @Service
 @RequiredArgsConstructor
@@ -35,13 +32,14 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final OccupationTransactionService occupationTransactionService;
     private final ReactiveMongoTemplate template;
 
+    // TODO ADD CALCULATE INVOICE AMOUNTS ACCORDING TO START/ENDDATE AND UNIT AMOUNTS
     @Override
 //    @Transactional
     public Mono<Invoice> create(InvoiceDto dto) {
         String occupationId = dto.getOccupationId();
         // TODO INCLUDE BEGINNING_OF_MONTH OR MIDDLE_OF_MONTH IN INVOICE
         return occupationRepository.findById(occupationId)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!"
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation with id %s does not exist!"
                         .formatted(occupationId))))
                 .flatMap(occupation -> template
                         .findOne(new Query()
@@ -56,6 +54,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                                         occupation.getStartDate().withDayOfMonth(occupation.getStartDate()
                                                 .getMonth().length(occupation.getStartDate().isLeapYear())) :
                                         dto.getEndDate())
+                                .currency(dto.getCurrency())
                                 .rentAmount(dto.getRentAmount())
                                 .securityAmount(dto.getSecurityAmount())
                                 .garbageAmount(dto.getGarbageAmount())

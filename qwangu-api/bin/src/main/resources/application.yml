@@ -1,0 +1,107 @@
+server:
+  port: 3001
+  # The format used for the keystore. It could be set to JKS in case it is a JKS file
+#  ssl:
+#    key-store-type: PKCS12
+#    # The path to the keystore containing the certificate
+#    key-store: classpath:keystore.p12
+#    # The password used to generate the certificate
+#    key-store-password: N@mber_11
+#    # The alias mapped to the certificate
+#    key-alias: keystore
+#    enabled: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+spring:
+  profiles:
+    active: dev
+  data:
+    mongodb:
+      database: qwangu_db
+      host: localhost
+      port: 27017
+      username: kevin
+      password: pass123
+      auto-index-creation: true
+      authentication-database: admin
+
+jwt:
+  secret: ahasjofnwowuwoeneoeneowbnkamalspsiwnwpsndifnfpoe
+  expiration: 3600
+
+mail:
+  host: 127.0.0.1
+  port: 3025
+  username: person@gmail.com
+  password: testing
+
+company:
+  name: proaktivio
+  url: https://proaktivio.co.ke
+  no-reply-email: noreply@proaktivio.co.ke
+  social-media:
+    linked-in-url: https://linked-in.com
+    twitter-url: https://twitter.com
+    facebook-url: https://facebook.com
+    instagram-url: https://instagram.com
+
+application:
+  end-points:
+    - http://localhost:8080/
+    - v1/users/
+
+ftl:
+  templates:
+    -
+      models:
+        - https://linked-in.com
+        - https://twitter.com
+        - https://facebook.com
+        - https://instagram.com
+        - Designed by PROAKTIVIO
+      resources:
+        - templates/images/company-logo.png
+        - templates/images/password.jpg
+        - templates/images/footer.png
+        - templates/images/linkedin.png
+        - templates/images/twitter.png
+        - templates/images/facebook.png
+        - templates/images/instagram.png
+    -
+      name: activate_account.ftlh
+      path: src/main/resources/templates
+    -
+      name: reset_password:ftlh
+      path: src/main/resources/templates
+      resources:
+        - templates/images/resetPassword/password_reset.gif
+safaricom:
+  whiteListedUrls:
+    - http://127.0.0.1
+    - https://proactivio-qwangu.ddns.net
+  daraja:
+    basicAuthentication:
+      consumerKey:
+      consumerSecret:
+    urls:
+      - https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials
+
+rent:
+  cronToCreateInvoice: '0 0/1 * * * ?'
+  dueDatePerMonth: 5
+  penaltyPercentageOfRent: 20
+
+booking:
+  percentage: 20.5
+
+notice:
+  levelOne: 1
+  levelTwo: 0.75
+  levelThree: 0.5
+  levelFour: 0.25
+  levelFive: 0

@@ -1,11 +1,11 @@
 package co.ke.proaktivio.qwanguapi.jobs;
 
 import co.ke.proaktivio.qwanguapi.models.Occupation;
+import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
-import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
 import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,7 +23,6 @@ public class InvoiceJobManager {
     private final OccupationService occupationService;
     private final UnitRepository unitRepository;
     private final InvoiceService invoiceService;
-    private final OccupationTransactionService occupationTransactionService;
     // TODO CREATE JOB TO PROCESS PENDING_OCCUPATION
     // TODO CREATE JOB TO PROCESS PENALTIES (PERCENTAGE OF RENT E.G. 0.08)
     // TODO CREATE JOB TO SEND NOTIFICATIONS OF OVERDUE PAYMENTS
@@ -43,7 +42,7 @@ public class InvoiceJobManager {
         return occupationService.findByStatus(List.of(Occupation.Status.CURRENT))
                 .flatMap(occupation -> unitRepository.findById(occupation.getUnitId())
                         .flatMap(unit -> invoiceService.create(new InvoiceDto(Invoice.Type.RENT, firstDay, lastDay,
-                                unit.getRentPerMonth(), unit.getSecurityPerMonth(), unit.getGarbagePerMonth(),
+                        		Currency.KES, unit.getRentPerMonth(), unit.getSecurityPerMonth(), unit.getGarbagePerMonth(),
                                 null, occupation.getId())))
                 );
 

@@ -2,10 +2,8 @@ package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Notice;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.NoticeService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.CreateNoticeDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.UpdateNoticeDtoValidator;
 import lombok.RequiredArgsConstructor;

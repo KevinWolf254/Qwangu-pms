@@ -1,9 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.handlers.OccupationHandler;
 import co.ke.proaktivio.qwanguapi.handlers.TenantHandler;
-import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.TenantDto;
@@ -27,8 +24,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
-
-import java.util.List;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 

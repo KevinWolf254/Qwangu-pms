@@ -1,7 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.UserAuthorityHandler;
-import co.ke.proaktivio.qwanguapi.handlers.UserRoleHandler;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UserRoleDto;
 import io.swagger.v3.oas.annotations.Operation;

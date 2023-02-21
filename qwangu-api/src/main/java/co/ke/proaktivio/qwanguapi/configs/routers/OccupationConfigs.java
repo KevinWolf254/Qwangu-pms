@@ -1,8 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.OccupationHandler;
-import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
-import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationForNewTenantDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.responses.OccupationResponse;

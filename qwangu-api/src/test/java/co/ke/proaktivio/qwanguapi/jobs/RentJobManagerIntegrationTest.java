@@ -1,30 +1,5 @@
 package co.ke.proaktivio.qwanguapi.jobs;
 
-import co.ke.proaktivio.qwanguapi.models.Occupation;
-import co.ke.proaktivio.qwanguapi.models.Unit;
-import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
-import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
 //@Testcontainers
 //@DataMongoTest(excludeAutoConfiguration = EmbeddedMongoAutoConfiguration.class)
 //@ComponentScan(basePackages = {"co.ke.proaktivio.qwanguapi.*"})

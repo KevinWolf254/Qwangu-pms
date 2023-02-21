@@ -4,6 +4,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.*;
+import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
@@ -163,6 +164,7 @@ public class OccupationServiceImpl implements OccupationService {
                                                         Invoice.Type.RENT_ADVANCE,
                                                         occupationPending.getStartDate(),
                                                         null,
+                                                        Currency.KES,
                                                         totalRentAdvance,
                                                         unit.getSecurityAdvance(),
                                                         unit.getGarbageAdvance(),
@@ -176,6 +178,7 @@ public class OccupationServiceImpl implements OccupationService {
                                                                 Invoice.Type.RENT,
                                                                 startDate,
                                                                 startDate.with(lastDayOfMonth()),
+                                                                Currency.KES,
                                                                 unit.getRentPerMonth(),
                                                                 unit.getSecurityPerMonth(),
                                                                 unit.getGarbagePerMonth(),
