@@ -2,10 +2,16 @@
 Qwangu Management System is a property management system that tracks tenant payments and uses M-Pesa as its primary payment method. It also sends notifications to tenants regarding any outstanding payments. The application has been developed using Spring WebFlux and MongoDB as its database.
 
 ## Features
-* Track tenant payments and due dates
-* Accept payments through M-Pesa
-* Send notifications to tenants regarding outstanding payments
-* Generate payment reports
+* Maintenance requests: Tenants can submit requests for repairs or maintenance through the system, and the property management team can track the status of the request and update the tenant on progress. This feature helps property managers to ensure that maintenance issues are addressed quickly and efficiently, leading to happier tenants and a better-maintained property.
+
+* Accounting and financial tracking: Qwangu Management System includes robust accounting and financial tracking features, allowing property managers to track rent payments, expenses, and generate reports on the financial performance of the property. These reports can help property managers make informed decisions about budgeting and investments.
+
+* Online portal: The system includes an online portal where tenants can manage their accounts, view their lease information, submit maintenance requests, and make payments. This feature adds convenience for tenants and can reduce the workload for property managers.
+
+* Analytics and reporting: The system generates reports and analytics on key performance metrics such as vacancy rates, rental income, and maintenance costs, allowing property managers to identify areas for improvement and make data-driven decisions. This feature is essential for property managers who want to optimize their property's performance and profitability.
+
+Overall, Qwangu Management System is a powerful tool for property managers looking to streamline their operations and provide excellent service to their tenants.
+
 ## Installation
 To use Qwangu Management System, you need to have the following:
 
