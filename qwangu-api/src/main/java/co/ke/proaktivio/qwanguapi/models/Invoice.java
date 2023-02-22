@@ -52,17 +52,18 @@ public class Invoice {
     }
 
     @Transient
-    protected BiFunction<Invoice, Occupation, String> generateInvoiceNumber = (invoice, occupation) -> {
+    public BiFunction<Invoice, Occupation, String> generateInvoiceNumber = (invoice, occupation) -> {
         String prefix = "INV";
-        String previousInvoiceNumber = invoice.getNumber();
+        if(invoice != null) {
+            String previousInvoiceNumber = invoice.getNumber();
 
-        if (!StringUtils.hasText(previousInvoiceNumber)) {
-            return prefix + "100000" + occupation.getNumber();
+           if (StringUtils.hasText(previousInvoiceNumber)) {
+               Integer previousNumber = Integer.valueOf(previousInvoiceNumber.substring(3, 9));
+        	   var nextNumber = previousNumber + 1;
+               return prefix + nextNumber + occupation.getNumber();
+            }        	
         }
-
-        Integer previousNumber = Integer.valueOf(previousInvoiceNumber.substring(3, 9));
-        var nextNumber = previousNumber + 1;
-        return prefix + nextNumber + occupation.getNumber();
+    	return prefix + "100000" + occupation.getNumber();
     };
 
     public static class InvoiceBuilder {

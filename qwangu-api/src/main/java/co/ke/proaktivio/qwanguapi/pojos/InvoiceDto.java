@@ -19,9 +19,11 @@ public class InvoiceDto {
     private LocalDate startDate;
     private LocalDate endDate;
     private Currency currency;
-    private BigDecimal rentAmount;
-    private BigDecimal securityAmount;
-    private BigDecimal garbageAmount;
     private Map<String, BigDecimal> otherAmounts;
     private String occupationId;
+    
+    // type RENT = startDate, endDate, occupationId - cronjob
+    // type RENT_ADVANCE = occupationId
+    // type PENALTY = occupationId - cronjob - PERCENTAGE OF RENT
+    // type UTILITIES = startDate, endDate, occupationId, otherAmounts
 }

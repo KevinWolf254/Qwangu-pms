@@ -6,7 +6,6 @@ import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.services.InvoiceService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.InvoiceDtoValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -33,7 +32,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class InvoiceHandler {
     private final InvoiceService invoiceService;
-
+    // TODO CREATE A ROUTER
     public Mono<ServerResponse> create(ServerRequest request) {
         return request
                 .bodyToMono(InvoiceDto.class)
@@ -53,26 +52,26 @@ public class InvoiceHandler {
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for creating invoice", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("occupationId");
-        return request
-                .bodyToMono(InvoiceDto.class)
-                .doOnSuccess(a -> log.info(" Received request to update {}", a))
-                .map(validateInvoiceDtoFunc(new InvoiceDtoValidator()))
-                .doOnSuccess(a -> log.debug(" Validation of request to update invoice was successful"))
-                .flatMap(dto -> invoiceService.update(id, dto))
-                .doOnSuccess(a -> log.info(" Updated invoice for occupation {}successfully", a.getOccupationId()))
-                .doOnError(e -> log.error(" Failed to update occupation. Error ", e))
-                .flatMap(updated ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true, "Invoice updated successfully.",
-                                        updated)), Response.class))
-                .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating invoice", a.rawStatusCode()));
-    }
+//    public Mono<ServerResponse> update(ServerRequest request) {
+//        String id = request.pathVariable("occupationId");
+//        return request
+//                .bodyToMono(InvoiceDto.class)
+//                .doOnSuccess(a -> log.info(" Received request to update {}", a))
+//                .map(validateInvoiceDtoFunc(new InvoiceDtoValidator()))
+//                .doOnSuccess(a -> log.debug(" Validation of request to update invoice was successful"))
+//                .flatMap(dto -> invoiceService.update(id, dto))
+//                .doOnSuccess(a -> log.info(" Updated invoice for occupation {}successfully", a.getOccupationId()))
+//                .doOnError(e -> log.error(" Failed to update occupation. Error ", e))
+//                .flatMap(updated ->
+//                        ServerResponse
+//                                .ok()
+//                                .body(Mono.just(new Response<>(
+//                                        LocalDateTime.now().toString(),
+//                                        request.uri().getPath(),
+//                                        HttpStatus.OK.value(),true, "Invoice updated successfully.",
+//                                        updated)), Response.class))
+//                .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating invoice", a.rawStatusCode()));
+//    }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("invoiceId");
@@ -90,9 +89,8 @@ public class InvoiceHandler {
 
     public Mono<ServerResponse> find(ServerRequest request) {
         Optional<String> type = request.queryParam("type");
-        Optional<String> month = request.queryParam("month");
-        Optional<String> page = request.queryParam("page");
-        Optional<String> pageSize = request.queryParam("pageSize");
+        Optional<String> invoiceNo = request.queryParam("invoiceNo");
+        Optional<String> occupationId = request.queryParam("occupationId");
         Optional<String> order = request.queryParam("order");
         if (type.isPresent() &&  !EnumUtils.isValidEnum(Invoice.Type.class, type.get())) {
             String[] arrayOfState = Stream.of(Invoice.Type.values()).map(Invoice.Type::getName).toArray(String[]::new);
@@ -102,9 +100,8 @@ public class InvoiceHandler {
         log.info(" Received request for querying occupations");
         return invoiceService.findPaginated(
                         type.map(Invoice.Type::valueOf),
-                        month,
-                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
-                        pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
+                        invoiceNo,
+                        occupationId,
                         order.map(OrderType::valueOf).orElse(OrderType.DESC)
                 ).collectList()
                 .doOnSuccess(a -> log.info(" Query request returned {} occupation", a.size()))

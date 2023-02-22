@@ -158,33 +158,11 @@ public class OccupationServiceImpl implements OccupationService {
                             return unitService
                                     .findById(unitId)
                                     .flatMap(unit -> {
-                                        var totalRentAdvance = unit.getRentPerMonth().multiply(BigDecimal.valueOf(unit.getAdvanceInMonths()));
                                         return invoiceService
-                                                .create(new InvoiceDto(
-                                                        Invoice.Type.RENT_ADVANCE,
-                                                        occupationPending.getStartDate(),
-                                                        null,
-                                                        Currency.KES,
-                                                        totalRentAdvance,
-                                                        unit.getSecurityAdvance(),
-                                                        unit.getGarbageAdvance(),
-                                                        unit.getOtherAmountsAdvance() != unit.getOtherAmountsAdvance() ?
-                                                                unit.getOtherAmountsAdvance() :
-                                                                null,
-                                                        occupationPending.getId()))
+                                                .create(new InvoiceDto(Invoice.Type.RENT_ADVANCE,null, null, null, null, occupationPending.getId()))
                                                 .doOnSuccess(a -> System.out.println("---- Created " + a))
                                                 .flatMap(invoice -> invoiceService
-                                                        .create(new InvoiceDto(
-                                                                Invoice.Type.RENT,
-                                                                startDate,
-                                                                startDate.with(lastDayOfMonth()),
-                                                                Currency.KES,
-                                                                unit.getRentPerMonth(),
-                                                                unit.getSecurityPerMonth(),
-                                                                unit.getGarbagePerMonth(),
-                                                                unit.getOtherAmountsPerMonth() != null ?
-                                                                        unit.getOtherAmountsPerMonth() :
-                                                                        null,
+                                                        .create(new InvoiceDto(Invoice.Type.RENT, startDate, startDate.with(lastDayOfMonth()),null, null,
                                                                 occupationPending.getId())))
                                                 .doOnSuccess(a -> System.out.println("---- Created " + a))
                                                 .flatMap(invoice -> receiptService.create(new ReceiptDto(occupationPending.getId(), paymentId)))

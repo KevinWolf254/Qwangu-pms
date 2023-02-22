@@ -41,9 +41,13 @@ public class InvoiceJobManager {
         var lastDay = firstDay.with(lastDayOfMonth());
         return occupationService.findByStatus(List.of(Occupation.Status.CURRENT))
                 .flatMap(occupation -> unitRepository.findById(occupation.getUnitId())
-                        .flatMap(unit -> invoiceService.create(new InvoiceDto(Invoice.Type.RENT, firstDay, lastDay,
-                        		Currency.KES, unit.getRentPerMonth(), unit.getSecurityPerMonth(), unit.getGarbagePerMonth(),
-                                null, occupation.getId())))
+                        .flatMap(unit -> invoiceService.create(new InvoiceDto(
+                        		Invoice.Type.RENT, 
+                        		firstDay, 
+                        		lastDay,
+                        		Currency.KES, 
+                        		unit.getOtherAmountsPerMonth(), 
+                        		occupation.getId())))
                 );
 
     }
