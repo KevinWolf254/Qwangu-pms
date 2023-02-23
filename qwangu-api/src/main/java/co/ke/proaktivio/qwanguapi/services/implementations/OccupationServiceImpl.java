@@ -65,11 +65,13 @@ public class OccupationServiceImpl implements OccupationService {
         String tenantId = dto.getTenantId();
         OccupationDto occupation = dto.getOccupation();
         if (StringUtils.hasText(tenantId)) {
-            return create(tenantId, occupation);
+            return create(tenantId, occupation)
+                    .doOnSuccess(result -> log.info("Successfully created: {}", result));
         }
         return tenantService
                 .create(dto.getTenant())
-                .flatMap(tenant -> create(tenant.getId(), occupation));
+                .flatMap(tenant -> create(tenant.getId(), occupation))
+                .doOnSuccess(result -> log.info("Successfully created: {}", result));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.configs.properties.RentPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
@@ -15,8 +16,8 @@ import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -28,9 +29,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InvoiceServiceImpl implements InvoiceService {
@@ -38,8 +43,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 	private final OccupationRepository occupationRepository;
 	private final OccupationTransactionService occupationTransactionService;
 	private final ReactiveMongoTemplate template;
-
-	// TODO ADD CALCULATE INVOICE AMOUNTS ACCORDING TO START/ENDDATE AND UNIT
+	private final RentPropertiesConfig rentPropertiesConfig;
+	
 	@Override
 //    @Transactional
 	public Mono<Invoice> create(InvoiceDto dto) {
@@ -75,14 +80,24 @@ public class InvoiceServiceImpl implements InvoiceService {
 												invoice.setGarbageAmount(garbageAdvance);
 												invoice.setOtherAmounts(otherAmountsAdvance);
 											} else if (type.equals(Type.RENT)) {
-												// TODO CALCULATE ACCORDING TO NUMBER OF DAYS
-												invoice.setRentAmount(unit.getRentPerMonth());
+												LocalDate startDate = dto.getStartDate();
+												LocalDate endDate = dto.getEndDate();
+												
+												long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
+												int totalDaysOfMonth = startDate.lengthOfMonth();
+												BigDecimal rentToPay = unit.getRentPerMonth().multiply(BigDecimal.valueOf((int)totalDays / totalDaysOfMonth));
+												
+												invoice.setRentAmount(rentToPay);
+												invoice.setStartDate(startDate);
+												invoice.setEndDate(endDate);
 												invoice.setSecurityAmount(unit.getSecurityPerMonth());
 												invoice.setGarbageAmount(unit.getGarbagePerMonth());
 												invoice.setOtherAmounts(unit.getOtherAmountsPerMonth());												
 											} else if (type.equals(Type.PENALTY)) {
-												// TODO CALCULATE PERCENTAGE OF RENT
-												invoice.setOtherAmounts(dto.getOtherAmounts());
+												Map<String, BigDecimal> penalty = new HashMap<>();
+												penalty.put("PENALTY", unit.getRentPerMonth()
+														.multiply(BigDecimal.valueOf(rentPropertiesConfig.getPenaltyPercentageOfRent() / 100)));
+												invoice.setOtherAmounts(penalty);
 											} else {
 												invoice.setOtherAmounts(dto.getOtherAmounts());
 											}
@@ -92,7 +107,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 							}))
 					.flatMap(invoice -> occupationTransactionService
 							.createDebitTransaction(new DebitTransactionDto(occupationId, invoice.getId()))
-							.then(Mono.just(invoice)));
+							.then(Mono.just(invoice)))
+                    .doOnSuccess(result -> log.info("Successfully created: {}", result));
 	}
 
 //    public Mono<Invoice> create(InvoiceDto dto) {
@@ -175,6 +191,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 		return template.findById(id, Invoice.class)
 				.switchIfEmpty(
 						Mono.error(new CustomNotFoundException("Receivable with id %s does not exist!".formatted(id))))
-				.flatMap(template::remove).map(DeleteResult::wasAcknowledged);
+				.flatMap(template::remove)
+				.map(DeleteResult::wasAcknowledged);
 	}
 }
