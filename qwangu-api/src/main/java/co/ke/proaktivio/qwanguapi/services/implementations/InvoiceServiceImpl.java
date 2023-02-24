@@ -29,6 +29,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -59,11 +60,14 @@ public class InvoiceServiceImpl implements InvoiceService {
 							.findOne(new Query().addCriteria(Criteria.where("occupationId").is(occupation.getId()))
 									.with(Sort.by(Sort.Direction.DESC, "id")), Invoice.class)
 							.switchIfEmpty(Mono.just(new Invoice()))
+		                    .doOnSuccess(result -> log.info("Successfully found: {}", result))
 							.flatMap(previousInvoice -> {
 								var unitId = occupation.getUnitId();
 								return template
 										.findOne(new Query().addCriteria(Criteria.where("id").is(unitId)), Unit.class)
-										.map(unit -> {
+					                    .switchIfEmpty(Mono.error(new CustomBadRequestException("Unit with id %s does not exist!".formatted(unitId))))
+					                    .doOnSuccess(result -> log.info("Successfully found: {}", result))
+					                    .map(unit -> {
 											Currency currency = unit.getCurrency();
 											var invoice = new Invoice();
 											invoice.setType(type);
@@ -83,9 +87,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 												LocalDate startDate = dto.getStartDate();
 												LocalDate endDate = dto.getEndDate();
 												
-												long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
+												long totalDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
 												int totalDaysOfMonth = startDate.lengthOfMonth();
-												BigDecimal rentToPay = unit.getRentPerMonth().multiply(BigDecimal.valueOf((int)totalDays / totalDaysOfMonth));
+												double proRate = (double)totalDays / (double)totalDaysOfMonth;
+												BigDecimal rentToPay = unit.getRentPerMonth().multiply(BigDecimal.valueOf(proRate)).setScale(0, RoundingMode.CEILING);
 												
 												invoice.setRentAmount(rentToPay);
 												invoice.setStartDate(startDate);
