@@ -10,9 +10,8 @@ import java.util.Optional;
 
 public interface InvoiceService {
     Mono<Invoice> create(InvoiceDto dto);
-//    Mono<Invoice> update(String id, InvoiceDto dto);
     Mono<Invoice> findById(String invoiceId);
-    Flux<Invoice> findPaginated(Optional<Invoice.Type> type, Optional<String> invoiceNo, Optional<String> occupationId, 
+    Flux<Invoice> find(Invoice.Type type, String invoiceNo, String occupationId, 
     		OrderType order);
     Mono<Boolean> deleteById(String id);
 }

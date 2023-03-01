@@ -101,7 +101,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 											} else if (type.equals(Type.PENALTY)) {
 												Map<String, BigDecimal> penalty = new HashMap<>();
 												penalty.put("PENALTY", unit.getRentPerMonth()
-														.multiply(BigDecimal.valueOf(rentPropertiesConfig.getPenaltyPercentageOfRent() / 100)));
+														.multiply(BigDecimal.valueOf((double)rentPropertiesConfig.getPenaltyPercentageOfRent() / (double)100))
+														.setScale(0, RoundingMode.CEILING));
 												invoice.setOtherAmounts(penalty);
 											} else {
 												invoice.setOtherAmounts(dto.getOtherAmounts());
@@ -116,86 +117,35 @@ public class InvoiceServiceImpl implements InvoiceService {
                     .doOnSuccess(result -> log.info("Successfully created: {}", result));
 	}
 
-//    public Mono<Invoice> create(InvoiceDto dto) {
-//        String occupationId = dto.getOccupationId();
-//        // TODO INCLUDE BEGINNING_OF_MONTH OR MIDDLE_OF_MONTH IN INVOICE
-//        return occupationRepository.findById(occupationId)
-//                .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation with id %s does not exist!"
-//                        .formatted(occupationId))))
-//                .flatMap(occupation -> template
-//                        .findOne(new Query()
-//                                .addCriteria(Criteria.where("occupationId").is(occupation.getId()))
-//                                .with(Sort.by(Sort.Direction.DESC, "id")), Invoice.class)
-//                        .switchIfEmpty(Mono.just(new Invoice()))
-//                        .map(previousInvoice -> new Invoice.InvoiceBuilder()
-//                                .number(previousInvoice, occupation)
-//                                .type(dto.getType())
-//                                .startDate(occupation.getStartDate())
-//                                .endDate(!dto.getType().equals(Invoice.Type.RENT_ADVANCE) && dto.getEndDate() == null ?
-//                                        occupation.getStartDate().withDayOfMonth(occupation.getStartDate()
-//                                                .getMonth().length(occupation.getStartDate().isLeapYear())) :
-//                                        dto.getEndDate())
-//                                .currency(dto.getCurrency())
-//                                .rentAmount(dto.getRentAmount())
-//                                .securityAmount(dto.getSecurityAmount())
-//                                .garbageAmount(dto.getGarbageAmount())
-//                                .otherAmounts(dto.getOtherAmounts() != null ?
-//                                        dto.getOtherAmounts() :
-//                                        null)
-//                                .occupationId(occupationId)
-//                                .build()))
-//                .flatMap(invoiceRepository::save)
-//                .flatMap(invoice -> occupationTransactionService
-//                        .createDebitTransaction(new DebitTransactionDto(occupationId, invoice.getId()))
-//                        .then(Mono.just(invoice))
-//                );
-//    }
-
 	@Override
 	public Mono<Invoice> findById(String id) {
-		return invoiceRepository.findById(id).switchIfEmpty(
-				Mono.error(new CustomNotFoundException("Invoice with id %s does not exist!".formatted(id))));
+		return invoiceRepository.findById(id);
 	}
 
-//    @Override
-//    public Mono<Invoice> update(String id, InvoiceDto dto) {
-//        return findById(id)
-//                .map(receivable -> {
-//                    receivable.setType(dto.getType());
-//                    receivable.setStartDate(dto.getStartDate());
-//                    receivable.setRentAmount(dto.getRentAmount());
-//                    receivable.setSecurityAmount(dto.getSecurityAmount());
-//                    receivable.setGarbageAmount(dto.getGarbageAmount());
-//                    receivable.setOtherAmounts(dto.getOtherAmounts());
-//                    return receivable;
-//                })
-//                .flatMap(invoiceRepository::save);
-//    }
 
 	@Override
-	public Flux<Invoice> findPaginated(Optional<Invoice.Type> type, Optional<String> invoiceNo,
-			Optional<String> occupationId, OrderType order) {
-		Sort sort = order.equals(OrderType.ASC) ? Sort.by(Sort.Order.asc("id")) : Sort.by(Sort.Order.desc("id"));
+	public Flux<Invoice> find(Invoice.Type type, String invoiceNo, String occupationId,
+			OrderType order) {
+		Sort sort = order != null
+				? order.equals(OrderType.ASC) ? Sort.by(Sort.Order.asc("id")) : Sort.by(Sort.Order.desc("id"))
+				: Sort.by(Sort.Order.desc("id"));
 		Query query = new Query();
-		type.ifPresent(s -> query.addCriteria(Criteria.where("type").is(s)));
-		invoiceNo.ifPresent(number -> {
-			if (StringUtils.hasText(number))
-				query.addCriteria(Criteria.where("number").regex(".*" + number.trim() + ".*", "i"));
-		});
-		occupationId.ifPresent(i -> {
-			if (StringUtils.hasText(i))
-				query.addCriteria(Criteria.where("occupationId").is(i));
-		});
+		if(type != null)
+			query.addCriteria(Criteria.where("type").is(type));
+		if (StringUtils.hasText(invoiceNo))
+			query.addCriteria(Criteria.where("number").regex(".*" + invoiceNo.trim() + ".*", "i"));
+		if (StringUtils.hasText(occupationId))
+			query.addCriteria(Criteria.where("occupationId").is(occupationId.trim()));
+	
 		query.with(sort);
-		return template.find(query, Invoice.class)
-				.switchIfEmpty(Flux.error(new CustomNotFoundException("Invoices were not found!")));
+		return template.find(query, Invoice.class);
 	}
 
 	@Override
 	public Mono<Boolean> deleteById(String id) {
 		return template.findById(id, Invoice.class)
 				.switchIfEmpty(
-						Mono.error(new CustomNotFoundException("Receivable with id %s does not exist!".formatted(id))))
+						Mono.error(new CustomNotFoundException("Invoice with id %s does not exist!".formatted(id))))
 				.flatMap(template::remove)
 				.map(DeleteResult::wasAcknowledged);
 	}

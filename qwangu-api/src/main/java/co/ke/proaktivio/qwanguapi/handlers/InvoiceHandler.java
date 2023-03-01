@@ -66,21 +66,21 @@ public class InvoiceHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> type = request.queryParam("type");
-        Optional<String> invoiceNo = request.queryParam("invoiceNo");
-        Optional<String> occupationId = request.queryParam("occupationId");
-        Optional<String> order = request.queryParam("order");
-        if (type.isPresent() &&  !EnumUtils.isValidEnum(Invoice.Type.class, type.get())) {
+        Optional<String> typeOptional = request.queryParam("type");
+        Optional<String> invoiceNoOptional = request.queryParam("invoiceNo");
+        Optional<String> occupationIdOptional = request.queryParam("occupationId");
+        Optional<String> orderOptional = request.queryParam("order");
+        if (typeOptional.isPresent() &&  !EnumUtils.isValidEnum(Invoice.Type.class, typeOptional.get())) {
             String[] arrayOfState = Stream.of(Invoice.Type.values()).map(Invoice.Type::getName).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Type should be " + states + "!");
         }
         log.info(" Received request for querying occupations");
-        return invoiceService.findPaginated(
-                        type.map(Invoice.Type::valueOf),
-                        invoiceNo,
-                        occupationId,
-                        order.map(OrderType::valueOf).orElse(OrderType.DESC)
+        return invoiceService.find(
+                        typeOptional.map(Invoice.Type::valueOf).orElse(null),
+                        invoiceNoOptional.map(invoiceNo -> invoiceNo).orElse(""),
+                        occupationIdOptional.map(occupationId -> occupationId).orElse(""),
+                        orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC)
                 ).collectList()
                 .doOnSuccess(a -> log.info(" Query request returned {} occupation", a.size()))
                 .doOnError(e -> log.error(" Failed to find occupations. Error ", e))
