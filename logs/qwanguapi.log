@@ -1,14 +1,14 @@
-2023-03-01 06:03:13,171 INFO o.s.b.StartupInfoLogger [main] Starting UnitServiceImplIntegrationTest using Java 17.0.6 on g752vt with PID 38676 (started by kevin in /home/kevin/intelli_j_workspace/Qwangu-pms/qwangu-api)
-2023-03-01 06:03:13,174 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
-2023-03-01 06:03:13,714 INFO o.s.d.r.c.RepositoryConfigurationDelegate [main] Bootstrapping Spring Data Reactive MongoDB repositories in DEFAULT mode.
-2023-03-01 06:03:13,867 INFO o.s.d.r.c.RepositoryConfigurationDelegate [main] Finished Spring Data repository scanning in 148 ms. Found 17 Reactive MongoDB repository interfaces.
-2023-03-01 06:03:14,813 INFO c.m.d.l.SLF4JLogger [main] Cluster created with settings {hosts=[localhost:49192], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms'}
-2023-03-01 06:03:14,947 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='63fec072cb23a756495dba00', description='null'}-localhost:49192] Opened connection [connectionId{localValue:2, serverValue:3}] to localhost:49192
-2023-03-01 06:03:14,947 INFO c.m.d.l.SLF4JLogger [cluster-rtt-ClusterId{value='63fec072cb23a756495dba00', description='null'}-localhost:49192] Opened connection [connectionId{localValue:1, serverValue:4}] to localhost:49192
-2023-03-01 06:03:14,958 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='63fec072cb23a756495dba00', description='null'}-localhost:49192] Monitor thread successfully connected to server with description ServerDescription{address=localhost:49192, type=REPLICA_SET_PRIMARY, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=13, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=47165918, setName='docker-rs', canonicalAddress=1fcb43f86246:27017, hosts=[1fcb43f86246:27017], passives=[], arbiters=[], primary='1fcb43f86246:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=63fec06f22a182984347fe24, counter=6}, lastWriteDate=Wed Mar 01 06:03:12 EAT 2023, lastUpdateTimeNanos=39101131292413}
-2023-03-01 06:03:16,184 INFO o.s.b.StartupInfoLogger [main] Started UnitServiceImplIntegrationTest in 3.354 seconds (JVM running for 7.32)
-2023-03-01 06:03:16,324 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-2-3] Opened connection [connectionId{localValue:3, serverValue:5}] to localhost:49192
-2023-03-01 06:03:16,943 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='63fec072cb23a756495dba00', description='null'}-localhost:49192] Exception in monitor thread while connecting to server localhost:49192
+2023-03-01 06:32:52,216 INFO o.s.b.StartupInfoLogger [main] Starting UnitServiceImplIntegrationTest using Java 17.0.6 on g752vt with PID 42992 (started by kevin in /home/kevin/intelli_j_workspace/Qwangu-pms/qwangu-api)
+2023-03-01 06:32:52,221 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2023-03-01 06:32:52,863 INFO o.s.d.r.c.RepositoryConfigurationDelegate [main] Bootstrapping Spring Data Reactive MongoDB repositories in DEFAULT mode.
+2023-03-01 06:32:53,048 INFO o.s.d.r.c.RepositoryConfigurationDelegate [main] Finished Spring Data repository scanning in 180 ms. Found 17 Reactive MongoDB repository interfaces.
+2023-03-01 06:32:54,142 INFO c.m.d.l.SLF4JLogger [main] Cluster created with settings {hosts=[localhost:49194], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms'}
+2023-03-01 06:32:54,272 INFO c.m.d.l.SLF4JLogger [cluster-rtt-ClusterId{value='63fec7666d62f507980b71fd', description='null'}-localhost:49194] Opened connection [connectionId{localValue:1, serverValue:3}] to localhost:49194
+2023-03-01 06:32:54,272 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='63fec7666d62f507980b71fd', description='null'}-localhost:49194] Opened connection [connectionId{localValue:2, serverValue:4}] to localhost:49194
+2023-03-01 06:32:54,280 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='63fec7666d62f507980b71fd', description='null'}-localhost:49194] Monitor thread successfully connected to server with description ServerDescription{address=localhost:49194, type=REPLICA_SET_PRIMARY, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=13, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=49933810, setName='docker-rs', canonicalAddress=7ef0c84ecf8e:27017, hosts=[7ef0c84ecf8e:27017], passives=[], arbiters=[], primary='7ef0c84ecf8e:27017', tagSet=TagSet{[]}, electionId=7fffffff0000000000000001, setVersion=1, topologyVersion=TopologyVersion{processId=63fec76236bf91aff3f69561, counter=6}, lastWriteDate=Wed Mar 01 06:32:51 EAT 2023, lastUpdateTimeNanos=40880455894388}
+2023-03-01 06:32:55,459 INFO o.s.b.StartupInfoLogger [main] Started UnitServiceImplIntegrationTest in 3.654 seconds (JVM running for 7.816)
+2023-03-01 06:32:55,613 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-2-3] Opened connection [connectionId{localValue:3, serverValue:5}] to localhost:49194
+2023-03-01 06:32:56,183 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='63fec7666d62f507980b71fd', description='null'}-localhost:49194] Exception in monitor thread while connecting to server localhost:49194
 com.mongodb.MongoSocketReadException: Exception receiving message
 	at com.mongodb.internal.connection.InternalStreamConnection.translateReadException(InternalStreamConnection.java:707) ~[mongodb-driver-core-4.4.2.jar:?]
 	at com.mongodb.internal.connection.InternalStreamConnection.receiveMessageWithAdditionalTimeout(InternalStreamConnection.java:579) ~[mongodb-driver-core-4.4.2.jar:?]
@@ -41,7 +41,7 @@ Caused by: java.io.IOException: The connection to the server was closed
 	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74) ~[netty-common-4.1.76.Final.jar:4.1.76.Final]
 	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30) ~[netty-common-4.1.76.Final.jar:4.1.76.Final]
 	... 1 more
-2023-03-01 06:03:16,961 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='63fec072cb23a756495dba00', description='null'}-localhost:49192] Exception in monitor thread while connecting to server localhost:49192
+2023-03-01 06:32:56,201 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='63fec7666d62f507980b71fd', description='null'}-localhost:49194] Exception in monitor thread while connecting to server localhost:49194
 com.mongodb.MongoSocketWriteException: Exception sending message
 	at com.mongodb.internal.connection.InternalStreamConnection.translateWriteException(InternalStreamConnection.java:689) ~[mongodb-driver-core-4.4.2.jar:?]
 	at com.mongodb.internal.connection.InternalStreamConnection.sendMessage(InternalStreamConnection.java:560) ~[mongodb-driver-core-4.4.2.jar:?]

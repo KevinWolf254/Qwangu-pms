@@ -29,7 +29,6 @@ import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.Optional;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -324,14 +323,14 @@ class UnitServiceImplIntegrationTest {
                 .then(unitRepository.save(unit))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(unitService.find(
-                        Optional.of(propertyId),
-                        Optional.of(Unit.Status.VACANT),
-                        Optional.of("TE34"),
-                        Optional.of(Unit.UnitType.APARTMENT_UNIT),
-                        Optional.of(Unit.Identifier.B),
-                        Optional.of(2),
-                        Optional.of(2),
-                        Optional.of(1),
+                        propertyId,
+                        Unit.Status.VACANT,
+                        "TE34",
+                        Unit.UnitType.APARTMENT_UNIT,
+                        Unit.Identifier.B,
+                        2,
+                        2,
+                        1,
                         OrderType.ASC))
                 .doOnNext(u -> System.out.println("---- Found " + u));
 
@@ -362,14 +361,14 @@ class UnitServiceImplIntegrationTest {
         Flux<Unit> createUnitAndFindAllOnSecondFloor = unitRepository.save(unit2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .thenMany(unitService.find(
-                        Optional.of(propertyId),
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty(),
-                        Optional.empty(),
+                        propertyId,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                       	null,
                         OrderType.DESC))
                 .doOnNext(a -> System.out.println(" Found " + a));
 
@@ -388,14 +387,14 @@ class UnitServiceImplIntegrationTest {
 
         // when
         Flux<Unit> findUnitNonExisting = unitService.find(
-                        Optional.of(propertyId),
-                        Optional.of(Unit.Status.VACANT),
-                        Optional.of("TE35"),
-                        Optional.of(Unit.UnitType.APARTMENT_UNIT),
-                        Optional.of(Unit.Identifier.E),
-                        Optional.of(2),
-                        Optional.of(2),
-                        Optional.of(1),
+                        propertyId,
+                        Unit.Status.VACANT,
+                        "TE35",
+                        Unit.UnitType.APARTMENT_UNIT,
+                        Unit.Identifier.E,
+                        2,
+                        2,
+                        1,
                         OrderType.ASC);
         // then
         StepVerifier

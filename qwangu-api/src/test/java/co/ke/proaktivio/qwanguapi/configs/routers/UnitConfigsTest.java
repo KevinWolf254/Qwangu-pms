@@ -9,7 +9,6 @@ import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,6 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -297,8 +295,6 @@ public class UnitConfigsTest {
         String propertyId = "1";
         String page = "1";
         String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.VACANT)
@@ -335,14 +331,14 @@ public class UnitConfigsTest {
 
         // when
         when(unitService.find(
-                Optional.of(propertyId),
-                Optional.of(Unit.Status.VACANT),
-                Optional.of(accountNo),
-                Optional.of(type),
-                Optional.of(identifier),
-                Optional.of(floorNo),
-                Optional.of(noOfBedrooms),
-                Optional.of(noOfBathrooms),
+                propertyId,
+                Unit.Status.VACANT,
+                accountNo,
+                type,
+                identifier,
+                floorNo,
+                noOfBedrooms,
+                noOfBathrooms,
                 order
                 )).thenReturn(Flux.just(unit));
 

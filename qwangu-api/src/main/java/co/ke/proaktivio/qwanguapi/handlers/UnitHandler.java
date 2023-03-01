@@ -2,6 +2,7 @@ package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Unit;
+import co.ke.proaktivio.qwanguapi.models.Unit.Identifier;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
 import co.ke.proaktivio.qwanguapi.validators.UnitDtoValidator;
@@ -70,21 +71,13 @@ public class UnitHandler {
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating unit", a.rawStatusCode()));
     }
 
-    private Optional<Integer> convertToInteger(Optional<String> paramOpt) {
-        Optional<Integer> result = Optional.empty();
+    private Integer convertToInteger(Optional<String> paramOpt) {
         if (paramOpt.isPresent()) {
             String value = paramOpt.get();
             if (NumberUtils.isParsable(value))
-                result = Optional.of(NumberUtils.createInteger(value));
+                return NumberUtils.createInteger(value);
         }
-        return result;
-    }
-
-    private Optional<Unit.Identifier> convertToIdentifier(String param) {
-        if(EnumUtils.isValidEnumIgnoreCase(Unit.Identifier.class, param)){
-            return Optional.of(EnumUtils.getEnum(Unit.Identifier.class, param));
-        }
-        throw new CustomBadRequestException("Not a valid Identifier!");
+        return null;
     }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
@@ -112,42 +105,41 @@ public class UnitHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> propertyId = request.queryParam("propertyId");
-        Optional<String> status = request.queryParam("status");
-        Optional<String> accountNo = request.queryParam("accountNo");
-        Optional<String> type = request.queryParam("type");
-        Optional<String> identifier = request.queryParam("identifier");
-        Optional<String> floorNo = request.queryParam("floorNo");
-        Optional<String> bedrooms = request.queryParam("noOfBedrooms");
-        Optional<String> bathrooms = request.queryParam("noOfBathrooms");
-        Optional<String> order = request.queryParam("order");
+        Optional<String> propertyIdOptional = request.queryParam("propertyId");
+        Optional<String> statusOptional = request.queryParam("status");
+        Optional<String> accountNoOPtional = request.queryParam("accountNo");
+        Optional<String> typeOPtional = request.queryParam("type");
+        Optional<String> identifierOptional = request.queryParam("identifier");
+        Optional<String> floorNoOptional = request.queryParam("floorNo");
+        Optional<String> bedroomsOptional = request.queryParam("noOfBedrooms");
+        Optional<String> bathroomsOptional = request.queryParam("noOfBathrooms");
+        Optional<String> orderOptional = request.queryParam("order");
 
-        if (type.isPresent() &&  !EnumUtils.isValidEnum(Unit.UnitType.class, type.get())) {
+        if (typeOPtional.isPresent() &&  !EnumUtils.isValidEnum(Unit.UnitType.class, typeOPtional.get())) {
             String[] arrayOfState = Stream.of(Unit.UnitType.values()).map(Unit.UnitType::getType).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Unit type should be " + states + "!");
         }
         log.debug(" Validation of request param Unit.Type was successful");
 
-        if (status.isPresent() &&  !EnumUtils.isValidEnum(Unit.Status.class, status.get())) {
+        if (statusOptional.isPresent() &&  !EnumUtils.isValidEnum(Unit.Status.class, statusOptional.get())) {
             String[] arrayOfState = Stream.of(Unit.Status.values()).map(Unit.Status::getState).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Status should be " + states + "!");
         }
         log.debug(" Validation of request param Unit.Status was successful");
 
-            Optional<Integer> floorNoResult = convertToInteger(floorNo);
-            Optional<Integer> noOfBedrooms = convertToInteger(bedrooms);
-            Optional<Integer> noOfBathrooms = convertToInteger(bathrooms);
-            Optional<Unit.Identifier> finalIdentifier = identifier.flatMap(this::convertToIdentifier);
-            OrderType finalOrder = order.map(OrderType::valueOf).orElse(OrderType.DESC);
+            Integer floorNoResult = convertToInteger(floorNoOptional);
+            Integer noOfBedrooms = convertToInteger(bedroomsOptional);
+            Integer noOfBathrooms = convertToInteger(bathroomsOptional);
+            OrderType finalOrder = orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC);
 
             return unitService.find(
-                            propertyId,
-                            status.map(Unit.Status::valueOf),
-                            accountNo,
-                            type.map(Unit.UnitType::valueOf),
-                            finalIdentifier,
+                            propertyIdOptional.map(propertyId -> propertyId).orElse(""),
+                            statusOptional.map(Unit.Status::valueOf).orElse(null),
+                            accountNoOPtional.map(accountNo -> accountNo).orElse(""),
+                            typeOPtional.map(Unit.UnitType::valueOf).orElse(null),
+                            identifierOptional.map(Identifier::valueOf).orElse(null),
                             floorNoResult,
                             noOfBedrooms,
                             noOfBathrooms,
