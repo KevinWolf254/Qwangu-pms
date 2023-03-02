@@ -8,7 +8,6 @@ import co.ke.proaktivio.qwanguapi.handlers.OccupationHandler;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +30,6 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -240,10 +238,10 @@ class OccupationConfigsTest {
 
         // when
         when(occupationService.findAll(
-                Optional.of(Occupation.Status.CURRENT),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
+                Occupation.Status.CURRENT,
+                null,
+                null,
+                null,
                 OrderType.DESC
         )).thenReturn(Flux.empty());
         // then
@@ -283,10 +281,10 @@ class OccupationConfigsTest {
 
         // when
         when(occupationService.findAll(
-                Optional.of(Occupation.Status.CURRENT),
-                Optional.of(number),
-                Optional.of(unitId),
-                Optional.of(tenantId),
+                Occupation.Status.CURRENT,
+                number,
+                unitId,
+                tenantId,
                 order
         )).thenReturn(Flux.just(occupation));
 
@@ -317,7 +315,6 @@ class OccupationConfigsTest {
     @WithMockUser(roles = {"SUPER_ADMIN"})
     void find_returnsBadRequest_whenStatusIsInvalid() {
         // given
-        String id = "1";
         String unitId = "1";
         String tenantId = "1";
         OrderType order = OrderType.ASC;

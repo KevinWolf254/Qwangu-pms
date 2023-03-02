@@ -17,7 +17,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -62,12 +61,12 @@ public class OccupationHandler {
     }
 
     public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> status = request.queryParam("status");
-        Optional<String> number = request.queryParam("number");
-        Optional<String> unitId = request.queryParam("unitId");
-        Optional<String> tenantId = request.queryParam("tenantId");
-        Optional<String> order = request.queryParam("order");
-        if (status.isPresent() && StringUtils.hasText(status.get()) && !EnumUtils.isValidEnum(Occupation.Status.class, status.get())) {
+        Optional<String> statusOptional = request.queryParam("status");
+        Optional<String> occupationNoOptional = request.queryParam("occupationNo");
+        Optional<String> unitIdOptional = request.queryParam("unitId");
+        Optional<String> tenantIdOptional = request.queryParam("tenantId");
+        Optional<String> orderOptional = request.queryParam("order");
+        if (statusOptional.isPresent() && StringUtils.hasText(statusOptional.get()) && !EnumUtils.isValidEnum(Occupation.Status.class, statusOptional.get())) {
             String[] arrayOfState = Stream.of(Occupation.Status.values()).map(Occupation.Status::getState).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Status should be " + states + "!");
@@ -75,11 +74,11 @@ public class OccupationHandler {
         return ServerResponse
                 .ok()
                 .body(occupationService.findAll(
-                                StringUtils.hasText(status.get()) ? status.map(Occupation.Status::valueOf): Optional.empty(),
-                                number,
-                                unitId,
-                                tenantId,
-                                order.map(OrderType::valueOf).orElse(OrderType.DESC)
+                		statusOptional.map(Occupation.Status::valueOf).orElse(null),
+                		occupationNoOptional.map(occupationNo -> occupationNo).orElse(""),
+                        unitIdOptional.map(unitId -> unitId).orElse(""),
+                        tenantIdOptional.map(tenantId -> tenantId).orElse(""),
+                        orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC)
                         ).collectList()
                         .flatMap(occupations -> {
                             var success = !occupations.isEmpty();

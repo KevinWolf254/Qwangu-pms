@@ -4,7 +4,6 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.*;
-import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
@@ -23,7 +22,6 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 
@@ -261,32 +259,27 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     @Override
-    public Flux<Occupation> findAll(Optional<Occupation.Status> status, Optional<String> occupationNo, Optional<String> unitId,
-                                    Optional<String> tenantId, OrderType order) {
+    public Flux<Occupation> findAll(Occupation.Status status, String occupationNo, String unitId,
+                                    String tenantId, OrderType order) {
         Sort sort = order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
                 Sort.by(Sort.Order.desc("id"));
+        
         Query query = new Query();
-        status.ifPresent(state -> query.addCriteria(Criteria.where("status").is(state)));
-        occupationNo.ifPresent(number -> {
-            if(StringUtils.hasText(number))
-                query.addCriteria(Criteria.where("number").regex(".*" + number.trim() + ".*", "i"));
-        });
-        unitId.ifPresent(uId -> {
-            if (StringUtils.hasText(uId))
-                query.addCriteria(Criteria.where("unitId").is(uId));
-        });
-        tenantId.ifPresent(tId -> {
-            if(StringUtils.hasText(tId))
-                query.addCriteria(Criteria.where("tenantId").is(tId));
-        });
+        if(StringUtils.hasText(occupationNo))
+            query.addCriteria(Criteria.where("number").regex(".*" + occupationNo.trim() + ".*", "i"));
+        if (status != null)
+        	query.addCriteria(Criteria.where("status").is(status));
+        if (StringUtils.hasText(unitId))
+            query.addCriteria(Criteria.where("unitId").is(unitId.trim()));
+        if(StringUtils.hasText(tenantId))
+            query.addCriteria(Criteria.where("tenantId").is(tenantId.trim()));
 
         query.with(sort);
         return template
                 .find(query, Occupation.class);
     }
 
-    // TODO ENSURE CAN NOT DELETE WHEN STATUS IS PENDING_OCCUPATION, CURRENT, PENDING_VACATING
     @Override
     public Mono<Boolean> deleteById(String id) {
         return template
@@ -294,7 +287,7 @@ public class OccupationServiceImpl implements OccupationService {
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!"
                         .formatted(id))))
                 .filter(occupation -> occupation.getStatus().equals(Occupation.Status.VACATED))
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation can not be deleted. Status is not %s."
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Occupation can not be deleted. Status is not %s."
                         .formatted(Occupation.Status.VACATED.getState()))))
                 .flatMap(template::remove)
                 .map(DeleteResult::wasAcknowledged);

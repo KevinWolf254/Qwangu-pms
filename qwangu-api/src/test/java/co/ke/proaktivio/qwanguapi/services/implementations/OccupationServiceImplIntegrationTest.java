@@ -5,6 +5,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.*;
+import co.ke.proaktivio.qwanguapi.models.Occupation.Status;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
@@ -26,7 +27,6 @@ import reactor.test.StepVerifier;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 
 @Testcontainers
@@ -642,8 +642,8 @@ class OccupationServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
                 .then(occupationRepository.save(occupation))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(occupationService.findAll(Optional.of(Occupation.Status.CURRENT), Optional.empty(),
-                        Optional.of("1"), Optional.of("1"), OrderType.ASC));
+                .thenMany(occupationService.findAll(Occupation.Status.CURRENT, null,
+                        "1", "1", OrderType.ASC));
         // then
         StepVerifier
                 .create(findOccupation)
@@ -654,8 +654,8 @@ class OccupationServiceImplIntegrationTest {
     @Test
     void findAll_returnsEmpty_whenNoOccupationFound() {
         // when
-        Flux<Occupation> findOccupationNotExist = occupationService.findAll(Optional.of(Occupation.Status.CURRENT),
-                Optional.empty(), Optional.of("13"), Optional.of("14"),  OrderType.ASC);
+        Flux<Occupation> findOccupationNotExist = occupationService.findAll(Occupation.Status.CURRENT,
+                null, "13", "14",  OrderType.ASC);
         // then
         StepVerifier
                 .create(findOccupationNotExist)
@@ -682,8 +682,8 @@ class OccupationServiceImplIntegrationTest {
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(occupationRepository.save(occupation2))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(occupationService.findAll(Optional.empty(), Optional.empty(),
-                        Optional.empty(), Optional.empty(), OrderType.DESC));
+                .thenMany(occupationService.findAll(null, null,
+                        null, null, OrderType.DESC));
         // then
         StepVerifier
                 .create(findAll)
@@ -692,7 +692,6 @@ class OccupationServiceImplIntegrationTest {
                 .verifyComplete();
     }
 
-    // TODO ADD TESTS FOR WHEN STATUS IS PENDING_OCCUPATION, CURRENT, PENDING_VACATING
     @Test
     void deleteById_returnsTrue_whenOccupationStatusIsVacated() {
         // given
@@ -719,7 +718,35 @@ class OccupationServiceImplIntegrationTest {
                 .expectNext(true)
                 .verifyComplete();
     }
-
+    
+    @Test
+    void deleteById_returnsCustomBadRequestException_whenOccupationIsNotVacated() {
+    	// given
+    	var occupationId = "1";
+        Status status = Occupation.Status.CURRENT;
+        Status statusRequired = Occupation.Status.VACATED;
+        var occupation = new Occupation.OccupationBuilder()
+                .tenantId("1")
+                .startDate(LocalDate.now())
+                .unitId("1")
+                .build();
+        occupation.setId(occupationId);
+		occupation.setStatus(status);
+        // when
+        Mono<Boolean> deleteCurrent = occupationRepository
+                .deleteAll()
+                .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
+                .then(occupationRepository.save(occupation))
+                .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                .then(occupationService.deleteById(occupationId));
+        // then
+        StepVerifier
+                .create(deleteCurrent)
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
+                        e.getMessage().equals("Occupation can not be deleted. Status is not %s.".formatted(statusRequired.getState())))
+                .verify();
+    }
+    
     @Test
     void deleteById_returnsCustomNotFoundException_whenOccupationIdDoesNotExist() {
         // when
