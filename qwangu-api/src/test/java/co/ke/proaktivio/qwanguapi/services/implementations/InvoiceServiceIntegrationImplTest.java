@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -292,6 +291,7 @@ class InvoiceServiceIntegrationImplTest {
 	}
 
 
+	@SuppressWarnings("serial")
 	@Test
 	void create_returnsInvoiceSuccessfully_forUtilities() {
 		// given
@@ -364,6 +364,7 @@ class InvoiceServiceIntegrationImplTest {
 		
 	}
 
+	@SuppressWarnings("serial")
 	@Test
 	void find_returnsSuccessfuly_whenInvoiceExists() {
 		// given

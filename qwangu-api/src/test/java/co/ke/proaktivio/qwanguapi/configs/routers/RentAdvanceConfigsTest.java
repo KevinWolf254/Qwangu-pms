@@ -55,7 +55,6 @@ class RentAdvanceConfigsTest {
     public void setUp() {client = WebTestClient.bindToApplicationContext(context).build();}
 
     private LocalDate today = LocalDate.now();
-    private final LocalDateTime now = LocalDateTime.now();
     private final String advanceId = "1";
     private final RentAdvance advance = new RentAdvance(advanceId, RentAdvance.Status.RELEASED, "Details!", "1",
             "1", today, LocalDateTime.now(), null, LocalDateTime.now(), null);

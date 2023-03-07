@@ -9,7 +9,6 @@ import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import co.ke.proaktivio.qwanguapi.services.TenantService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -235,8 +234,6 @@ class TenantConfigsTest {
         String emailAddress = "person@gmail.com";
         String page = "1";
         String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
         var tenant = new Tenant(id, "John", "Doe", "Doe", mobileNumber, emailAddress,
                 LocalDateTime.now(), null, null, null);

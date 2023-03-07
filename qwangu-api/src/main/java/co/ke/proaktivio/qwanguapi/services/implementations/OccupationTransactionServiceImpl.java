@@ -1,9 +1,12 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
+import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
+import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type;
+import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
 import co.ke.proaktivio.qwanguapi.pojos.CreditTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.DebitTransactionDto;
@@ -12,32 +15,24 @@ import co.ke.proaktivio.qwanguapi.repositories.OccupationTransactionRepository;
 import co.ke.proaktivio.qwanguapi.services.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 @Log4j2
 @Service
 @RequiredArgsConstructor
 public class OccupationTransactionServiceImpl implements OccupationTransactionService {
     private final OccupationTransactionRepository occupationTransactionRepository;
-    private final PaymentService paymentService;
     private final ReactiveMongoTemplate template;
-
-    private Mono<Invoice> findInvoiceById(String id) {
-        return template.findById(id, Invoice.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Invoice with id %s does not exist!"
-                        .formatted(id))));
-    }
 
     @Override
     public Mono<OccupationTransaction> createDebitTransaction(DebitTransactionDto dto) {
@@ -77,50 +72,38 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
                         )
                 );
     }
-
-    private Mono<Occupation> findOccupationById(String id) {
-        return template.findById(id, Occupation.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))));
-    }
-
-    private Mono<Receipt> findReceiptById(String id) {
-        return template.findById(id, Receipt.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Receipt with id %s does not exist!".formatted(id))));
-    }
-
+    
     @Override
-    public Mono<OccupationTransaction> createCreditTransaction(CreditTransactionDto dto) {
-        return findOccupationById(dto.getOccupationId())
-                .flatMap(occupation -> findReceiptById(dto.getReceiptId())
-                                .flatMap(receipt -> paymentService.findById(receipt.getPaymentId())
-                                                .flatMap(payment -> findLatestByOccupationId(occupation.getId())
-                                                        .switchIfEmpty(Mono.just(
-                                                                new OccupationTransaction.OccupationTransactionBuilder()
-                                                                        .totalAmountCarriedForward(BigDecimal.ZERO)
-                                                                        .occupationId(occupation.getId())
-                                                                        .build()))
-                                                        .flatMap(previousOccupationTransaction -> {
-                                                            OccupationTransaction ot = new OccupationTransaction();
+	public Mono<OccupationTransaction> createCreditTransaction(CreditTransactionDto dto) {
+		return findOccupationById(dto.getOccupationId())
+				.flatMap(occupation -> findReceiptById(dto.getReceiptId())
+						.flatMap(receipt -> findPaymentById(receipt.getPaymentId())
+								.flatMap(payment -> findLatestByOccupationId(occupation.getId())
+										.switchIfEmpty(
+												Mono.just(new OccupationTransaction.OccupationTransactionBuilder()
+														.totalAmountCarriedForward(BigDecimal.ZERO)
+														.occupationId(occupation.getId()).build()))
+										.flatMap(previousOccupationTransaction -> {
+											OccupationTransaction ot = new OccupationTransaction();
 
-                                                            BigDecimal totalPayment = BigDecimal.ZERO.add(payment.getAmount());
-                                                            BigDecimal amountBroughtForward = previousOccupationTransaction.getTotalAmountCarriedForward();
+											BigDecimal amount = payment.getAmount();
+											BigDecimal totalPayment = BigDecimal.ZERO.add(amount);
+											BigDecimal amountBroughtForward = previousOccupationTransaction
+													.getTotalAmountCarriedForward();
 
-                                                            BigDecimal totalCarriedForward = totalPayment.subtract(amountBroughtForward);
+											BigDecimal totalCarriedForward = totalPayment
+													.subtract(amountBroughtForward);
 
-                                                            ot.setType(OccupationTransaction.Type.CREDIT);
-                                                            ot.setOccupationId(occupation.getId());
-                                                            ot.setReceiptId(receipt.getId());
-                                                            ot.setTotalAmountPaid(payment.getAmount());
-                                                            ot.setTotalAmountCarriedForward(totalCarriedForward);
-                                                            ot.setTotalAmountOwed(BigDecimal.ZERO);
-                                                            return occupationTransactionRepository.save(ot);
-                                                        })
-                                                        .doOnSuccess(t -> log.info(" Created: {}", t))
-                                                )
-                                )
-                );
+											ot.setType(OccupationTransaction.Type.CREDIT);
+											ot.setOccupationId(occupation.getId());
+											ot.setReceiptId(receipt.getId());
+											ot.setTotalAmountPaid(amount);
+											ot.setTotalAmountCarriedForward(totalCarriedForward);
+											ot.setTotalAmountOwed(BigDecimal.ZERO);
+											return occupationTransactionRepository.save(ot);
+										}).doOnSuccess(t -> log.info(" Created: {}", t)))));
 
-    }
+	}
 
     @Override
     public Mono<OccupationTransaction> findLatestByOccupationId(String occupationId) {
@@ -132,27 +115,60 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
 
     @Override
     public Mono<OccupationTransaction> findById(String occupationTransactionId) {
-        return template.findById(occupationTransactionId, OccupationTransaction.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("OccupationTransaction with id %s could not be found!".formatted(occupationTransactionId))));
+        return occupationTransactionRepository.findById(occupationTransactionId);
     }
 
-    @Override
-    public Flux<OccupationTransaction> findPaginated(Optional<OccupationTransaction.Type> type, Optional<String> occupationId,
-                                                     Optional<String> receivableId, Optional<String> paymentId, int page,
-                                                     int pageSize, OrderType order) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
-        Sort sort = order.equals(OrderType.ASC) ?
-                Sort.by(Sort.Order.asc("id")) :
-                Sort.by(Sort.Order.desc("id"));
-        Query query = new Query();
-        type.ifPresent(s -> query.addCriteria(Criteria.where("type").is(s)));
-        occupationId.ifPresent(i -> query.addCriteria(Criteria.where("occupationId").is(i)));
-        receivableId.ifPresent(i -> query.addCriteria(Criteria.where("receivableId").is(i)));
-        paymentId.ifPresent(i -> query.addCriteria(Criteria.where("paymentId").is(i)));
-        query.with(pageable)
-                .with(sort);
-        return template
-                .find(query, OccupationTransaction.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("OccupationTransactions were not found!")));
+	@Override
+	public Flux<OccupationTransaction> findAll(OccupationTransaction.Type type, String occupationId,
+			String invoiceId, String receiptId, OrderType order) {
+		boolean hasReceiptId = StringUtils.hasText(receiptId);
+		boolean hasInvoiceId = StringUtils.hasText(invoiceId);
+		
+		if(hasReceiptId && hasInvoiceId)
+			return Flux.error(new CustomBadRequestException("Choose either invoiceId or receiptId. Both will not exist!"));
+
+		Query query = new Query();
+		if (type != null) {
+			if(type.equals(Type.CREDIT) && hasInvoiceId)
+				return Flux.error(new CustomBadRequestException("CREDIT will not have an invoice id!"));
+			if(type.equals(Type.DEBIT) && hasReceiptId)
+				return Flux.error(new CustomBadRequestException("DEBIT will not have an receipt id!"));
+			
+			query.addCriteria(Criteria.where("type").is(type));
+		}
+		if (StringUtils.hasText(occupationId))
+			query.addCriteria(Criteria.where("occupationId").is(occupationId.trim()));
+		if (hasInvoiceId)
+			query.addCriteria(Criteria.where("invoiceId").is(invoiceId.trim()));
+		if (hasReceiptId)
+			query.addCriteria(Criteria.where("receiptId").is(receiptId.trim()));		
+
+		Sort sort = order != null
+				? order.equals(OrderType.ASC) ? Sort.by(Sort.Order.asc("id")) : Sort.by(Sort.Order.desc("id"))
+				: Sort.by(Sort.Order.desc("id"));
+		query.with(sort);
+
+		return template.find(query, OccupationTransaction.class);
+	}
+
+    private Mono<Occupation> findOccupationById(String id) {
+        return template.findById(id, Occupation.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))));
+    }
+
+    private Mono<Receipt> findReceiptById(String id) {
+        return template.findById(id, Receipt.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Receipt with id %s does not exist!".formatted(id))));
+    }
+
+    private Mono<Payment> findPaymentById(String id) {
+        return template.findById(id, Payment.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Payment with id %s does not exist!".formatted(id))));
+    }
+    
+    private Mono<Invoice> findInvoiceById(String id) {
+        return template.findById(id, Invoice.class)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Invoice with id %s does not exist!"
+                        .formatted(id))));
     }
 }

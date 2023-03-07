@@ -32,7 +32,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -435,7 +434,6 @@ class PropertyConfigsTest {
     void update_returnsException_status500() {
         // given
         String id = "1";
-        String name = "Luxury properties";
         var dto = getPropertyDto();
 
         //when

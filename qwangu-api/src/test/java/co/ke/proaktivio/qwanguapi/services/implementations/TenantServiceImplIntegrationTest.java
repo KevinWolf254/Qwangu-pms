@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -31,8 +30,6 @@ import java.util.Optional;
 class TenantServiceImplIntegrationTest {
     @Autowired
     private TenantRepository tenantRepository;
-    @Autowired
-    private ReactiveMongoTemplate template;
     @Autowired
     private TenantServiceImpl tenantService;
     @MockBean
