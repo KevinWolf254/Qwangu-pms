@@ -101,7 +101,7 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
 											ot.setTotalAmountCarriedForward(totalCarriedForward);
 											ot.setTotalAmountOwed(BigDecimal.ZERO);
 											return occupationTransactionRepository.save(ot);
-										}).doOnSuccess(t -> log.info(" Created: {}", t)))));
+										}).doOnSuccess(t -> log.info("Created: {}", t)))));
 
 	}
 

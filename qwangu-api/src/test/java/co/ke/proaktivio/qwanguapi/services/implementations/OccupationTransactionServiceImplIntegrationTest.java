@@ -28,7 +28,6 @@ import co.ke.proaktivio.qwanguapi.models.Receipt;
 import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
 import co.ke.proaktivio.qwanguapi.pojos.CreditTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.DebitTransactionDto;
-import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.InvoiceRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;

@@ -36,6 +36,10 @@ public class Receipt {
     @Transient
     protected BiFunction<Receipt, Occupation, String> generateReceiptNumber = (receipt, occupation) -> {
         String prefix = "RCT";
+        if(receipt == null) {
+            return prefix + "100000" + occupation.getNumber();
+        }
+        
         String previousReceiptNumber = receipt.getNumber();
 
         if (!StringUtils.hasText(previousReceiptNumber)) {
