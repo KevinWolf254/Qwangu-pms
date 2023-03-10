@@ -1,9 +1,9 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
-import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.TokenHandler;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
@@ -36,7 +36,8 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = {TokenConfigs.class, TokenHandler.class, SecurityConfig.class,
         GlobalErrorConfig.class, GlobalErrorWebExceptionHandler.class})
 class TokenConfigsTest {
-    @Autowired
+    @SuppressWarnings("unused")
+	@Autowired
     private ApplicationContext context;
     @Autowired
     private WebTestClient client;

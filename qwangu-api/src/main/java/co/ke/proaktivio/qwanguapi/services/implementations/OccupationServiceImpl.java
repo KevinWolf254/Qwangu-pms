@@ -1,6 +1,5 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
-import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.*;
@@ -176,41 +175,6 @@ public class OccupationServiceImpl implements OccupationService {
                                     .flatMap(p -> Mono.just(occupationPending));
                         })
                 );
-    }
-
-    private Mono<Boolean> checkOccupationExistsByUnitIdAndOccupationStatus(String unitId, Occupation.Status status) {
-        Query occupationUnAvailable = new Query()
-                .addCriteria(Criteria
-                        .where("unitId").is(unitId)
-                        .and("status").is(status));
-        return template.exists(occupationUnAvailable, Occupation.class);
-    }
-
-    private Mono<Occupation> findByUnitIdAndOccupationStatus(String unitId, Occupation.Status status) {
-        Query occupationUnAvailable = new Query()
-                .addCriteria(Criteria
-                        .where("unitId").is(unitId)
-                        .and("status").is(status));
-        return template.findOne(occupationUnAvailable, Occupation.class);
-    }
-
-    private Mono<Boolean> checkIfUnitIsAlreadyOccupied(String unitId) {
-        return findByUnitIdAndOccupationStatus(unitId, Occupation.Status.CURRENT)
-                .flatMap(occupation -> {
-                    if (occupation != null) {
-                        return noticeService.findByOccupationIdAndIsActive(occupation.getId(), Notice.Status.ACTIVE)
-                                .flatMap(notice -> {
-                                    if (notice != null) {
-                                        return Mono.just(false);
-                                    }
-                                    return Mono.just(true);
-                                });
-                    }
-                    return Mono.just(false);
-                })
-                .switchIfEmpty(Mono.just(false))
-                .filter(exists -> !exists)
-                .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Unit already occupied!")));
     }
 
     @Override

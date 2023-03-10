@@ -67,7 +67,7 @@ public class OccupationTransactionConfig {
         return route()
                 .path("v1/occupationTransactions", builder -> builder
                         .GET("/{occupationTransactionId}", handler::findById)
-                        .GET(handler::find)
+                        .GET(handler::findAll)
                 ).build();
     }
 }

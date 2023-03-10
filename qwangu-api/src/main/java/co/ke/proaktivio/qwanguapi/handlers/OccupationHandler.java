@@ -30,7 +30,7 @@ public class OccupationHandler {
         return request
                 .bodyToMono(OccupationForNewTenantDto.class)
                 .doOnSuccess(dto -> log.debug(" Received request to create {}", dto))
-                .map(ValidatorUtil.validateOccupationForNewTenantDto(new OccupationForNewTenantDtoValidator()))
+                .map(ValidationUtil.validateOccupationForNewTenantDto(new OccupationForNewTenantDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to create user was successful"))
                 .flatMap(occupationService::create)
                 .doOnSuccess(a -> log.info(" Created occupation for tenant {} and unit {} successfully",

@@ -9,6 +9,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 import java.util.function.BiFunction;
 
@@ -23,6 +25,7 @@ public class Receipt {
     @Indexed(unique = true)
     private String number;
     private String occupationId;
+    @Indexed(unique = true)
     private String paymentId;
     @CreatedDate
     private LocalDateTime createdOn;
@@ -33,6 +36,7 @@ public class Receipt {
     @LastModifiedBy
     private String modifiedBy;
 
+    @JsonIgnore
     @Transient
     protected BiFunction<Receipt, Occupation, String> generateReceiptNumber = (receipt, occupation) -> {
         String prefix = "RCT";

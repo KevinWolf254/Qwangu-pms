@@ -32,13 +32,19 @@ public class ReceiptServiceImpl implements ReceiptService {
     private final ReceiptRepository receiptRepository;
     private final ReactiveMongoTemplate template;
 
+    // TODO ENABLE TRANSACTIONAL
     @Override
+    //@Transactional
     public Mono<Receipt> create(ReceiptDto dto) {
         String occupationId = dto.getOccupationId();
 		String paymentId = dto.getPaymentId();
         return findOccupationById(occupationId)
                 .flatMap(occupation -> {
 					return findPaymentById(paymentId)
+							.flatMap(payment -> findAll(null, payment.getId(), OrderType.DESC)
+										.collectList())
+							.filter(receiptList -> receiptList.isEmpty())
+							.switchIfEmpty(Mono.error(new CustomBadRequestException("Payment with id %s already used!".formatted(paymentId))))
 					        .flatMap($ -> template
 					                .findOne(new Query()
 					                        .addCriteria(Criteria.where("occupationId").is(occupation.getId()))
@@ -54,7 +60,6 @@ public class ReceiptServiceImpl implements ReceiptService {
                 .doOnSuccess(t -> log.info("Created: {}", t))
                 .flatMap(receipt -> occupationTransactionService
                         .createCreditTransaction(new CreditTransactionDto(occupationId, receipt.getId()))
-                        .doOnSuccess(t -> log.info("Created: {}", t))
                         .then(Mono.just(receipt)));
     }
 

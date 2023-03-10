@@ -100,11 +100,8 @@ public class InvoiceConfigs {
                 .path("v1", builder -> builder
                         .path("invoices", b -> b
                                 .GET("/{invoiceId}", handler::findById)
-                                .GET(handler::find)
-                                .POST(handler::create)
-                                .DELETE("/{invoiceId}", handler::delete)
-                        )
-                )
+                                .GET(handler::findAll)
+                                .POST(handler::create)))
                 .build();
     }
 }

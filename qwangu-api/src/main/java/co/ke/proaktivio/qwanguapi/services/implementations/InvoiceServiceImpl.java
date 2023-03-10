@@ -123,7 +123,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
 
 	@Override
-	public Flux<Invoice> find(Invoice.Type type, String invoiceNo, String occupationId,
+	public Flux<Invoice> findAll(Invoice.Type type, String invoiceNo, String occupationId,
 			OrderType order) {
 		Sort sort = order != null
 				? order.equals(OrderType.ASC) ? Sort.by(Sort.Order.asc("id")) : Sort.by(Sort.Order.desc("id"))

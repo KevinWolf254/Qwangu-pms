@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
@@ -26,7 +27,9 @@ public class OccupationTransactionHandler {
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("occupationTransactionId");
         return occupationTransactionService.findById(id)
-                .flatMap(results ->
+        		.switchIfEmpty(Mono.error(
+						new CustomNotFoundException("Occupation transaction with id %s does not exist!".formatted(id))))
+				.flatMap(results ->
                         ServerResponse
                                 .ok()
                                 .body(Mono.just(new Response<>(
@@ -37,7 +40,7 @@ public class OccupationTransactionHandler {
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for querying Occupation Transaction by id", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> find(ServerRequest request) {
+    public Mono<ServerResponse> findAll(ServerRequest request) {
         Optional<String> occupationIdOptional = request.queryParam("occupationId");
         Optional<String> type = request.queryParam("type");
         Optional<String> invoiceIdOptional = request.queryParam("invoiceId");

@@ -30,12 +30,14 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
             !referenceNo.trim().isEmpty() && !referenceNo.trim().isBlank() &&
             referenceNo.trim().toLowerCase().startsWith(RegEx);
 
-    @Override
+    @SuppressWarnings("rawtypes")
+	@Override
     public Mono<DarajaCustomerToBusinessResponse> validate(DarajaCustomerToBusinessDto dto) {
         return Mono.just(new DarajaCustomerToBusinessResponse<>(0, "ACCEPTED"));
     }
 
-    @Override
+    @SuppressWarnings("rawtypes")
+	@Override
     public Mono<DarajaCustomerToBusinessResponse> confirm(DarajaCustomerToBusinessDto dto) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ENGLISH);
         LocalDateTime transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter).atZone(ZoneId.of("Africa/Nairobi")).toLocalDateTime();

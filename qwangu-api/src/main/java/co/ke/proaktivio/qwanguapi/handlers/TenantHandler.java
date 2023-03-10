@@ -6,7 +6,7 @@ import co.ke.proaktivio.qwanguapi.services.TenantService;
 import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.OccupationDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.TenantDtoValidator;
-import co.ke.proaktivio.qwanguapi.validators.ValidatorUtil;
+import co.ke.proaktivio.qwanguapi.validators.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -30,7 +30,7 @@ public class TenantHandler {
         return request
                 .bodyToMono(TenantDto.class)
                 .doOnSuccess(a -> log.info(" Received request to create {}", a))
-                .map(ValidatorUtil.validateTenantDtoFunc(new TenantDtoValidator()))
+                .map(ValidationUtil.validateTenantDtoFunc(new TenantDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to create tenant was successful"))
                 .flatMap(tenantService::create)
                 .flatMap(created ->
@@ -48,7 +48,7 @@ public class TenantHandler {
         return request
                 .bodyToMono(OccupationDto.class)
                 .doOnSuccess(a -> log.info(" Received request to create {}", a))
-                .map(ValidatorUtil.validateOccupationDto(new OccupationDtoValidator()))
+                .map(ValidationUtil.validateOccupationDto(new OccupationDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to create occupation for tenant was successful"))
                 .flatMap(dto -> occupationService.create(id, dto))
                 .doOnSuccess(a -> log.info(" Created occupation for tenant {} and unit {} successfully",
@@ -83,7 +83,7 @@ public class TenantHandler {
         String id = request.pathVariable("tenantId");
         return request.bodyToMono(TenantDto.class)
                 .doOnSuccess(a -> log.info(" Received request to update {}", a))
-                .map(ValidatorUtil.validateTenantDtoFunc(new TenantDtoValidator()))
+                .map(ValidationUtil.validateTenantDtoFunc(new TenantDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to update tenant was successful"))
                 .flatMap(dto -> tenantService.update(id, dto))
                 .doOnSuccess(a -> log.info(" Updated user {} successfully", a.getEmailAddress()))

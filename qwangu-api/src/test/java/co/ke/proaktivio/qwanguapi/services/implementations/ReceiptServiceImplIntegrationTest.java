@@ -14,8 +14,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type;
@@ -58,8 +58,6 @@ class ReceiptServiceImplIntegrationTest {
     public static void overrideProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
-
-	// TODO CREATE RECEIPT HANDLER
 
 	private Mono<Void> reset() {
 		return paymentRepository.deleteAll()
@@ -120,7 +118,7 @@ class ReceiptServiceImplIntegrationTest {
 				&& e.getMessage().equals("Payment with id %s does not exist!".formatted(paymentId)))
 		.verify();
 	}
-
+	
 	@Test
 	void create_returnsReceipt_whenSuccessful() {
 		// given
@@ -152,6 +150,26 @@ class ReceiptServiceImplIntegrationTest {
 				.expectNextMatches(r -> r.getId() != null && r.getNumber() != null
 						&& r.getOccupationId().equals(occupationId) && r.getPaymentId().equals(paymentId))
 				.verifyComplete();		
+	}
+
+	@Test
+	void create_returnsCustomBadRequestException_whenPaymentIsLinkedToOtherReceipt() {
+		// given
+		var occupationId = "1";
+		var paymentId = "1";
+
+		var dtoWithSamePayment = new ReceiptDto();
+		dtoWithSamePayment.setOccupationId(occupationId);
+		dtoWithSamePayment.setPaymentId(paymentId);
+		
+		// when
+		create_returnsReceipt_whenSuccessful();
+		Mono<Receipt> createReceipt = receiptService.create(dtoWithSamePayment);
+		
+		// then
+		StepVerifier.create(createReceipt).expectErrorMatches(e -> e instanceof CustomBadRequestException
+				&& e.getMessage().equals("Payment with id %s already used!".formatted(paymentId)))
+		.verify();
 	}
 
 	@Test

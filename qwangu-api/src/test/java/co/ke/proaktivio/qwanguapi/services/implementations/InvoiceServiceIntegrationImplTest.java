@@ -22,9 +22,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.models.Invoice.Type;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
@@ -358,7 +358,7 @@ class InvoiceServiceIntegrationImplTest {
 	@Test
 	void find_returnsEmpty_whenNonExist() {
 		// when
-		Flux<Invoice> findNonExist = reset().thenMany(invoiceService.find(null, null, null, null));
+		Flux<Invoice> findNonExist = reset().thenMany(invoiceService.findAll(null, null, null, null));
 		// then
 		StepVerifier.create(findNonExist).expectComplete().verify();
 		
@@ -389,7 +389,7 @@ class InvoiceServiceIntegrationImplTest {
 		Flux<Invoice> findInvoice = 
 				reset()
 				.then(invoiceRepository.save(invoice))
-				.thenMany(invoiceService.find(type, invoiceNo, occupationId, order))
+				.thenMany(invoiceService.findAll(type, invoiceNo, occupationId, order))
 				.doOnNext(a -> System.out.println("---- Found " + a));
 		// then
 		StepVerifier

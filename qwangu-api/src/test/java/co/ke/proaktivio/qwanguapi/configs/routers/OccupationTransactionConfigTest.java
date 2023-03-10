@@ -25,10 +25,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
 
 import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.handlers.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.handlers.OccupationTransactionHandler;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type;
@@ -71,6 +71,30 @@ class OccupationTransactionConfigTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
+    }
+    
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void findById_returnsNotFound_status404_whenReceiptIsNotFound() {
+        // given      
+    	var occupationTransactionId = "1";
+        
+        //when
+        when(occupationTransactionService.findById("1")).thenReturn(Mono.empty());
+        // then
+        client
+	        .get()
+	        .uri("/v1/occupationTransactions/{occupationTransactionId}", occupationTransactionId)
+	        .accept(MediaType.APPLICATION_JSON)
+	        .exchange()
+	        .expectStatus().isNotFound()
+	        .expectHeader().contentType("application/json")
+	        .expectBody()
+	        .jsonPath("$").isNotEmpty()
+	        .jsonPath("$.success").isEqualTo(false)
+	        .jsonPath("$.message").isEqualTo("Occupation transaction with id %s does not exist!".formatted(occupationTransactionId))
+	        .jsonPath("$.data").isEmpty()
+	        .consumeWith(System.out::println);
     }
 
     @Test

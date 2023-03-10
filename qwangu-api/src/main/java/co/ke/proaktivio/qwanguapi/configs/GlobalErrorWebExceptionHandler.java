@@ -1,4 +1,4 @@
-package co.ke.proaktivio.qwanguapi.handlers;
+package co.ke.proaktivio.qwanguapi.configs;
 
 import co.ke.proaktivio.qwanguapi.exceptions.*;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
@@ -48,7 +48,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
 
         Throwable e = this.getError(request);
         if (e instanceof CustomAlreadyExistsException || e instanceof CustomBadRequestException ||
-                e instanceof MailException || e instanceof CustomNotFoundException) {
+                e instanceof MailException) {
             return ServerResponse
                     .status(HttpStatus.BAD_REQUEST)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -60,9 +60,9 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     false,
                                     e instanceof MailException ? "Mail could not be sent!" : e.getMessage(), null)
                     ), Response.class)
-                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
+                    .doOnSuccess(a -> log.debug("Sent response with status code {}", a.rawStatusCode()));
         }
-        // TODO FOR ALL HANDLERS RETURN 200 WHEN RESULT IS NULL/EMPTY
+        // TODO FOR ALL HANDLERS FIND BY ID RETURNS 404 WHEN RESULT IS NULL/EMPTY
         if (e instanceof CustomNotFoundException) {
             return ServerResponse
                     .status(HttpStatus.NOT_FOUND)
@@ -75,7 +75,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     false,
                                     e.getMessage(), null)
                     ), Response.class)
-                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
+                    .doOnSuccess(a -> log.debug("Sent response with status code {}", a.rawStatusCode()));
         }
         if (e instanceof UsernameNotFoundException || e instanceof JwtException) {
             return ServerResponse
@@ -89,7 +89,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     false,
                                     e.getMessage(), null)
                     ), Response.class)
-                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
+                    .doOnSuccess(a -> log.debug("Sent response with status code {}", a.rawStatusCode()));
         }
         if (e instanceof AccessDeniedException) {
             return ServerResponse
@@ -103,7 +103,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     false,
                                     e.getMessage(), null)
                     ), Response.class)
-                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
+                    .doOnSuccess(a -> log.debug("Sent response with status code {}", a.rawStatusCode()));
         }
         if (e instanceof ResponseStatusException) {
             return ServerResponse
@@ -117,7 +117,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                     false,
                                     e.getMessage(), null)
                     ), Response.class)
-                    .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
+                    .doOnSuccess(a -> log.debug("Sent response with status code {}", a.rawStatusCode()));
         }
         return ServerResponse
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -130,6 +130,6 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                                 false,
                                 e.getMessage(), null)
                 ), Response.class)
-                .doOnSuccess(a -> log.debug(" Sent response with status code {}", a.rawStatusCode()));
+                .doOnSuccess(a -> log.debug("Sent response with status code {}", a.rawStatusCode()));
     }
 }

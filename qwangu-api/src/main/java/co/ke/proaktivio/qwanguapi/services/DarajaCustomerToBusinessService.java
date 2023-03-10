@@ -6,7 +6,11 @@ import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessResponse;
 import reactor.core.publisher.Mono;
 
 public interface DarajaCustomerToBusinessService {
-    Mono<DarajaCustomerToBusinessResponse> validate(DarajaCustomerToBusinessDto dto);
-    Mono<DarajaCustomerToBusinessResponse> confirm(DarajaCustomerToBusinessDto dto);
-    Mono<Payment> processPayment(Payment payment);
+	@SuppressWarnings("rawtypes")
+	Mono<DarajaCustomerToBusinessResponse> validate(DarajaCustomerToBusinessDto dto);
+
+	@SuppressWarnings("rawtypes")
+	Mono<DarajaCustomerToBusinessResponse> confirm(DarajaCustomerToBusinessDto dto);
+
+	Mono<Payment> processPayment(Payment payment);
 }

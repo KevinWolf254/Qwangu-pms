@@ -60,11 +60,8 @@ public class UserServiceImpl implements UserService {
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("User with email address %s already exists!"
                         .formatted(emailAddress))))
-                .map($ -> {
-                    LocalDateTime now = LocalDateTime.now();
-                    return new User(null, dto.getPerson(), emailAddress, dto.getRoleId(), null,
-                            false, false, false, false, null, null, null, null);
-                })
+                .map($ -> new User(null, dto.getPerson(), emailAddress, dto.getRoleId(), null,
+                            false, false, false, false, null, null, null, null))
                 .flatMap(userRepository::save);
     }
 
