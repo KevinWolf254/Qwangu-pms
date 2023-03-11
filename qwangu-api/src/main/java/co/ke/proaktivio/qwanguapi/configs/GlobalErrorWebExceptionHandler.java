@@ -3,7 +3,8 @@ package co.ke.proaktivio.qwanguapi.configs;
 import co.ke.proaktivio.qwanguapi.exceptions.*;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.jsonwebtoken.JwtException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -24,10 +25,10 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 @Component
 @Order(-2)
-public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
+public class GlobalErrorWebExceptionHandler  extends AbstractErrorWebExceptionHandler {
 
     public GlobalErrorWebExceptionHandler(ErrorAttributes errorAttributes, WebProperties.Resources resources,
                                           ApplicationContext applicationContext, ServerCodecConfigurer serverCodecConfigurer) {
@@ -91,7 +92,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                     ), Response.class)
                     .doOnSuccess(a -> log.debug("Sent response with status code {}", a.rawStatusCode()));
         }
-        if (e instanceof AccessDeniedException) {
+        if (e instanceof AccessDeniedException || e instanceof CustomAccessDeniedException) {
             return ServerResponse
                     .status(HttpStatus.FORBIDDEN)
                     .contentType(MediaType.APPLICATION_JSON)

@@ -3,7 +3,6 @@ package co.ke.proaktivio.qwanguapi.handlers;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
 import co.ke.proaktivio.qwanguapi.services.TenantService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import co.ke.proaktivio.qwanguapi.validators.OccupationDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.TenantDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.ValidationUtil;

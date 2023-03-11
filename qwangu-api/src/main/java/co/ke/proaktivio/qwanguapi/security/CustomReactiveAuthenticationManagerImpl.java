@@ -21,6 +21,7 @@ public class CustomReactiveAuthenticationManagerImpl implements CustomReactiveAu
     private final UserTokenService userTokenService;
 
     @Override
+    @SuppressWarnings("unchecked")
     public Mono<Authentication> authenticate(Authentication authentication) {
         String token = authentication.getCredentials().toString();
         String username = jwtUtil.getUsername(token);
@@ -31,7 +32,7 @@ public class CustomReactiveAuthenticationManagerImpl implements CustomReactiveAu
                 .filter(isCurrent -> isCurrent)
                 .map($ -> {
                     Claims claims = jwtUtil.getClaims(token);
-                    List<String> authoritiesResult = claims.get("authorities", List.class);
+					List<String> authoritiesResult = claims.get("authorities", List.class);
                     List<String> authorities = authoritiesResult != null && !authoritiesResult.isEmpty()
                             ? authoritiesResult : new ArrayList<>();
                     return authorities.isEmpty() || username == null || username.isEmpty() || username.isBlank()

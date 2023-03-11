@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DarajaCustomerToBusinessDto {
+public class MpesaC2BDto {
     @JsonProperty("TransID")
     private String transactionId;
     @JsonProperty("TransactionType")

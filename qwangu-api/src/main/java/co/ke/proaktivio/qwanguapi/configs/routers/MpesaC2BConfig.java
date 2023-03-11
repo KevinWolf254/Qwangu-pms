@@ -1,8 +1,8 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.handlers.DarajaCustomerToBusinessHandler;
-import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
-import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessResponse;
+import co.ke.proaktivio.qwanguapi.handlers.MpesaC2BHandler;
+import co.ke.proaktivio.qwanguapi.pojos.MpesaC2BDto;
+import co.ke.proaktivio.qwanguapi.pojos.MpesaC2BResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,48 +21,48 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
-public class DarajaCustomerToBusinessConfigs {
+public class MpesaC2BConfig {
 
     @Bean
     @RouterOperations(
             {
                     @RouterOperation(
-                            path = "/v1/mobile/c2b/validate",
+                            path = "/v1/mpesa/v2/c2b/validate",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = DarajaCustomerToBusinessHandler.class, beanMethod = "validate",
+                            method = RequestMethod.POST, beanClass = MpesaC2BHandler.class, beanMethod = "validate",
                             operation = @Operation(
                                     operationId = "validate",
-                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DarajaCustomerToBusinessDto.class))),
+                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = MpesaC2BDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Validate successfully.",
-                                                    content = @Content(schema = @Schema(implementation = DarajaCustomerToBusinessResponse.class)))
+                                                    content = @Content(schema = @Schema(implementation = MpesaC2BResponse.class)))
                                     },
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/mobile/c2b/confirm",
+                            path = "/v1/mpesa/v2/c2b/confirm",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = DarajaCustomerToBusinessHandler.class, beanMethod = "confirm",
+                            method = RequestMethod.POST, beanClass = MpesaC2BHandler.class, beanMethod = "confirm",
                             operation = @Operation(
                                     operationId = "confirm",
-                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DarajaCustomerToBusinessDto.class))),
+                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = MpesaC2BDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = DarajaCustomerToBusinessResponse.class)))
+                                                    content = @Content(schema = @Schema(implementation = MpesaC2BResponse.class)))
                                     },
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
             }
     )
-    RouterFunction<ServerResponse> customerToBusinessUser(DarajaCustomerToBusinessHandler handler) {
+    RouterFunction<ServerResponse> customerToBusinessUser(MpesaC2BHandler handler) {
         return route()
-                .path("v1", builder -> builder
-                        .path("mobile/c2b", builder1 -> builder1
+                .path("v1/mpesa/v2", builder -> builder
+                        .path("c2b", builder1 -> builder1
                                 .POST("/validate", handler::validate)
-                                .POST("/confirm", handler::confirm)
-                        ))
+                                .POST("/confirm", handler::confirm))
+                        )
                 .build();
     }
 }

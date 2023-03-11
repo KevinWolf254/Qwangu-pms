@@ -21,7 +21,7 @@ import java.util.function.BiPredicate;
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusinessService {
+public class DarajaCustomerToBusinessServiceImpl implements MpesaC2BService {
     private final PaymentRepository paymentRepository;
     private final OccupationService occupationService;
     private final ReceiptService receiptService;
@@ -32,13 +32,13 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
 
     @SuppressWarnings("rawtypes")
 	@Override
-    public Mono<DarajaCustomerToBusinessResponse> validate(DarajaCustomerToBusinessDto dto) {
-        return Mono.just(new DarajaCustomerToBusinessResponse<>(0, "ACCEPTED"));
+    public Mono<MpesaC2BResponse> validate(MpesaC2BDto dto) {
+        return Mono.just(new MpesaC2BResponse<>(0, "ACCEPTED"));
     }
 
     @SuppressWarnings("rawtypes")
 	@Override
-    public Mono<DarajaCustomerToBusinessResponse> confirm(DarajaCustomerToBusinessDto dto) {
+    public Mono<MpesaC2BResponse> confirm(MpesaC2BDto dto) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ENGLISH);
         LocalDateTime transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter).atZone(ZoneId.of("Africa/Nairobi")).toLocalDateTime();
 
@@ -63,7 +63,7 @@ public class DarajaCustomerToBusinessServiceImpl implements DarajaCustomerToBusi
         return paymentRepository.save(payment)
                 .filter(p -> !checkReferenceNo.test("(?i)^(ADV#)", p.getReferenceNo()))
                 .flatMap(this::processPayment)
-                .then(Mono.just(new DarajaCustomerToBusinessResponse<>(0, "ACCEPTED")));
+                .then(Mono.just(new MpesaC2BResponse<>(0, "ACCEPTED")));
     }
 
     @Override

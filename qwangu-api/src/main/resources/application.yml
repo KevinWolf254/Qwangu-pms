@@ -82,8 +82,9 @@ ftl:
         - templates/images/resetPassword/password_reset.gif
 safaricom:
   whiteListedUrls:
-    - http://127.0.0.1
-    - https://proactivio-qwangu.ddns.net
+    - '127.0.0.1'
+    - proactivio-qwangu.ddns.net
+    - localhost
   daraja:
     basicAuthentication:
       consumerKey:

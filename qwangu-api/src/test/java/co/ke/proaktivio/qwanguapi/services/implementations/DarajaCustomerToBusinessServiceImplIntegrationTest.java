@@ -3,9 +3,9 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.*;
-import co.ke.proaktivio.qwanguapi.pojos.DarajaCustomerToBusinessDto;
+import co.ke.proaktivio.qwanguapi.pojos.MpesaC2BDto;
 import co.ke.proaktivio.qwanguapi.repositories.*;
-import co.ke.proaktivio.qwanguapi.services.DarajaCustomerToBusinessService;
+import co.ke.proaktivio.qwanguapi.services.MpesaC2BService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
     @Autowired
     private OccupationTransactionRepository occupationTransactionRepository;
     @Autowired
-    private DarajaCustomerToBusinessService darajaCustomerToBusinessService;
+    private MpesaC2BService darajaCustomerToBusinessService;
     @MockBean
     private BootstrapConfig bootstrapConfig;
     @MockBean
@@ -53,12 +53,12 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName
             .parse("mongo:latest"));
 
-    private final DarajaCustomerToBusinessDto dto = new DarajaCustomerToBusinessDto("RKTQDM7W6S",
+    private final MpesaC2BDto dto = new MpesaC2BDto("RKTQDM7W6S",
             "Pay Bill", "20191122063845", "10", "600638",
             "T903", "", "49197.00", "", "254708374149",
             "John", "", "Doe");
 
-    private final DarajaCustomerToBusinessDto dtoBooking = new DarajaCustomerToBusinessDto("RKTQDM7W67",
+    private final MpesaC2BDto dtoBooking = new MpesaC2BDto("RKTQDM7W67",
             "Pay Bill", "20191122063845", "10", "600638",
             "BOOKT903", "", "49197.00", "", "254708374147",
             "John", "", "Doe");

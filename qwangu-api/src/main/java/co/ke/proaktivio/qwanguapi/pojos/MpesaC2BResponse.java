@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DarajaCustomerToBusinessResponse<T> {
+public class MpesaC2BResponse<T> {
     @JsonProperty("ResultCode")
     private T code;
     @JsonProperty("ResultDesc")

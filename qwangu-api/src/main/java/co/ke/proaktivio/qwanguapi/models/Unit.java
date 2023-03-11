@@ -51,13 +51,15 @@ public class Unit {
     private String modifiedBy;
     private String propertyId;
 
+    @SuppressWarnings("unused")
     public class PaymentPerMonth {
         private BigDecimal rent; // 27000
-        private BigDecimal security; // 510
+		private BigDecimal security; // 510
         private BigDecimal garbage; // 300
         private Map<String, BigDecimal> otherAmounts; // TODO ON UI ADD WATER AND ELECTRICITY OR MAKE IT DYNAMIC
     }
 
+    @SuppressWarnings("unused")
     public class AdvancePayment {
         private Integer rentAdvanceInMonths; // 27000 * 2
         private BigDecimal security;
