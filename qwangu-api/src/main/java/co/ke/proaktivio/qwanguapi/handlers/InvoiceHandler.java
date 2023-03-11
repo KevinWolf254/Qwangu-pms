@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
@@ -9,7 +10,8 @@ import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import co.ke.proaktivio.qwanguapi.validators.InvoiceDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.ValidationUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -22,42 +24,47 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@Log4j2
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class InvoiceHandler {
     private final InvoiceService invoiceService;
 
-    public Mono<ServerResponse> create(ServerRequest request) {
+	public Mono<ServerResponse> create(ServerRequest request) {
         return request
                 .bodyToMono(InvoiceDto.class)
-                .doOnSuccess(a -> log.debug(" Received request to create {}", a))
+                .doOnSuccess(a -> log.debug("Received request to create {}", a))
                 .map(ValidationUtil.validateInvoiceDto(new InvoiceDtoValidator()))
-                .doOnSuccess(a -> log.debug(" Validation of request to create invoice was successful"))
-                .flatMap(invoiceService::create)
-                .doOnError(e -> log.error(" Failed to create invoice. Error ", e))
+                .doOnSuccess(a -> log.debug("Validation of request to create invoice was successful"))
+                .flatMap(dto -> {
+                	System.out.println("DTO: "+dto);
+                	return invoiceService.create(dto);
+                })
+                .doOnError(e -> log.error("Failed to create invoice. Error ", e))
                 .flatMap(created -> ServerResponse
-                        .created(URI.create("v1/invoices/%s".formatted(created.getId())))
+                        .created(URI.create("v1/invoices/%s".formatted(created.getOccupationId())))
                         .body(Mono.just(new Response<>(
                                 LocalDateTime.now().toString(),
                                 request.uri().getPath(),
                                 HttpStatus.CREATED.value(),true, "Invoice created successfully.",
                                 created)), Response.class))
-                .doOnSuccess(a -> log.debug(" Sent response with status code {} for creating invoice", a.rawStatusCode()));
+                .doOnSuccess(a -> log.debug("Sent response with status code {} for creating invoice", a.rawStatusCode()));
     }
 
 	public Mono<ServerResponse> findById(ServerRequest request) {
 		String id = request.pathVariable("invoiceId");
-		return invoiceService.findById(id).flatMap(results -> {
-			var isEmpty = results == null;
-			return ServerResponse.ok()
-					.body(Mono.just(new Response<>(LocalDateTime.now().toString(), request.uri().getPath(),
-							HttpStatus.OK.value(), !isEmpty,
-							!isEmpty ? "Invoice found successfully." : "Invoice could not be found!", results)),
-							Response.class);
-		})
-		.doOnSuccess(
-				a -> log.info(" Sent response with status code {} for querying invoice by id", a.rawStatusCode()));
+		return invoiceService.findById(id)
+				.switchIfEmpty(
+						Mono.error(new CustomNotFoundException("Invoice with id %s does not exist!".formatted(id))))
+				.flatMap(results -> {
+					var isEmpty = results == null;
+					return ServerResponse.ok()
+							.body(Mono.just(new Response<>(LocalDateTime.now().toString(), request.uri().getPath(),
+									HttpStatus.OK.value(), !isEmpty,
+									!isEmpty ? "Invoice found successfully." : "Invoice could not be found!", results)),
+									Response.class);
+				}).doOnSuccess(a -> log.debug("Sent response with status code {} for querying invoice by id",
+						a.rawStatusCode()));
 	}
 
 	public Mono<ServerResponse> findAll(ServerRequest request) {
@@ -73,14 +80,14 @@ public class InvoiceHandler {
 		log.debug("Received request for querying invoices.");
 		return invoiceService
 				.findAll(typeOptional.map(Invoice.Type::valueOf).orElse(null),
-						invoiceNoOptional.map(invoiceNo -> invoiceNo).orElse(""),
-						occupationIdOptional.map(occupationId -> occupationId).orElse(""),
+						invoiceNoOptional.map(invoiceNo -> invoiceNo).orElse(null),
+						occupationIdOptional.map(occupationId -> occupationId).orElse(null),
 						orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC))
 				.collectList()
-				.doOnSuccess(a -> log.info("Query request returned {} invoices.", a.size()))
+				.doOnSuccess(a -> log.info("Request returned a list of {} invoices.", a.size()))
 				.doOnError(e -> log.error("Failed to find invoices. Error ", e))
 				.flatMap(results -> {
-					var isEmpty = results == null;
+					var isEmpty = results.isEmpty();
 					return ServerResponse.ok().body(Mono.just(new Response<>(LocalDateTime.now().toString(),
 							request.uri().getPath(), HttpStatus.OK.value(), !isEmpty,
 							!isEmpty ? "Invoices found successfully." : "Invoices could not be found!", results)),

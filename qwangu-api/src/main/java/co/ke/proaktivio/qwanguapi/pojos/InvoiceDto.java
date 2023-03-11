@@ -25,5 +25,5 @@ public class InvoiceDto {
     // type RENT = startDate, endDate, occupationId - cronjob
     // type RENT_ADVANCE = occupationId
     // type PENALTY = occupationId - cronjob - PERCENTAGE OF RENT
-    // type UTILITIES = startDate, endDate, occupationId, otherAmounts
+    // type UTILITIES = startDate, endDate, occupationId, currency, otherAmounts
 }

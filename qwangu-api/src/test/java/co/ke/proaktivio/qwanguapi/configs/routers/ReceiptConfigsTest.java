@@ -29,7 +29,6 @@ import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.handlers.ReceiptHandler;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
-import co.ke.proaktivio.qwanguapi.pojos.CreateNoticeDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.ReceiptDto;
 import co.ke.proaktivio.qwanguapi.services.ReceiptService;
@@ -142,7 +141,7 @@ class ReceiptConfigsTest {
 	        .post()
 	        .uri("/v1/receipts")
 	        .accept(MediaType.APPLICATION_JSON)
-	        .body(Mono.just(dto), CreateNoticeDto.class)
+	        .body(Mono.just(dto), ReceiptDto.class)
 	        .exchange()
 	        .expectStatus().isCreated()
 	        .expectHeader().contentType("application/json")
@@ -209,9 +208,9 @@ class ReceiptConfigsTest {
         var receipt = new Receipt();
         receipt.setCreatedBy("SYSTEM");
         receipt.setCreatedOn(LocalDateTime.now());
-        receipt.setId(receiptId);
         receipt.setModifiedBy("SYSTEM");
         receipt.setModifiedOn(LocalDateTime.now());
+        receipt.setId(receiptId);
         receipt.setNumber("123456");
         receipt.setOccupationId("1");
         receipt.setPaymentId("1");

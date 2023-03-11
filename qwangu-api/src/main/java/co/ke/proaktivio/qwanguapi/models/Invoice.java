@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -51,6 +53,7 @@ public class Invoice {
         private final String name;
     }
 
+    @JsonIgnore
     @Transient
     public BiFunction<Invoice, Occupation, String> generateInvoiceNumber = (invoice, occupation) -> {
         String prefix = "INV";
@@ -77,7 +80,7 @@ public class Invoice {
         private BigDecimal garbageAmount;
         private Map<String, BigDecimal> otherAmounts;
         private String occupationId;
-        private final Invoice invoice = new Invoice();
+        private Invoice invoice = new Invoice();
 
         public InvoiceBuilder type(Type type) {
             this.type = type;

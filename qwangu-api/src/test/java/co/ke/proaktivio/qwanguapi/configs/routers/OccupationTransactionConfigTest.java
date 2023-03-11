@@ -33,6 +33,7 @@ import co.ke.proaktivio.qwanguapi.handlers.OccupationTransactionHandler;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -48,6 +49,8 @@ class OccupationTransactionConfigTest {
     private WebTestClient client;
     @MockBean
     private OccupationTransactionService occupationTransactionService;
+    @MockBean
+    private InvoiceService invoiceService;
     @MockBean
     private ReactiveAuthenticationManager authenticationManager;
     @MockBean

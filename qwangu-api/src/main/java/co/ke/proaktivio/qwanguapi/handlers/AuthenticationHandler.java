@@ -29,11 +29,11 @@ public class AuthenticationHandler {
     public Mono<ServerResponse> signIn(ServerRequest request) {
         return request
                 .bodyToMono(SignInDto.class)
-                .doOnSuccess(a -> log.info(" Request to sign in {}", a.getUsername()))
+                .doOnSuccess(a -> log.info("Request to sign in {}", a.getUsername()))
                 .map(validateSignInDtoFunc(new SignInDtoValidator()))
                 .flatMap(userService::signIn)
                 .doOnSuccess(t -> log.info("Signed in successfully"))
-                .doOnError(e -> log.error(" Failed to sign in. Error ", e))
+                .doOnError(e -> log.error("Failed to sign in. Error ", e))
                 .flatMap(tokenDto ->
                         ServerResponse
                                 .ok()
