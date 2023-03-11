@@ -1,23 +1,18 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.pojos.SignInDto;
-import co.ke.proaktivio.qwanguapi.pojos.TokenDto;
 import co.ke.proaktivio.qwanguapi.services.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Mono;
-
-import static org.mockito.Mockito.when;
 
 @AutoConfigureWebTestClient
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CorsConfigTest {
-    @Autowired
+    @SuppressWarnings("unused")
+	@Autowired
     private WebTestClient client;
     @MockBean
     private UserService userService;

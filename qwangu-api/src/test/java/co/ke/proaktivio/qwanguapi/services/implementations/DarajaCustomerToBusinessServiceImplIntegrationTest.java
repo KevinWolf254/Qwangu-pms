@@ -37,8 +37,6 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
     @Autowired
     private OccupationRepository occupationRepository;
     @Autowired
-    private NoticeRepository noticeRepository;
-    @Autowired
     private InvoiceRepository invoiceRepository;
     @Autowired
     private OccupationTransactionRepository occupationTransactionRepository;

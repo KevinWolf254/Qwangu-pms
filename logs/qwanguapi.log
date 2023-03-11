@@ -1,82 +1,38 @@
-2023-03-07 05:41:51,105 INFO o.s.b.StartupInfoLogger [main] Starting OccupationTransactionConfigTest using Java 17.0.6 on g752vt with PID 9783 (started by kevin in /home/kevin/intelli_j_workspace/Qwangu-pms/qwangu-api)
-2023-03-07 05:41:51,109 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
-2023-03-07 05:41:52,540 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
-
-Using generated security password: a5418404-d1f7-4117-8d9e-d0307e6b8eb8
-
-2023-03-07 05:41:53,407 INFO o.s.b.StartupInfoLogger [main] Started OccupationTransactionConfigTest in 2.744 seconds (JVM running for 4.088)
-2023-03-07 05:41:53,800 INFO c.k.p.q.h.OccupationTransactionHandler [parallel-6]  Query request returned 1 Occupation Transaction
-2023-03-07 05:41:53,855 INFO c.k.p.q.h.OccupationTransactionHandler [parallel-8]  Sent response with status code 200 for querying Occupation Transaction by id
-2023-03-07 05:41:53,871 ERROR c.k.p.q.h.OccupationTransactionHandler [parallel-2]  Failed to find Occupation Transactions. Error 
-co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException: Choose either invoiceId or receiptId. Both will not exist!
-	at co.ke.proaktivio.qwanguapi.configs.routers.OccupationTransactionConfigTest.find_returnsBadRequest_whenServiceReturnsCustomBadRequestException(OccupationTransactionConfigTest.java:216) ~[test-classes/:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
-	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
-	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
-	at java.lang.reflect.Method.invoke(Method.java:568) ~[?:?]
-	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:725) ~[junit-platform-commons-1.8.2.jar:1.8.2]
-	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:149) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:140) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:84) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.execution.ExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(ExecutableInvoker.java:115) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.execution.ExecutableInvoker.lambda$invoke$0(ExecutableInvoker.java:105) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.execution.ExecutableInvoker.invoke(ExecutableInvoker.java:104) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.execution.ExecutableInvoker.invoke(ExecutableInvoker.java:98) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:214) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:210) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:135) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:66) ~[junit-jupiter-engine-5.8.2.jar:5.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at java.util.ArrayList.forEach(ArrayList.java:1511) ~[?:?]
-	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at java.util.ArrayList.forEach(ArrayList.java:1511) ~[?:?]
-	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54) ~[junit-platform-engine-1.8.2.jar:1.8.2]
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:107) ~[junit-platform-launcher-1.8.2.jar:1.8.2]
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:88) ~[junit-platform-launcher-1.8.2.jar:1.8.2]
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:54) ~[junit-platform-launcher-1.8.2.jar:1.8.2]
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:67) ~[junit-platform-launcher-1.8.2.jar:1.8.2]
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:52) ~[junit-platform-launcher-1.8.2.jar:1.8.2]
-	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114) ~[junit-platform-launcher-1.8.2.jar:1.8.2]
-	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:95) ~[junit-platform-launcher-1.8.2.jar:1.8.2]
-	at org.junit.platform.launcher.core.DefaultLauncherSession$DelegatingLauncher.execute(DefaultLauncherSession.java:91) ~[junit-platform-launcher-1.8.2.jar:1.8.2]
-	at org.junit.platform.launcher.core.SessionPerRequestLauncher.execute(SessionPerRequestLauncher.java:60) ~[junit-platform-launcher-1.8.2.jar:1.8.2]
-	at org.eclipse.jdt.internal.junit5.runner.JUnit5TestReference.run(JUnit5TestReference.java:98) ~[.cp/:?]
-	at org.eclipse.jdt.internal.junit.runner.TestExecution.run(TestExecution.java:40) ~[.cp/:?]
-	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:529) ~[.cp/:?]
-	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:756) ~[.cp/:?]
-	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.run(RemoteTestRunner.java:452) ~[.cp/:?]
-	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.main(RemoteTestRunner.java:210) ~[.cp/:?]
-2023-03-07 05:41:53,897 INFO c.k.p.q.h.OccupationTransactionHandler [parallel-4]  Query request returned 0 Occupation Transaction
+2023-03-11 17:41:43,619 INFO o.s.b.StartupInfoLogger [restartedMain] Starting QwanguApiApplication using Java 17.0.6 on g752vt with PID 11423 (/home/kevin/workspaces/backend/Qwangu-pms/qwangu-api/target/classes started by kevin in /home/kevin/workspaces/backend/Qwangu-pms/qwangu-api)
+2023-03-11 17:41:43,622 INFO o.s.b.SpringApplication [restartedMain] The following 1 profile is active: "dev"
+2023-03-11 17:41:43,661 INFO o.s.b.l.DeferredLog [restartedMain] Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2023-03-11 17:41:43,662 INFO o.s.b.l.DeferredLog [restartedMain] For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2023-03-11 17:41:44,235 INFO o.s.d.r.c.RepositoryConfigurationDelegate [restartedMain] Bootstrapping Spring Data Reactive MongoDB repositories in DEFAULT mode.
+2023-03-11 17:41:44,373 INFO o.s.d.r.c.RepositoryConfigurationDelegate [restartedMain] Finished Spring Data repository scanning in 134 ms. Found 17 Reactive MongoDB repository interfaces.
+2023-03-11 17:41:45,058 INFO c.m.d.l.SLF4JLogger [restartedMain] Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms'}
+2023-03-11 17:41:45,166 INFO c.m.d.l.SLF4JLogger [cluster-rtt-ClusterId{value='640c9329c942ec235a2fdba4', description='null'}-localhost:27017] Opened connection [connectionId{localValue:2, serverValue:49}] to localhost:27017
+2023-03-11 17:41:45,166 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='640c9329c942ec235a2fdba4', description='null'}-localhost:27017] Opened connection [connectionId{localValue:1, serverValue:48}] to localhost:27017
+2023-03-11 17:41:45,168 INFO c.m.d.l.SLF4JLogger [cluster-ClusterId{value='640c9329c942ec235a2fdba4', description='null'}-localhost:27017] Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=13, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=40965317}
+2023-03-11 17:41:45,239 INFO o.s.b.d.a.OptionalLiveReloadServer [restartedMain] LiveReload server is running on port 35729
+2023-03-11 17:41:45,509 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-3-4] Opened connection [connectionId{localValue:4, serverValue:51}] to localhost:27017
+2023-03-11 17:41:45,519 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-3-3] Opened connection [connectionId{localValue:3, serverValue:50}] to localhost:27017
+2023-03-11 17:41:45,523 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-3-5] Opened connection [connectionId{localValue:5, serverValue:52}] to localhost:27017
+2023-03-11 17:41:45,600 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-3-6] Opened connection [connectionId{localValue:7, serverValue:53}] to localhost:27017
+2023-03-11 17:41:45,616 INFO c.m.d.l.SLF4JLogger [nioEventLoopGroup-3-7] Opened connection [connectionId{localValue:8, serverValue:54}] to localhost:27017
+2023-03-11 17:41:46,443 INFO o.s.b.w.e.n.NettyWebServer [restartedMain] Netty started on port 3001
+2023-03-11 17:41:46,456 INFO o.s.b.StartupInfoLogger [restartedMain] Started QwanguApiApplication in 3.223 seconds (JVM running for 4.103)
+2023-03-11 17:41:46,501 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Deleted all authorities
+2023-03-11 17:41:46,504 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Deleted all roles
+2023-03-11 17:41:46,512 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Deleted all users
+2023-03-11 17:41:46,554 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserRole(id=640c932ac942ec235a2fdba5, name=SUPER_ADMIN, createdOn=2023-03-11T17:41:46.539929761, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.539929761, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,581 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdba6, name=APARTMENT, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.561795849, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.561795849, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,582 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdba7, name=UNIT, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.563755916, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.563755916, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,582 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdba8, name=OCCUPATION, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.564507714, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.564507714, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,583 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdba9, name=TENANT, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.565072047, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.565072047, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,583 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdbaa, name=NOTICE, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.565684543, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.565684543, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,583 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdbab, name=PAYMENT, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.566180032, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.566180032, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,583 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdbac, name=OCCUPATION_TRANSACTION, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.566510389, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.566510389, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,584 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdbad, name=ADVANCE, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.566895755, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.566895755, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,584 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdbae, name=RECEIVABLE, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.567248935, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.567248935, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,584 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdbaf, name=REFUND, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.567761842, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.567761842, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,584 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdbb0, name=USER, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.568145508, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.568145508, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,585 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdbb1, name=USER_ROLE, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.568559095, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.568559095, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,585 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created UserAuthority(id=640c932ac942ec235a2fdbb2, name=USER_AUTHORITY, create=true, read=true, update=true, delete=true, authorize=true, roleId=640c932ac942ec235a2fdba5, createdOn=2023-03-11T17:41:46.568920689, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.568920689, modifiedBy=SYSTEM)
+2023-03-11 17:41:46,595 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Encoded password $2a$06$GnvzoxA53oPykL113DNWyeExkTQCGXD8W47YHXYd57CKxDus/HkKm
+2023-03-11 17:41:46,605 INFO c.k.p.q.c.BootstrapConfig [nioEventLoopGroup-3-7]  Created User(id=640c932ac942ec235a2fdbb3, person=Person(firstName=John, otherNames=David, surname=Doe), emailAddress=johnDoe@email.com, roleId=640c932ac942ec235a2fdba5, password=$2a$06$GnvzoxA53oPykL113DNWyeExkTQCGXD8W47YHXYd57CKxDus/HkKm, isAccountExpired=false, isCredentialsExpired=false, isAccountLocked=false, isEnabled=true, createdOn=2023-03-11T17:41:46.599294454, createdBy=SYSTEM, modifiedOn=2023-03-11T17:41:46.599294454, modifiedBy=SYSTEM)
+2023-03-11 17:41:51,354 INFO o.s.b.a.SpringApplicationAdminMXBeanRegistrar$SpringApplicationAdmin [RMI TCP Connection(2)-127.0.0.1] Application shutdown requested.

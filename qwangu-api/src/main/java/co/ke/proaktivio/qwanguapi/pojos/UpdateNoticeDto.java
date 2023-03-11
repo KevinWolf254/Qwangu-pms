@@ -1,13 +1,11 @@
 package co.ke.proaktivio.qwanguapi.pojos;
 
 import co.ke.proaktivio.qwanguapi.models.Notice;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter

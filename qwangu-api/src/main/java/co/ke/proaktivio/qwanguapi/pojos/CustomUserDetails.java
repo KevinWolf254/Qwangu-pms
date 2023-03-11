@@ -14,7 +14,8 @@ import java.util.*;
 @Data
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
-    private final User user;
+    private static final long serialVersionUID = -7827040727961360292L;
+	private final User user;
     private final UserRole role;
     private final List<UserAuthority> authorities;
 

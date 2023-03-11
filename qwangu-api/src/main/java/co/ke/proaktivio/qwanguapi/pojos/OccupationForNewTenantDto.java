@@ -2,8 +2,6 @@ package co.ke.proaktivio.qwanguapi.pojos;
 
 import lombok.*;
 
-import java.time.LocalDate;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

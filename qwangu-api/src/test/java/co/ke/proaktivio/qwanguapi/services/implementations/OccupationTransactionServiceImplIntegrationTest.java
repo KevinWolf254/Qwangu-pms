@@ -124,6 +124,7 @@ class OccupationTransactionServiceImplIntegrationTest {
 			.verify();
 	}
 	
+	@SuppressWarnings("serial")
 	@Test
 	void createDebitTransaction_returnsSuccessfully() {
 		// given

@@ -38,7 +38,8 @@ import static org.mockito.Mockito.when;
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
 @ContextConfiguration(classes = {BookingRefundConfigs.class, BookingRefundHandler.class, SecurityConfig.class})
 class BookingRefundConfigsTest {
-    @Autowired
+    @SuppressWarnings("unused")
+	@Autowired
     private ApplicationContext context;
     @Autowired
     private WebTestClient client;

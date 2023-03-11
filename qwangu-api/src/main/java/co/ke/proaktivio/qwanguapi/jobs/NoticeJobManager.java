@@ -31,8 +31,6 @@ public class NoticeJobManager {
     private final OccupationRepository occupationRepository;
     private final UnitRepository unitRepository;
     private final ReactiveMongoTemplate template;
-    private final BookingRefundRepository bookingRefundRepository;
-    private final InvoiceRepository invoiceRepository;
     private final NoticePropertiesConfig npc;
 
     // TODO - UNCOMMENT

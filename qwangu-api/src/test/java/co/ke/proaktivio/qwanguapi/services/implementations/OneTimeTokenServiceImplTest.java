@@ -17,11 +17,9 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 
 @ExtendWith(SpringExtension.class)
 class OneTimeTokenServiceImplTest {
@@ -112,7 +110,6 @@ class OneTimeTokenServiceImplTest {
         //when
         Mockito.when(oneTimeTokenRepository.findById(any(String.class))).thenReturn(Mono.just(token));
         // then
-        var mockVoid = Mono.empty();
         StepVerifier
                 .create(oneTimeTokenService.deleteById(tokenId))
                 .expectComplete();
@@ -122,9 +119,6 @@ class OneTimeTokenServiceImplTest {
     void deleteById_returnsCustomNotFoundException() {
         // given
         String tokenId = "1";
-        String uuid = UUID.randomUUID().toString();
-        var now = LocalDateTime.now();
-        OneTimeToken token = new OneTimeToken("1", uuid, now, now.plusHours(12), "1");
         //when
         Mockito.when(oneTimeTokenRepository.findById(tokenId)).thenReturn(Mono.empty());
         // then
