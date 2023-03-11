@@ -116,78 +116,12 @@ class DarajaCustomerToBusinessServiceImplIntegrationTest {
                 .verifyComplete();
     }
 
-//    @Test
-//    void processBooking() {
-//        // given
-//        var now = LocalDateTime.now();
-//        var today = LocalDate.now();
-//        var payment = new Payment(null, Payment.Status.NEW, Payment.Type.MPESA_PAY_BILL, "RKTQDM7W67",
-//                "Pay Bill", LocalDateTime.now(), BigDecimal.valueOf(20000), "600638",
-//                "BOOKTE34", "", "49197.00", "", "254708374147",
-//                "John", "", "Doe");
-//        var unit = new Unit.UnitBuilder()
-//                .status(Unit.Status.OCCUPIED)
-//                .booked(false)
-//                .accountNo("TE34")
-//                .type(Unit.Type.APARTMENT_UNIT)
-//                .identifier(Unit.Identifier.B)
-//                .floorNo(2)
-//                .noOfBedrooms(2)
-//                .noOfBathrooms(1)
-//                .advanceInMonths(2)
-//                .currency(Unit.Currency.KES)
-//                .rentPerMonth(BigDecimal.valueOf(27000))
-//                .securityPerMonth(BigDecimal.valueOf(510))
-//                .garbagePerMonth(BigDecimal.valueOf(300))
-//                .apartmentId("1").build();
-//        unit.setId("1");
-//        var occupation = new Occupation.OccupationBuilder()
-//                .tenantId("1")
-//                .startedOn(LocalDateTime.now())
-//                .status(Occupation.Status.CURRENT).unitId("1")
-//                .build();
-//        occupation.setId("1");
-//        var notice = new Notice("1", true, now, today.plusDays(40), now, null,
-//                null, null, "1");
-//
-//        // when
-//        Mono<Payment> processBookingPayment = unitRepository.deleteAll()
-//                .doOnSuccess(t -> System.out.println("---- Deleted all Units!"))
-//                .then(occupationRepository.deleteAll())
-//                .doOnSuccess(t -> System.out.println("---- Deleted all Occupations!"))
-//                .then(noticeRepository.deleteAll())
-//                .doOnSuccess(t -> System.out.println("---- Deleted all notices!"))
-//                .then(unitRepository.save(unit))
-//                .doOnSuccess(u -> System.out.println("---- Created: " + u))
-//                .then(occupationRepository.save(occupation))
-//                .doOnSuccess(u -> System.out.println("---- Created: " + u))
-//                .then(noticeRepository.save(notice))
-//                .doOnSuccess(u -> System.out.println("---- Created: " + u))
-//                .then(paymentRepository.save(payment))
-//                .doOnSuccess(u -> System.out.println("---- Created: " + u))
-//                .flatMap(p -> darajaCustomerToBusinessService.processBooking(p));
-//        // then
-//        StepVerifier
-//                .create(processBookingPayment)
-//                .expectNextMatches(p -> p.getStatus().equals(Payment.Status.PROCESSED))
-//                .verifyComplete();
-//
-//        // when
-//        Mono<Unit> findUnit = unitRepository.findById(unit.getId());
-//        // then
-//        StepVerifier
-//                .create(findUnit)
-//                .expectNextMatches(Unit::getIsBooked)
-//                .verifyComplete();
-//    }
-
     @Test
     void makePayment_returnReceiptAndCreateCreditOccupationTransaction_whenSuccessful() {
         // given
         LocalDate now = LocalDate.now();
         var unit = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
-//                .booked(false)
                 .number("TE3489")
                 .type(Unit.UnitType.APARTMENT_UNIT)
                 .identifier(Unit.Identifier.A)

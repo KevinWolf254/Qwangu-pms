@@ -381,6 +381,7 @@ class OccupationServiceImplIntegrationTest {
         // given
         var unit = getUnit();
         var payment = getPayment();
+        payment.setId("24");
         payment.setAmount(BigDecimal.valueOf(81810));
         var payment01 = getPayment();
         payment01.setId("1200");

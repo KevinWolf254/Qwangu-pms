@@ -273,10 +273,10 @@ class OccupationConfigsTest {
                 uriBuilder
                         .path("/v1/occupations")
                         .queryParam("status", "CURRENT")
-                        .queryParam("number", number)
+                        .queryParam("occupationNo", number)
                         .queryParam("unitId", unitId)
                         .queryParam("tenantId", tenantId)
-                        .queryParam("order", order)
+                        .queryParam("order", "ASC")
                         .build();
 
         // when

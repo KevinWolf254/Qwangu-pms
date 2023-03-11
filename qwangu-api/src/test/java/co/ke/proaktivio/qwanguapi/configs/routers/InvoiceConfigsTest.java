@@ -174,7 +174,7 @@ class InvoiceConfigsTest {
     @WithMockUser(roles = {"SUPER_ADMIN"})
     void create_returnsBadRequest_status400_whenTypeIsUtilities_andStartDateIsAfterEndDate() {
         // given
-        var dto = new InvoiceDto();
+    	InvoiceDto dto = new InvoiceDto();
         dto.setType(Type.UTILITIES);
         dto.setOccupationId("1");
         dto.setStartDate(LocalDate.now().plusDays(15));
@@ -209,7 +209,7 @@ class InvoiceConfigsTest {
         Map<String, BigDecimal> otherAmounts = new HashMap<>();
         otherAmounts.put("SECURITY", BigDecimal.valueOf(500l));
         
-		var dto = new InvoiceDto();
+        InvoiceDto dto = new InvoiceDto();
         dto.setType(type);
         dto.setOccupationId(occupationId);
 		dto.setStartDate(now);

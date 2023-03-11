@@ -36,10 +36,7 @@ public class InvoiceHandler {
                 .doOnSuccess(a -> log.debug("Received request to create {}", a))
                 .map(ValidationUtil.validateInvoiceDto(new InvoiceDtoValidator()))
                 .doOnSuccess(a -> log.debug("Validation of request to create invoice was successful"))
-                .flatMap(dto -> {
-                	System.out.println("DTO: "+dto);
-                	return invoiceService.create(dto);
-                })
+                .flatMap(invoiceService::create)
                 .doOnError(e -> log.error("Failed to create invoice. Error ", e))
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/invoices/%s".formatted(created.getOccupationId())))

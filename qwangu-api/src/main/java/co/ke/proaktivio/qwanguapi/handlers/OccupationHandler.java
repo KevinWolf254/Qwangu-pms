@@ -75,9 +75,9 @@ public class OccupationHandler {
                 .ok()
                 .body(occupationService.findAll(
                 		statusOptional.map(Occupation.Status::valueOf).orElse(null),
-                		occupationNoOptional.map(occupationNo -> occupationNo).orElse(""),
-                        unitIdOptional.map(unitId -> unitId).orElse(""),
-                        tenantIdOptional.map(tenantId -> tenantId).orElse(""),
+                		occupationNoOptional.map(occupationNo -> occupationNo).orElse(null),
+                        unitIdOptional.map(unitId -> unitId).orElse(null),
+                        tenantIdOptional.map(tenantId -> tenantId).orElse(null),
                         orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC)
                         ).collectList()
                         .flatMap(occupations -> {
