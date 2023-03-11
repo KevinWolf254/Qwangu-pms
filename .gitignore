@@ -7,6 +7,8 @@ logs
 DataStructures
 DS
 tests
+./qwangu-api/logs
+./qwangu-api/tests
 
 ### STS ###
 .apt_generated
