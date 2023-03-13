@@ -5,7 +5,7 @@ import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
 import co.ke.proaktivio.qwanguapi.repositories.UserAuthorityRepository;
-import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
+import co.ke.proaktivio.qwanguapi.repositories.UserRoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.CommandLineRunner;
@@ -27,7 +27,7 @@ public class BootstrapConfig {
     Mono<User> user = Mono.just(new User(null, person, "johnDoe@email.com", null, "ABc1234!", false,
             false, false, true, null, null, null, null));
 
-    Mono<UserRole> superAdminRole = Mono.just(new UserRole.RoleBuilder().setName("SUPER_ADMIN").build());
+    Mono<UserRole> superAdminRole = Mono.just(new UserRole.UserRoleBuilder().name("SUPER_ADMIN").build());
 
     Flux<UserAuthority> superAdminAuthorities = Flux.just(
             new UserAuthority(null, "APARTMENT", true, true, true, true, true,
@@ -58,7 +58,7 @@ public class BootstrapConfig {
                     null, LocalDateTime.now(), null, null, null)
     );
 
-    private Mono<Void> deleteAll(UserRepository userRepository, RoleRepository roleRepository,
+    private Mono<Void> deleteAll(UserRepository userRepository, UserRoleRepository roleRepository,
                          UserAuthorityRepository userAuthorityRepository) {
         return userAuthorityRepository.deleteAll()
                 .doOnSuccess($ -> log.info(" Deleted all authorities"))
@@ -69,7 +69,7 @@ public class BootstrapConfig {
     }
 
     @Bean
-    public CommandLineRunner init(UserRepository userRepository, RoleRepository roleRepository,
+    public CommandLineRunner init(UserRepository userRepository, UserRoleRepository roleRepository,
                                   UserAuthorityRepository userAuthorityRepository, PasswordEncoder encoder) {
         return args -> {
             deleteAll(userRepository, roleRepository, userAuthorityRepository)

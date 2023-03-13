@@ -6,12 +6,12 @@ import co.ke.proaktivio.qwanguapi.pojos.UserRoleDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
-
 public interface UserRoleService {
-    Mono<UserRole> create(UserRoleDto dto);
-    Mono<UserRole> findById(String roleId);
-    Flux<UserRole> findPaginated(Optional<String> name, int page, int pageSize, OrderType order);
-    Mono<UserRole> update(String id, UserRoleDto dto);
-    Mono<Boolean> deleteById(String id);
+	Mono<UserRole> create(UserRoleDto dto);
+
+	Mono<UserRole> findById(String roleId);
+
+	Flux<UserRole> findAll(String name, OrderType order);
+
+//	Mono<UserRole> update(String id, UserRoleDto dto);
 }

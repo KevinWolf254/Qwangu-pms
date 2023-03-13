@@ -252,8 +252,9 @@ class OccupationTransactionServiceImplIntegrationTest {
 		payment.setId(paymentId);
 		payment.setAmount(BigDecimal.valueOf(20000));
 		payment.setCurrency(Currency.KES);
-		payment.setReferenceNo("23456");
-		payment.setType(Payment.Type.MPESA_TILL);
+		payment.setOccupationNumber(occupation.getNumber());
+		payment.setReferenceNumber("23456");
+		payment.setType(Payment.PaymentType.MPESA_TILL);
 		
 		String receiptId = "1000";
 		var receipt = new Receipt();

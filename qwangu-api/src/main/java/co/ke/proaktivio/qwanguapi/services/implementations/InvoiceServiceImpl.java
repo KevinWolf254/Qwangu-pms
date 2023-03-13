@@ -16,7 +16,7 @@ import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -35,7 +35,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class InvoiceServiceImpl implements InvoiceService {

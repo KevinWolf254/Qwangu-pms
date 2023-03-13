@@ -1,12 +1,15 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
+import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UserRoleDto;
 import co.ke.proaktivio.qwanguapi.services.UserRoleService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
+import co.ke.proaktivio.qwanguapi.validators.UserRoleDtoValidator;
+import co.ke.proaktivio.qwanguapi.validators.ValidationUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -17,7 +20,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-@Slf4j
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class UserRoleHandler {
@@ -27,7 +30,7 @@ public class UserRoleHandler {
         return request
                 .bodyToMono(UserRoleDto.class)
                 .doOnSuccess(a -> log.info(" Received request to create {}", a))
-//                .map(validateUserRoleDtoFunc(new UserRoleDtoValidator()))
+                .map(ValidationUtil.validateUserRoleDto(new UserRoleDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to create user role was successful"))
                 .flatMap(userRoleService::create)
                 .doOnSuccess(a -> log.info(" Created role {} successfully", a.getName()))
@@ -38,83 +41,43 @@ public class UserRoleHandler {
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.CREATED.value(), true, "Role created successfully.",
+                                        HttpStatus.CREATED.value(), true, "UserRole created successfully.",
                                         created)), Response.class))
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for creating role", a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
-        String id = request.pathVariable("roleId");
-        return userRoleService.findById(id)
+        String roleId = request.pathVariable("roleId");
+        return userRoleService.findById(roleId)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("UserRole with id %s was not found!"
+                        .formatted(roleId))))
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
                                 .body(Mono.just(new Response<>(
                                         LocalDateTime.now().toString(),
                                         request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,"Role found successfully.",
+                                        HttpStatus.OK.value(),true,"UserRole found successfully.",
                                         results)), Response.class))
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for querying role by id", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> name = request.queryParam("name");
-        Optional<String> page = request.queryParam("page");
-        Optional<String> pageSize = request.queryParam("pageSize");
-        Optional<String> order = request.queryParam("order");
-        return userRoleService.findPaginated(
-                        name,
-                        page.map(p -> CustomUtils.convertToInteger(p, "Page")).orElse(1),
-                        pageSize.map(ps -> CustomUtils.convertToInteger(ps, "Page size")).orElse(10),
-                        order.map(OrderType::valueOf).orElse(OrderType.DESC)
-                ).collectList()
-                .flatMap(results ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,"Roles found successfully.",
-                                        results)), Response.class))
-                .doOnSuccess(a -> log.info(" Sent response with status code {} for querying roles", a.rawStatusCode()));
-    }
-
-    public Mono<ServerResponse> update(ServerRequest request) {
-        String id = request.pathVariable("apartmentId");
-        return request
-                .bodyToMono(UserRoleDto.class)
-                .doOnSuccess(a -> log.info(" Received request to update {}", a))
-//                .map(validateUserRoleDtoFunc(new UserRoleDtoValidator()))
-                .doOnSuccess(a -> log.debug(" Validation of request to update role was successful"))
-                .flatMap(dto -> userRoleService.update(id, dto))
-                .doOnSuccess(a -> log.info(" Updated role {} successfully", a.getName()))
-                .doOnError(e -> log.error(" Failed to update role. Error ", e))
-                .flatMap(updated ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        "",
-                                        HttpStatus.OK.value(), true,"Role updated successfully.",
-                                        updated)), Response.class))
-                .doOnSuccess(a -> log.debug(" Sent response with status code {} for updating role", a.rawStatusCode()));
-    }
-
-    public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("roleId");
-        log.info(" Received request to delete role with id {}", id);
-        return userRoleService.deleteById(id)
-                .doOnSuccess($ -> log.info(" Deleted role successfully"))
-                .doOnError(e -> log.error(" Failed to delete role. Error ", e))
-                .flatMap(result ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        "",
-                                        HttpStatus.OK.value(),
-                                        true, "Role with id %s deleted successfully.".formatted(id),
-                                        null)), Response.class))
-                .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting role", a.rawStatusCode()));
-    }
+	public Mono<ServerResponse> findAll(ServerRequest request) {
+		Optional<String> nameOptional = request.queryParam("name");
+		Optional<String> orderOptional = request.queryParam("order");
+		
+		ValidationUtil.vaidateOrderType(orderOptional);
+		return userRoleService
+				.findAll(nameOptional.orElse(null), orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC))
+				.collectList()
+				.flatMap(results -> {
+					var isEmpty = results.isEmpty();
+					return ServerResponse.ok()
+							.body(Mono.just(new Response<>(LocalDateTime.now().toString(), request.uri().getPath(),
+									HttpStatus.OK.value(), !isEmpty,
+									!isEmpty ? "UserRoles found successfully." : "UserRoles were not found!", results)),
+									Response.class);
+				})
+				.doOnSuccess(a -> log.info(" Sent response with status code {} for querying roles", a.rawStatusCode()));
+	}
 }

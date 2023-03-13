@@ -11,7 +11,7 @@ import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.UserAuthorityRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
-import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
+import co.ke.proaktivio.qwanguapi.repositories.UserRoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import co.ke.proaktivio.qwanguapi.services.EmailService;
@@ -48,7 +48,7 @@ class UserServiceImplIntegrationTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private RoleRepository roleRepository;
+    private UserRoleRepository roleRepository;
     @Autowired
     private UserAuthorityRepository userAuthorityRepository;
     @Autowired
@@ -99,8 +99,11 @@ class UserServiceImplIntegrationTest {
 
         UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
                 true, "1", LocalDateTime.now(), null, null, null);
-        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
-
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+		role.setId("1");
+		
         // when
         Mono<User> create = userRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Users!"))
@@ -151,8 +154,13 @@ class UserServiceImplIntegrationTest {
 
         UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true, true,
                 "1", LocalDateTime.now(), null, null, null);
-        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
+//        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+		role.setId("1");
+		
         // when
         Mono<User> user = template
                 .dropCollection(User.class)
@@ -211,8 +219,12 @@ class UserServiceImplIntegrationTest {
 
         UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
                 true, "1", LocalDateTime.now(), null, null, null);
-        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
+//        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+		role.setId("1");
         // when
         Mono<User> user = deleteAll()
                 .then(userAuthorityRepository.save(userAuthority))
@@ -246,8 +258,12 @@ class UserServiceImplIntegrationTest {
 
         UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
                 true, "1", LocalDateTime.now(), null, null, null);
-        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
+//        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+		role.setId("1");
         // when
         Mono<User> user = template
                 .dropCollection(User.class)
@@ -282,8 +298,13 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, roleId);
         User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
-        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
+//        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+		role.setId("1");
+		
         UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
                 true, "1", LocalDateTime.now(), null, null, null);
 
@@ -325,7 +346,13 @@ class UserServiceImplIntegrationTest {
         UserDto dto = new UserDto(person, emailAddress1, roleId);
         User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
 
-        UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
+//        UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
+
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+		role.setId(roleId);
+		
         UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
                 true, roleId, LocalDateTime.now(), null, null, null);
 
@@ -499,7 +526,10 @@ class UserServiceImplIntegrationTest {
         User user = new User(null, person, emailAddress, null, password,
                 false, false, false, true, now,
                 null, null, null);
-        var role = new UserRole(null, "ADMIN", now, null, null, null);
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+
         var authority = new UserAuthority(null, "USER", true, true, true, true,
                 true, null, now, null, null, null);
         // when

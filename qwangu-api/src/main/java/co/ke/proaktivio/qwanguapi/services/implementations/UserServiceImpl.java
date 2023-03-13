@@ -7,7 +7,7 @@ import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.models.UserToken;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
-import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
+import co.ke.proaktivio.qwanguapi.repositories.UserRoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
 import co.ke.proaktivio.qwanguapi.services.*;
@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
     private final OneTimeTokenService oneTimeTokenService;
     private final OneTimeTokenRepository oneTimeTokenRepository;
     private final PasswordEncoder encoder;
-    private final RoleRepository roleRepository;
+    private final UserRoleRepository roleRepository;
     private final JwtUtil jwtUtil;
     private final UserAuthorityService userAuthorityService;
     private final ReactiveMongoTemplate template;

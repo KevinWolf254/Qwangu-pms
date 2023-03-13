@@ -51,7 +51,8 @@ public class SecurityConfig {
                         "/v1/forgotPassword",
                         "/v1/tokens",
                         "/v1/setPassword",
-                        "/v1/mpesa/**"
+                        "/v1/payments/mpesa/v2/confirm",
+                        "/v1/payments/mpesa/v2/validate"
                 ).permitAll()
                 .pathMatchers( "/v1/apartments/**").hasAnyRole("SUPER_ADMIN")
                 .pathMatchers( "/v1/units/**").hasAnyRole("SUPER_ADMIN")

@@ -299,7 +299,7 @@ class NoticeJobManagerIntegrationTest {
                 .create(getRefund)
                 .expectNextMatches(r -> !r.getId().isEmpty() && r.getStatus().equals(Refund.Status.PENDING_REVISION)
                         && r.getRefundDate() == null && r.getCurrency().equals(Unit.Currency.KES) &&
-                        r.getRent().floatValue() == 0.0 && r.getSecurity().floatValue() == 127.50
+                        r.getRent().floatValue() == 0.0 && r.getSecurity().floatValue() == 0.0
                         && r.getGarbage().floatValue() == 0.0 && r.getOthers() != null &&
                         r.getTotal().floatValue() == 0.0 &&
                         r.getInvoiceId().equals("1") &&

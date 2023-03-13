@@ -10,7 +10,7 @@ import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import co.ke.proaktivio.qwanguapi.validators.InvoiceDtoValidator;
 import co.ke.proaktivio.qwanguapi.validators.ValidationUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@Slf4j
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class InvoiceHandler {

@@ -5,7 +5,7 @@ import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.Person;
-import co.ke.proaktivio.qwanguapi.repositories.RoleRepository;
+import co.ke.proaktivio.qwanguapi.repositories.UserRoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.services.UserAuthorityService;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ class CustomUserDetailsServiceImplTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private RoleRepository roleRepository;
+    private UserRoleRepository roleRepository;
     @Mock
     private UserAuthorityService userAuthorityService;
     @InjectMocks
@@ -45,13 +45,19 @@ class CustomUserDetailsServiceImplTest {
         User user = new User(id, person, username, "1", null, false, false, false, true, now, null, null ,null);
 
         String roleName = "ADMIN";
-        var role = new UserRole("1", roleName, now, null, null, null);
+		var admin = new UserRole.UserRoleBuilder()
+				.name(roleName)
+				.build();
+		admin.setId(id);
+		
         String authorityName = "APARTMENT";
         var authority = new UserAuthority("1", authorityName, true, true, true, true,
                 true, "1", LocalDateTime.now(), null, null, null);
+        var userRole = new UserRole();
+        userRole.setId(user.getRoleId());
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(username)))).thenReturn(Mono.just(user));
-        Mockito.when(roleRepository.findOne(Example.of(new UserRole(user.getRoleId())))).thenReturn(Mono.just(role));
+        Mockito.when(roleRepository.findOne(Example.of(userRole))).thenReturn(Mono.just(admin));
         Mockito.when(userAuthorityService.findByRoleId("1")).thenReturn(Flux.just(authority));
         // then
         Mono<UserDetails> request = customUserDetailsService.findByUsername(username)
@@ -130,12 +136,13 @@ class CustomUserDetailsServiceImplTest {
         LocalDateTime now = LocalDateTime.now();
         Person person = new Person("John", "Doe", "Doe");
         User user = new User(id, person, username, "1", null, false, false, false, true, now, null, null ,null);
-
+        var userRole = new UserRole();
+        userRole.setId(user.getRoleId());
         // when
         Mockito.when(userRepository.findOne(Example.of(new User(username))))
                 .thenReturn(Mono.just(user));
 
-        Mockito.when(roleRepository.findOne(Example.of(new UserRole(user.getRoleId()))))
+        Mockito.when(roleRepository.findOne(Example.of(userRole)))
                 .thenReturn(Mono.empty());
 
         // then

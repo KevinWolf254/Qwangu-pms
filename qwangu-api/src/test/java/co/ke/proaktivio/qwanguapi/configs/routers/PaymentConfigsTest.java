@@ -3,10 +3,12 @@ package co.ke.proaktivio.qwanguapi.configs.routers;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.MpesaIPAddressWhiteListFilter;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
-import co.ke.proaktivio.qwanguapi.handlers.MpesaC2BHandler;
-import co.ke.proaktivio.qwanguapi.pojos.MpesaC2BDto;
-import co.ke.proaktivio.qwanguapi.pojos.MpesaC2BResponse;
-import co.ke.proaktivio.qwanguapi.services.MpesaC2BService;
+import co.ke.proaktivio.qwanguapi.handlers.PaymentHandler;
+import co.ke.proaktivio.qwanguapi.pojos.MpesaPaymentDto;
+import co.ke.proaktivio.qwanguapi.pojos.MpesaPaymentResponse;
+import co.ke.proaktivio.qwanguapi.services.MpesaPaymentService;
+import co.ke.proaktivio.qwanguapi.services.PaymentService;
+
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,28 +31,41 @@ import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
 
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
-@ContextConfiguration(classes = {MpesaC2BConfig.class, MpesaC2BHandler.class, SecurityConfig.class, MpesaIPAddressWhiteListFilter.class})
-class MpesaC2BConfigTest {
+@ContextConfiguration(classes = {PaymentConfigs.class, PaymentHandler.class, SecurityConfig.class, MpesaIPAddressWhiteListFilter.class})
+class PaymentConfigsTest {
     @Autowired
     private ApplicationContext context;
     @MockBean
-    private MpesaC2BService darajaCustomerToBusinessService;
+    private MpesaPaymentService mpesaPaymentService;
+    @MockBean
+    private PaymentService paymentService;
     @MockBean
     private ReactiveAuthenticationManager authenticationManager;
     @MockBean
     private ServerSecurityContextRepository contextRepository;
 
-    private final MpesaC2BDto dto = new MpesaC2BDto("RKTQDM7W6S", "Pay Bill", "20191122063845", "10", "600638",
+    private final MpesaPaymentDto dto = new MpesaPaymentDto("RKTQDM7W6S", "Pay Bill", "20191122063845", "10", "600638",
             "T903", "", "49197.00", "", "254708374149", "John", "", "Doe");
-    private final MpesaC2BResponse<?> response = new MpesaC2BResponse<>(0, "ACCEPTED");
+    private final MpesaPaymentResponse response = new MpesaPaymentResponse(0, "ACCEPTED");
     
     @Test
-    void validate_returnsMpesaC2BResponse_whenRemoteHostIsWhiteListed() {
+    void findById() {
+    	fail(() -> "TODO - not implemented!");
+    }
+
+    @Test
+    void findAll() {
+    	fail(() -> "TODO - not implemented!");
+    }
+    
+    @Test
+    void validate_returnsMpesaPaymentResponse_whenRemoteHostIsWhiteListed() {
         // given    	
         WebTestClient client = WebTestClient
                 .bindToApplicationContext(context)
@@ -60,14 +75,14 @@ class MpesaC2BConfigTest {
         
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(darajaCustomerToBusinessService.validate(dto)).thenReturn(Mono.just(response));
+        when(mpesaPaymentService.validate(dto)).thenReturn(Mono.just(response));
         
         // then
         client
                 .post()
-                .uri("/v1/mpesa/v2/c2b/validate")
+                .uri("/v1/payments/mpesa/v2/validate")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), MpesaC2BDto.class)
+                .body(Mono.just(dto), MpesaPaymentDto.class)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")
@@ -92,9 +107,9 @@ class MpesaC2BConfigTest {
         // then
         clientNotWhitedListed
                 .post()
-                .uri("/v1/mpesa/v2/c2b/validate")
+                .uri("/v1/payments/mpesa/v2/validate")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), MpesaC2BDto.class)
+                .body(Mono.just(dto), MpesaPaymentDto.class)
                 .exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody()
@@ -102,7 +117,7 @@ class MpesaC2BConfigTest {
     }
 
     @Test
-    void confirm_returnsMpesaC2BResponse_whenRemoteHostIsWhiteListed() {
+    void create_returnsMpesaPaymentResponse_whenRemoteHostIsWhiteListed() {
         // given    	
         WebTestClient client = WebTestClient
                 .bindToApplicationContext(context)
@@ -112,14 +127,14 @@ class MpesaC2BConfigTest {
         
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(darajaCustomerToBusinessService.confirm(dto)).thenReturn(Mono.just(response));
+        when(mpesaPaymentService.create(dto)).thenReturn(Mono.just(response));
         
         // then
         client
                 .post()
-                .uri("/v1/mpesa/v2/c2b/confirm")
+                .uri("/v1/payments/mpesa/v2/confirm")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), MpesaC2BDto.class)
+                .body(Mono.just(dto), MpesaPaymentDto.class)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType("application/json")
@@ -144,56 +159,16 @@ class MpesaC2BConfigTest {
         // then
         clientNotWhitedListed
                 .post()
-                .uri("/v1/mpesa/v2/c2b/confirm")
+                .uri("/v1/payments/mpesa/v2/confirm")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), MpesaC2BDto.class)
+                .body(Mono.just(dto), MpesaPaymentDto.class)
                 .exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody()
                 .consumeWith(System.out::println);
     }
-    
-//    @Test
-//    void confirm() {
-//        // given
-//        WebTestClient client = WebTestClient
-//                .bindToApplicationContext(context)
-//                .webFilter(new SetRemoteAddressWebFilter("127.0.0.1"))
-//                .configureClient()
-//                .build();
-//        WebTestClient clientNotWhitedListed = WebTestClient
-//                .bindToApplicationContext(context)
-//                .webFilter(new SetRemoteAddressWebFilter("127.0.0.50"))
-//                .configureClient()
-//                .build();
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        when(darajaCustomerToBusinessService.confirm(dto)).thenReturn(Mono.just(response));
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/mpesa/v2/c2b/confirm")
-//                .accept(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(dto), MpesaC2BDto.class)
-//                .exchange()
-//                .expectStatus().isOk()
-//                .expectHeader().contentType("application/json")
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.ResultCode").isEqualTo(0)
-//                .jsonPath("$.ResultDesc").isEqualTo("ACCEPTED")
-//                .consumeWith(System.out::println);
-//        // then
-//        clientNotWhitedListed
-//                .post()
-//                .uri("/v1/mpesa/v2/c2b/validate")
-//                .accept(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(dto), MpesaC2BDto.class)
-//                .exchange()
-//                .expectStatus().isUnauthorized();
-//    }
 }
-//
+
 class SetRemoteAddressWebFilter implements WebFilter {
 
     private final String host;

@@ -2,7 +2,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
-import co.ke.proaktivio.qwanguapi.models.Payment;
+import co.ke.proaktivio.qwanguapi.models.Payment.PaymentStatus;
 import co.ke.proaktivio.qwanguapi.models.RentAdvance;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.RentAdvanceDto;
@@ -45,12 +45,12 @@ public class RentAdvanceServiceImpl implements RentAdvanceService {
                 .flatMap(d -> paymentRepository.findById(d.getPaymentId()))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Payment with id %s does not exist!"
                         .formatted(paymentId))))
-                .filter(payment -> payment.getStatus().equals(Payment.Status.NEW))
+                .filter(payment -> payment.getStatus().equals(PaymentStatus.UNPROCESSED))
                 .switchIfEmpty(Mono
                         .error(new CustomBadRequestException("Payment with id %s has already been processed!"
                                 .formatted(paymentId))))
                 .flatMap(payment -> {
-                    payment.setStatus(Payment.Status.PROCESSED);
+                    payment.setStatus(PaymentStatus.PROCESSED);
                     if (occupationId != null && !occupationId.trim().isEmpty() && !occupationId.trim().isBlank()) {
                         return occupationRepository.findById(occupationId)
                                 .switchIfEmpty(Mono.error(

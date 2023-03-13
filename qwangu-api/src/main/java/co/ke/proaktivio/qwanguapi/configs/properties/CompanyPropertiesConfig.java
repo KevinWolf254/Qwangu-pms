@@ -1,10 +1,13 @@
 package co.ke.proaktivio.qwanguapi.configs.properties;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-@Data
+@Getter
+@Setter
 @Configuration
 @ConfigurationProperties(prefix = "company")
 public class CompanyPropertiesConfig {
@@ -13,7 +16,8 @@ public class CompanyPropertiesConfig {
     private String noReplyEmail;
     private SocialMediaPropertiesConfig socialMedia;
 
-    @Data
+    @Getter
+    @Setter
     public static class SocialMediaPropertiesConfig {
         private String linkedInUrl;
         private String twitterUrl;

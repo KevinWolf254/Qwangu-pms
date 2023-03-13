@@ -6,6 +6,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.models.Occupation.Status;
+import co.ke.proaktivio.qwanguapi.models.Payment.PaymentStatus;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
@@ -26,7 +27,6 @@ import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 
 @Testcontainers
@@ -94,20 +94,13 @@ class OccupationServiceImplIntegrationTest {
     }
 
     private Payment getPayment() {
-        var payment = new Payment.PaymentBuilder()
-                .status(Payment.Status.NEW)
-                .type(Payment.Type.MPESA_PAY_BILL)
-                .transactionId("RKTQDM7W67")
-                .transactionType("Pay Bill")
-                .transactionTime(LocalDateTime.now())
-                .currency(Unit.Currency.KES)
-                .amount(BigDecimal.valueOf(20000))
-                .shortCode("600638")
-                .referenceNo("TE3490")
-                .balance("49197.00")
-                .mobileNumber("254708374147")
-                .firstName("John")
-                .build();
+        var payment = new Payment();
+        payment.setStatus(PaymentStatus.UNPROCESSED);
+        payment.setType(Payment.PaymentType.MPESA_PAY_BILL);
+        payment.setReferenceNumber("RKTQDM7W67");
+        payment.setCurrency(Unit.Currency.KES);
+        payment.setAmount(BigDecimal.valueOf(20000));
+        payment.setOccupationNumber("TE3490");
         payment.setId("15");
         return payment;
     }
@@ -153,7 +146,7 @@ class OccupationServiceImplIntegrationTest {
                 .build();
 
         var payment = getPayment();
-        payment.setStatus(Payment.Status.PROCESSED);
+        payment.setStatus(PaymentStatus.PROCESSED);
         var tenantDto = new TenantDto("John", "middle", "Doe","0700000000",
                 "person@gmail.com");
         var dto = new OccupationForNewTenantDto(null, tenantDto, new OccupationDto(now.plusDays(6),

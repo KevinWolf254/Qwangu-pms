@@ -7,7 +7,7 @@ import co.ke.proaktivio.qwanguapi.pojos.UserAuthorityDto;
 import co.ke.proaktivio.qwanguapi.repositories.UserAuthorityRepository;
 import co.ke.proaktivio.qwanguapi.services.UserAuthorityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
-@Slf4j
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class UserAuthorityServiceImpl implements UserAuthorityService {

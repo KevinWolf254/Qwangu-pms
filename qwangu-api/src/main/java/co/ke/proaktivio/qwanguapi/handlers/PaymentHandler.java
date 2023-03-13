@@ -1,12 +1,17 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.models.Payment;
+import co.ke.proaktivio.qwanguapi.models.Payment.PaymentStatus;
+import co.ke.proaktivio.qwanguapi.models.Payment.PaymentType;
+import co.ke.proaktivio.qwanguapi.pojos.MpesaPaymentDto;
+import co.ke.proaktivio.qwanguapi.pojos.MpesaPaymentResponse;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
+import co.ke.proaktivio.qwanguapi.services.MpesaPaymentService;
 import co.ke.proaktivio.qwanguapi.services.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -24,6 +29,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class PaymentHandler {
     private final PaymentService paymentService;
+	private final MpesaPaymentService mpesaPaymentService;
 
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("paymentId");
@@ -39,37 +45,31 @@ public class PaymentHandler {
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for querying payment by id", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> status = request.queryParam("status");
-        Optional<String> type = request.queryParam("type");
-        Optional<String> shortCode = request.queryParam("shortCode");
-        Optional<String> transactionId = request.queryParam("transactionId");
-        Optional<String> referenceNo = request.queryParam("referenceNo");
-        Optional<String> mobileNumber = request.queryParam("mobileNumber");
-        Optional<String> order = request.queryParam("order");
+    public Mono<ServerResponse> findAll(ServerRequest request) {
+        Optional<String> statusOptional = request.queryParam("status");
+        Optional<String> typeOptional = request.queryParam("type");
+        Optional<String> referenceNumberOptional = request.queryParam("referenceNumber");
+        Optional<String> mpesaPaymentIdOptional = request.queryParam("mpesaPaymentId");
+        Optional<String> orderOptional = request.queryParam("order");
 
-        if (status.isPresent() && StringUtils.hasText(status.get()) && !EnumUtils.isValidEnum(Payment.Status.class, status.get())) {
-            String[] arrayOfState = Stream.of(Payment.Status.values()).map(Payment.Status::getState).toArray(String[]::new);
+        if (statusOptional.isPresent() && StringUtils.hasText(statusOptional.get()) && !EnumUtils.isValidEnum(PaymentStatus.class, statusOptional.get())) {
+            String[] arrayOfState = Stream.of(PaymentStatus.values()).map(PaymentStatus::getState).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Status should be " + states + "!");
         }
-
-        if (type.isPresent() && StringUtils.hasText(type.get()) && !EnumUtils.isValidEnum(Payment.Type.class, type.get())) {
-            String[] arrayOfState = Stream.of(Payment.Type.values()).map(Payment.Type::getType).toArray(String[]::new);
+        if (typeOptional.isPresent() && StringUtils.hasText(typeOptional.get()) && !EnumUtils.isValidEnum(PaymentType.class, typeOptional.get())) {
+            String[] arrayOfState = Stream.of(PaymentType.values()).map(PaymentType::getType).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Type should be " + states + "!");
         }
-
         return ServerResponse
                 .ok()
                 .body(paymentService.findAll(
-                                StringUtils.hasText(status.get()) ? status.map(Payment.Status::valueOf) : Optional.empty(),
-                                StringUtils.hasText(type.get()) ? type.map(Payment.Type::valueOf) : Optional.empty(),
-                                shortCode,
-                                transactionId,
-                                referenceNo,
-                                mobileNumber,
-                                order.map(OrderType::valueOf).orElse(OrderType.DESC))
+                		statusOptional.map(PaymentStatus::valueOf).orElse(null),
+                		typeOptional.map(PaymentType::valueOf).orElse(null),
+                		referenceNumberOptional.orElse(null),
+                		mpesaPaymentIdOptional.orElse(null),
+                		orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC))
                         .collectList()
                         .flatMap(payments -> {
                             if(payments.isEmpty())
@@ -84,26 +84,33 @@ public class PaymentHandler {
                                     HttpStatus.OK.value(), true, "Payments found successfully.",
                                     payments));
                         }), Response.class);
-//        return paymentService.findAll(
-//                        status.map(Payment.Status::valueOf),
-//                        type.map(Payment.Type::valueOf),
-//                        shortCode,
-//                        referenceNo,
-//                        mobileNumber,
-//                        order.map(OrderType::valueOf).orElse(OrderType.DESC)
-//                )
-//                .collectList()
-//                .doOnSuccess(a -> log.info(" Query request returned {} payments", a.size()))
-//                .doOnError(e -> log.error(" Failed to find payments. Error ", e))
-//                .flatMap(results ->
-//                        ServerResponse
-//                                .ok()
-//                                .body(Mono.just(new Response<>(
-//                                        LocalDateTime.now().toString(),
-//                                        request.uri().getPath(),
-//                                        HttpStatus.OK.value(),true, "Payments found successfully.",
-//                                        results)), Response.class))
-//                .doOnSuccess(a -> log.debug(" Sent response with status code {} for querying payments", a.rawStatusCode()));
+    }
+
+    public Mono<ServerResponse> validateMpesa(ServerRequest request) {
+        return request
+        		.bodyToMono(MpesaPaymentDto.class)
+                .doOnSuccess(a -> log.info("Received request to validate {}", a))
+                .flatMap(mpesaPaymentService::validate)
+                .doOnSuccess(a -> log.info("Validated successfully"))
+                .doOnError(e -> log.error("Failed to validate. Error ", e))
+                .flatMap(response ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(response), MpesaPaymentResponse.class))
+                .doOnSuccess(a -> log.debug("Sent response with status code {} for validating", a.rawStatusCode()));
+    }
+
+    public Mono<ServerResponse> createMpesa(ServerRequest request) {
+        return request.bodyToMono(MpesaPaymentDto.class)
+                .doOnSuccess(a -> log.info("Received request to create {}", a))
+                .flatMap(mpesaPaymentService::create)
+                .doOnSuccess(a -> log.info("Created c2b successfully"))
+                .doOnError(e -> log.error("Failed to create c2b. Error ", e))
+                .flatMap(response ->
+                        ServerResponse
+                                .ok()
+                                .body(Mono.just(response), MpesaPaymentResponse.class))
+                .doOnSuccess(a -> log.debug("Sent response with status code {} for creating c2b", a.rawStatusCode()));
     }
 
 }

@@ -26,7 +26,7 @@ import java.util.Optional;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class UserUserAuthorityServiceImplIntegrationTest {
+class UserAuthorityServiceImplIntegrationTest {
     @Autowired
     private ReactiveMongoTemplate template;
     @Autowired

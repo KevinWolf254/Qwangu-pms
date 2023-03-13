@@ -120,11 +120,9 @@ public class UserRoleConfigs {
     RouterFunction<ServerResponse> roleRoute(UserRoleHandler handler) {
         return route()
                 .path("v1/roles", builder -> builder
-                        .GET(handler::find)
                         .GET("/{roleId}", handler::findById)
+                        .GET(handler::findAll)
                         .POST(handler::create)
-                        .PUT("/{roleId}", handler::update)
-                        .DELETE("/{roleId}", handler::delete)
                 ).build();
     }
 }

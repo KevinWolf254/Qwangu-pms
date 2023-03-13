@@ -3,7 +3,7 @@ package co.ke.proaktivio.qwanguapi.configs;
 import co.ke.proaktivio.qwanguapi.exceptions.*;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.jsonwebtoken.JwtException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-@Slf4j
+@Log4j2
 @Component
 @Order(-2)
 public class GlobalErrorWebExceptionHandler  extends AbstractErrorWebExceptionHandler {

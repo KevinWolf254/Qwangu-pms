@@ -41,7 +41,13 @@ class JwtUtilImplTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
         User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null, null ,null);
-        UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
+//        UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
+
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+		role.setId(roleId);
+		
         token = util.generateToken(user, role, List.of(userAuthority));
         System.out.println(token);
     }
@@ -108,8 +114,10 @@ class JwtUtilImplTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
         User user = new User("1", person, emailAddress, roleId, null, false, false, false, true, LocalDateTime.now(), null, null ,null);
-        UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
-
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+		role.setId(roleId);
         // when
         String token = util.generateToken(user, role, List.of(userAuthority));
 

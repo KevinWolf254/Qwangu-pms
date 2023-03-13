@@ -1,6 +1,5 @@
 package co.ke.proaktivio.qwanguapi.models;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.*;
@@ -11,7 +10,6 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Document(value = "USER_ROLE")
 public class UserRole {
     @Id
@@ -27,15 +25,11 @@ public class UserRole {
     @LastModifiedBy
     private String modifiedBy;
 
-    public UserRole(String id) {
-        this.id = id;
-    }
-
     @NoArgsConstructor
-    public static class RoleBuilder {
+    public static class UserRoleBuilder {
         private String name;
 
-        public RoleBuilder setName(String name) {
+        public UserRoleBuilder name(String name) {
             this.name = name;
             return this;
         }

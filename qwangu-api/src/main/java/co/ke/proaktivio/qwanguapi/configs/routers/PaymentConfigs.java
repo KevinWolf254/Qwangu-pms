@@ -1,13 +1,18 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.PaymentHandler;
+import co.ke.proaktivio.qwanguapi.pojos.MpesaPaymentDto;
+import co.ke.proaktivio.qwanguapi.pojos.MpesaPaymentResponse;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -63,13 +68,44 @@ public class PaymentConfigs {
                                     }
                             )
                     ),
+                    @RouterOperation(
+                            path = "/v1/payments/mpesa/v2/validate",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.POST, beanClass = PaymentHandler.class, beanMethod = "validate",
+                            operation = @Operation(
+                                    operationId = "validate",
+                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = MpesaPaymentDto.class))),
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Validate successfully.",
+                                                    content = @Content(schema = @Schema(implementation = MpesaPaymentResponse.class)))
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
+                            )
+                    ),
+                    @RouterOperation(
+                            path = "/v1/payments/mpesa/v2/confirm",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.POST, beanClass = PaymentHandler.class, beanMethod = "confirm",
+                            operation = @Operation(
+                                    operationId = "confirm",
+                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = MpesaPaymentDto.class))),
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Created successfully.",
+                                                    content = @Content(schema = @Schema(implementation = MpesaPaymentResponse.class)))
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
+                            )
+                    ),
             }
     )
-    RouterFunction<ServerResponse> paymentRoute(PaymentHandler handler) {
-        return route()
-                .path("v1/payments", builder -> builder
-                        .GET(handler::find)
-                        .GET("/{paymentId}", handler::findById)
-                ).build();
-    }
+	RouterFunction<ServerResponse> paymentRoute(PaymentHandler handler) {
+		return route().path("v1/payments", builder -> builder
+					.GET(handler::findAll)
+					.GET("/{paymentId}", handler::findById)
+					.path("/mpesa/v2", builder1 -> builder1
+							.POST("/validate", handler::validateMpesa)
+							.POST("/confirm", handler::createMpesa))
+				)
+				.build();
+	}
 }

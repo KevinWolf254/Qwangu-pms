@@ -3,13 +3,14 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.*;
+import co.ke.proaktivio.qwanguapi.models.Payment.PaymentStatus;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
 import co.ke.proaktivio.qwanguapi.services.*;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -24,7 +25,7 @@ import java.util.List;
 
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 
-@Slf4j
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class OccupationServiceImpl implements OccupationService {
@@ -110,7 +111,7 @@ public class OccupationServiceImpl implements OccupationService {
                 .flatMap(tenant -> paymentService
                         .findById(paymentId)
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment with id %s does not exist!".formatted(paymentId))))
-                        .filter(payment -> payment.getStatus().equals(Payment.Status.NEW))
+                        .filter(payment -> payment.getStatus().equals(PaymentStatus.UNPROCESSED))
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment with id %s has already been processed!".formatted(paymentId)))))
                 .flatMap(payment -> {
                     return unitService
@@ -167,7 +168,7 @@ public class OccupationServiceImpl implements OccupationService {
                                                 .flatMap(invoice -> receiptService.create(new ReceiptDto(occupationPending.getId(), paymentId)))
                                                 .doOnSuccess(a -> System.out.println("---- Created " + a))
                                                 .flatMap(receipt -> {
-                                                    payment.setStatus(Payment.Status.PROCESSED);
+                                                    payment.setStatus(PaymentStatus.PROCESSED);
                                                     return paymentRepository.save(payment);
                                                 })
                                                 .doOnSuccess(a -> System.out.println("---- Updated " + a));
