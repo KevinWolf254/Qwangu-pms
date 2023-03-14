@@ -6,14 +6,16 @@ import co.ke.proaktivio.qwanguapi.pojos.UserAuthorityDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
-
 public interface UserAuthorityService {
-    Flux<UserAuthority> findPaginated(Optional<String> name, int page, int pageSize, OrderType order);
-    Flux<UserAuthority> findByRoleId(String roleId);
-    Mono<UserAuthority> findById(String roleId);
+	Flux<UserAuthority> findAll(String name, String userRoleId, OrderType order);
 
-    Mono<UserAuthority> findByIdAndName(String id, String name);
+	Flux<UserAuthority> findByRoleId(String roleId);
 
-    Mono<UserAuthority> update(String id, UserAuthorityDto dto);
+	Mono<UserAuthority> findById(String roleId);
+
+	Mono<UserAuthority> findByIdAndName(String id, String name);
+
+	Mono<UserAuthority> update(String id, UserAuthorityDto dto);
+
+	Mono<Boolean> deleteById(String id);
 }

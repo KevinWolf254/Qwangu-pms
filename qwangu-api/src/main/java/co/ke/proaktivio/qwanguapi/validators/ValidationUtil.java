@@ -5,8 +5,10 @@ import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationForNewTenantDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import co.ke.proaktivio.qwanguapi.pojos.PropertyDto;
 import co.ke.proaktivio.qwanguapi.pojos.ReceiptDto;
 import co.ke.proaktivio.qwanguapi.pojos.TenantDto;
+import co.ke.proaktivio.qwanguapi.pojos.UserAuthorityDto;
 import co.ke.proaktivio.qwanguapi.pojos.UserRoleDto;
 import co.ke.proaktivio.qwanguapi.pojos.VacateOccupationDto;
 
@@ -125,6 +127,34 @@ public class ValidationUtil {
         };
     }
 
+	public static Function<UserAuthorityDto, UserAuthorityDto> validateUserAuthorityDto(Validator validator) {
+        return createUserAuthorityDto -> {
+            Errors errors = new BeanPropertyBindingResult(createUserAuthorityDto, UserAuthorityDto.class.getName());
+            validator.validate(createUserAuthorityDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return createUserAuthorityDto;
+        };
+    }
+
+    public static Function<PropertyDto, PropertyDto> validatePropertyDto(Validator validator) {
+        return apartmentDto -> {
+            Errors errors = new BeanPropertyBindingResult(apartmentDto, PropertyDto.class.getName());
+            validator.validate(apartmentDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return apartmentDto;
+        };
+    }
+    
 	public static void vaidateOrderType(Optional<String> orderOptional) {
 		if (orderOptional.isPresent() && StringUtils.hasText(orderOptional.get())
 				&& !EnumUtils.isValidEnum(OrderType.class, orderOptional.get())) {

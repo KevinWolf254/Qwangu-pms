@@ -30,9 +30,9 @@ public class UserAuthorityConfigs {
                     @RouterOperation(
                             path = "/v1/authorities",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = UserAuthorityHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = UserAuthorityHandler.class, beanMethod = "findAll",
                             operation = @Operation(
-                                    operationId = "find",
+                                    operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Authorities found successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
@@ -41,14 +41,13 @@ public class UserAuthorityConfigs {
                                     },
                                     parameters = {
                                             @Parameter(in = ParameterIn.QUERY, name = "name"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
+                                            @Parameter(in = ParameterIn.QUERY, name = "userRoleId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
                                     }
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/authorities/{authorityId}",
+                            path = "/v1/authorities/{userAuthorityId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.GET, beanClass = UserAuthorityHandler  .class, beanMethod = "findById",
                             operation = @Operation(
@@ -59,11 +58,11 @@ public class UserAuthorityConfigs {
                                             @ApiResponse(responseCode = "404", description = "Authority was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "authorityId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userAuthorityId")}
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/authorities/{authorityId}",
+                            path = "/v1/authorities/{userAuthorityId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.PUT, beanClass = UserAuthorityHandler.class, beanMethod = "update",
                             operation = @Operation(
@@ -75,17 +74,35 @@ public class UserAuthorityConfigs {
                                             @ApiResponse(responseCode = "404", description = "Authority was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "authorityId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userAuthorityId")}
+//                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
+                    @RouterOperation(
+                            path = "/v1/authorities/{userAuthorityId}",
+                            produces = MediaType.APPLICATION_JSON_VALUE,
+                            method = RequestMethod.DELETE, beanClass = UserAuthorityHandler.class, beanMethod = "delete",
+                            operation = @Operation(
+                                    operationId = "delete",
+                                    responses = {
+                                            @ApiResponse(responseCode = "200", description = "Authority deleted successfully.",
+                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                            @ApiResponse(responseCode = "404", description = "Authority was not found!",
+                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+                                    },
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userAuthorityId")}
+//                                    security = @SecurityRequirement(name = "Bearer authentication")
+                            )
+                    )
             }
     )
     RouterFunction<ServerResponse> userAuthorityRoute(UserAuthorityHandler handler) {
         return route()
                 .path("v1/authorities", builder -> builder
-                        .GET(handler::find)
-                        .GET("/{authorityId}", handler::findById)
-                        .PUT("/{authorityId}", handler::update)
+                		.GET("/{userAuthorityId}", handler::findById)
+                        .GET(handler::findAll)
+                        .PUT("/{userAuthorityId}", handler::update)
+                        .DELETE("/{userAuthorityId}", handler::delete)
                 ).build();
     }
 }

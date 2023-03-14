@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserAuthorityDto {
-    private String id;
     private String name;
     private Boolean create;
     private Boolean read;

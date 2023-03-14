@@ -4,14 +4,12 @@ import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.UserAuthorityHandler;
 import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import co.ke.proaktivio.qwanguapi.pojos.UserAuthorityDto;
 import co.ke.proaktivio.qwanguapi.services.UserAuthorityService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +30,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -61,60 +58,42 @@ class UserAuthorityConfigsTest {
     }
 
     @Test
-    @DisplayName("find returns unauthorised when user is not authenticated status 401")
-    void find_returnsUnauthorized_status401() {
+    void findAll_returnsUnauthorized_status401_whenUserIsNotAuthenticated() {
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/authorities")
-                        .queryParam("id", 1)
-                        .queryParam("name", "name")
-                        .queryParam("page", 1)
-                        .queryParam("pageSize", 10)
-                        .queryParam("order", OrderType.ASC)
                         .build();
         client
                 .get()
                 .uri(uriFunc)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isUnauthorized();
+                .expectStatus().isUnauthorized()
+                .expectBody()
+                .consumeWith(System.out::println);
     }
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("find returns a flux of Authorities")
-    void find_returnsAuthorities_whenSuccessful_withStatus200() {
+    void findAll_returnsAuthorities_status200_whenSuccessful() {
         // given
-        String page = "1";
-        String id = "1";
         String name = "ADMIN";
         LocalDateTime now = LocalDateTime.now();
         var authority = new UserAuthority("1", name, true, true, true, true, true,
                 "1", now, null, null, null);
-
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
 
         // when
-        Mockito.when(userAuthorityService.findPaginated(
-                Optional.of(name),
-                finalPage,
-                finalPageSize,
-                order)).thenReturn(Flux.just(authority));
+        Mockito.when(userAuthorityService.findAll(name, null, order)).thenReturn(Flux.just(authority));
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/authorities")
-                        .queryParam("authorityId", id)
                         .queryParam("name", name)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
                         .queryParam("order", order)
                         .build();
         client
@@ -141,92 +120,347 @@ class UserAuthorityConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("find returns CustomNotFoundException with status 404")
-    void find_returnsCustomNotFoundException_status404() {
-        // given
-        String id = "1";
-        String name = "ADMIN";
-        String page = "1";
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
-        String order = OrderType.ASC.name();
-
-        // when
-        Mockito.when(userAuthorityService.findPaginated(
-                        Optional.of(name),
-                        finalPage,
-                        finalPageSize,
-                        OrderType.valueOf(order)))
-                .thenReturn(Flux.error(new CustomNotFoundException("Authorities were not found!")));
-
-        //then
+    void findAll_returnsSuccessFalse_status200_whenAuthoritiesDoNotExist() {
+    	// given
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
-                uriBuilder
-                        .path("/v1/authorities")
-                        .queryParam("authorityId", id)
-                        .queryParam("name", name)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
-                        .queryParam("order", order)
-                        .build();
+        uriBuilder
+                .path("/v1/authorities")
+                .build();
+        // when
+        Mockito.when(userAuthorityService.findAll(null, null, OrderType.DESC)).thenReturn(Flux.empty());
+        // then
         client
                 .get()
                 .uri(uriFunc)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Authorities were not found!")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    void findById_returnsUnauthorized_status401_whenUserIsNotAuthenticated() {
+        // given
+        var userAuthorityId = "1";
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .get()
+                .uri("/v1/authorities/{authorityId}", userAuthorityId)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized()
+                .expectBody()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void findById_returnsNotFound_status404_whenUserAuthorityDoesNotExist() {
+        // given
+        var userAuthorityId = "1";
+    	// when
+    	when(userAuthorityService.findById(userAuthorityId)).thenReturn(Mono.empty());
+        // then
+        client
+                .get()
+                .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
-                .jsonPath("$.message").isEqualTo("Authorities were not found!")
+                .jsonPath("$.message").isEqualTo("User authority with id %S was not found!".formatted(userAuthorityId))
                 .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-
+                .consumeWith(System.out::println);    	
     }
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("find returns Exception with status 500")
-    void find_returnsException_status500() {
+    void findById_returnsUserAuthority_status200_whenSuccessful() {
         // given
-        String id = "1";
+        var userAuthorityId = "1";
         String name = "ADMIN";
-        String page = "1";
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
-
-        // when
-        OrderType order = OrderType.ASC;
-        Mockito.when(userAuthorityService.findPaginated(
-                        Optional.of(name),
-                        finalPage,
-                        finalPageSize,
-                        order))
-                .thenReturn(Flux.error(new RuntimeException("Something happened!")));
-
-        //then
-        Function<UriBuilder, URI> uriFunc = uriBuilder ->
-                uriBuilder
-                        .path("/v1/authorities")
-                        .queryParam("authorityId", id)
-                        .queryParam("name", name)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
-                        .queryParam("order", order)
-                        .build();
+        var userAuthority = new UserAuthority();
+        userAuthority.setId(userAuthorityId);
+        userAuthority.setAuthorize(true);
+        userAuthority.setCreate(true);
+        userAuthority.setDelete(true);
+		userAuthority.setName(name);
+        userAuthority.setRead(true);
+        userAuthority.setRoleId("12345");
+        userAuthority.setUpdate(true);
+        userAuthority.setCreatedBy("SYSTEM");
+        userAuthority.setCreatedOn(LocalDateTime.now());
+        userAuthority.setModifiedBy("SYSTEM");
+        userAuthority.setModifiedOn(LocalDateTime.now());
+    	// when
+    	when(userAuthorityService.findById(userAuthorityId)).thenReturn(Mono.just(userAuthority));
+        // then
         client
                 .get()
-                .uri(uriFunc)
+                .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isEqualTo(500)
+                .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .jsonPath("$.data").isEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
+                .jsonPath("$.message").isEqualTo("User authority found successfully.")
+                .jsonPath("$.data").isNotEmpty()
+                .jsonPath("$.data.id").isEqualTo("1")
+                .jsonPath("$.data.name").isEqualTo(name)
+                .jsonPath("$.data.create").isEqualTo(true)
+                .jsonPath("$.data.read").isEqualTo(true)
+                .jsonPath("$.data.update").isEqualTo(true)
+                .jsonPath("$.data.delete").isEqualTo(true)
+                .jsonPath("$.data.authorize").isEqualTo(true)
+                .jsonPath("$.data.createdOn").isNotEmpty()
+                .jsonPath("$.data.createdBy").isEqualTo("SYSTEM")
+                .jsonPath("$.data.modifiedOn").isNotEmpty()
+                .jsonPath("$.data.modifiedBy").isEqualTo("SYSTEM")
                 .consumeWith(System.out::println);
+    }
+
+    @Test
+    void update_returnsUnauthorized_status401_whenUserIsNotAuthenticated() {
+        // given
+        var userAuthorityId = "1";
+        var userAuthorityDto = new UserAuthorityDto();
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .put()
+                .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+    	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized()
+                .expectBody()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void update_returnsBadRequest_status400_whenAllPropertiesAreNull() {
+        // given
+        var userAuthorityId = "1";
+        var userAuthorityDto = new UserAuthorityDto();
+    	// when
+    	when(userAuthorityService.update(userAuthorityId, userAuthorityDto)).thenReturn(Mono.empty());
+    	// then
+        client
+	        .put()
+            .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
+	        .accept(MediaType.APPLICATION_JSON)
+	        .exchange()
+            .expectStatus().isBadRequest()
+            .expectHeader().contentType("application/json")
+            .expectBody()
+            .jsonPath("$").isNotEmpty()
+            .jsonPath("$.success").isEqualTo(false)
+            .jsonPath("$.message").isEqualTo("Name is required. Create is required. Read is required. Update is required. Delete is required. Authorize is required. Role id is required.")
+            .jsonPath("$.data").isEmpty()
+            .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void update_returnsBadRequest_status400_whenNameLengthIsLessThanRequired() {
+    	// given
+        var userAuthorityId = "1";
+        String name = "G";
+        var userAuthorityDto = new UserAuthorityDto();
+        userAuthorityDto.setName(name);
+        userAuthorityDto.setAuthorize(true);
+        userAuthorityDto.setCreate(true);
+        userAuthorityDto.setDelete(true);
+        userAuthorityDto.setRead(true);
+        userAuthorityDto.setUpdate(true);
+        userAuthorityDto.setRoleId("12345");
+    	// then
+        client
+	        .put()
+            .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
+	        .accept(MediaType.APPLICATION_JSON)
+	        .exchange()
+            .expectStatus().isBadRequest()
+            .expectHeader().contentType("application/json")
+            .expectBody()
+            .jsonPath("$").isNotEmpty()
+            .jsonPath("$.success").isEqualTo(false)
+            .jsonPath("$.message").isEqualTo("Name must be at least 3 characters in length.")
+            .jsonPath("$.data").isEmpty()
+            .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void update_returnsBadRequest_status400_whenNameLengthIsMoreThanRequired() {
+    	// given
+        var userAuthorityId = "1";
+        var userAuthorityDto = new UserAuthorityDto();
+        userAuthorityDto.setName("HWERRROPTOTKTJYIGJGNGMGKTOTWPOWKDNSOPORRKRORJRNFJFIKFORIRFIRRIRJRIRJRJRIRJRIRIRSSKSDIDIPQJQ");
+        userAuthorityDto.setAuthorize(true);
+        userAuthorityDto.setCreate(true);
+        userAuthorityDto.setDelete(true);
+        userAuthorityDto.setRead(true);
+        userAuthorityDto.setUpdate(true);
+        userAuthorityDto.setRoleId("12345");
+        // then
+
+        client
+	        .put()
+            .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
+	        .accept(MediaType.APPLICATION_JSON)
+	        .exchange()
+            .expectStatus().isBadRequest()
+            .expectHeader().contentType("application/json")
+            .expectBody()
+            .jsonPath("$").isNotEmpty()
+            .jsonPath("$.success").isEqualTo(false)
+            .jsonPath("$.message").isEqualTo("Name must be at most 50 characters in length.")
+            .jsonPath("$.data").isEmpty()
+            .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void update_returnsUserAuthority_status200_whenSuccessful() {
+        // given
+        var userAuthorityId = "1";
+        String name = "ADMIN";
+
+        var userAuthorityDto = new UserAuthorityDto();
+        userAuthorityDto.setName(name);
+        userAuthorityDto.setAuthorize(true);
+        userAuthorityDto.setCreate(true);
+        userAuthorityDto.setDelete(true);
+        userAuthorityDto.setRead(true);
+        userAuthorityDto.setUpdate(true);
+        userAuthorityDto.setRoleId("12345");
+        
+        var by = "SYSTEM";
+        var userAuthority = new UserAuthority();
+        userAuthority.setId(userAuthorityId);
+        userAuthority.setAuthorize(true);
+        userAuthority.setCreate(true);
+        userAuthority.setDelete(true);
+		userAuthority.setName(name);
+        userAuthority.setRead(true);
+        userAuthority.setRoleId("12345");
+        userAuthority.setUpdate(true);
+		userAuthority.setCreatedBy(by);
+        userAuthority.setCreatedOn(LocalDateTime.now());
+        userAuthority.setModifiedBy(by);
+        userAuthority.setModifiedOn(LocalDateTime.now());
+
+    	// when
+    	when(userAuthorityService.update(userAuthorityId, userAuthorityDto)).thenReturn(Mono.just(userAuthority));
+    	// then
+        client
+	        .put()
+            .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
+	        .accept(MediaType.APPLICATION_JSON)
+	        .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentType("application/json")
+            .expectBody()
+            .jsonPath("$").isNotEmpty()
+            .jsonPath("$.success").isEqualTo(true)
+            .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
+            .jsonPath("$.message").isEqualTo("UserAuthority updated successfully.")
+            .jsonPath("$.data").isNotEmpty()
+            .jsonPath("$.data.id").isEqualTo(userAuthorityId)
+            .jsonPath("$.data.name").isEqualTo(name)
+            .jsonPath("$.data.create").isEqualTo(true)
+            .jsonPath("$.data.read").isEqualTo(true)
+            .jsonPath("$.data.update").isEqualTo(true)
+            .jsonPath("$.data.delete").isEqualTo(true)
+            .jsonPath("$.data.authorize").isEqualTo(true)
+            .jsonPath("$.data.createdOn").isNotEmpty()
+            .jsonPath("$.data.createdBy").isEqualTo(by)
+            .jsonPath("$.data.modifiedOn").isNotEmpty()
+            .jsonPath("$.data.modifiedBy").isEqualTo(by)
+            .consumeWith(System.out::println);
+    }
+
+    @Test
+    void delete_returnsUnauthorized_status401_whenUserIsNotAuthenticated() {
+        // given
+        var userAuthorityId = "1";
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .delete()
+                .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized()
+                .expectBody()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void delete_returnsFalse_status200_whenNotSuccessful() {
+        // given
+        var userAuthorityId = "1";
+        // when
+    	when(userAuthorityService.deleteById(userAuthorityId)).thenReturn(Mono.just(false));
+        //then
+        client
+	        .delete()
+	        .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+	        .accept(MediaType.APPLICATION_JSON)
+	        .exchange()
+	        .expectStatus().isOk()
+	        .expectHeader().contentType("application/json")
+	        .expectBody()
+	        .jsonPath("$").isNotEmpty()
+	        .jsonPath("$.success").isEqualTo(false)
+	        .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
+	        .jsonPath("$.message").isEqualTo("UserAuthority with id 1 was unable to be deleted!")
+	        .jsonPath("$.data").isEmpty()
+	        .consumeWith(System.out::println);
+    }
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void delete_returnsTrue_status200_whenSuccessful() {
+        // given
+        var userAuthorityId = "1";
+        // when
+    	when(userAuthorityService.deleteById(userAuthorityId)).thenReturn(Mono.just(true));
+        //then
+        client
+        .delete()
+        .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+        .accept(MediaType.APPLICATION_JSON)
+        .exchange()
+        .expectStatus().isOk()
+        .expectHeader().contentType("application/json")
+        .expectBody()
+        .jsonPath("$").isNotEmpty()
+        .jsonPath("$.success").isEqualTo(true)
+        .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
+        .jsonPath("$.message").isEqualTo("UserAuthority with id 1 was deleted successfully.")
+        .jsonPath("$.data").isEmpty()
+        .consumeWith(System.out::println);
     }
 }

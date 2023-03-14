@@ -70,24 +70,6 @@ public class PropertyConfigs {
                     @RouterOperation(
                             path = "/v1/properties/{propertyId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.DELETE, beanClass = PropertyHandler.class, beanMethod = "delete",
-                            operation = @Operation(
-                                    operationId = "delete",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Property deleted successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
-                                            @ApiResponse(responseCode = "400", description = "Property does not exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Property was not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "propertyId")},
-                                    security = @SecurityRequirement(name = "Bearer authentication")
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/properties/{propertyId}",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.GET, beanClass = PropertyHandler.class, beanMethod = "findById",
                             operation = @Operation(
                                     operationId = "findById",
@@ -132,7 +114,6 @@ public class PropertyConfigs {
                         .POST(handler::create)
                         .PUT("/{propertyId}", handler::update)
                         .GET("/{propertyId}", handler::findById)
-                        .DELETE("/{propertyId}", handler::delete)
                 ).build();
     }
 }
