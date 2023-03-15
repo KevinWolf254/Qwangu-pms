@@ -34,7 +34,7 @@ public class UserAuthority {
     private String modifiedBy;
 
     @NoArgsConstructor
-    public static class AuthorityBuilder {
+    public static class UserAuthorityBuilder {
         private String name;
         private Boolean create;
         private Boolean read;
@@ -43,37 +43,37 @@ public class UserAuthority {
         private Boolean authorize;
         private String roleId;
 
-        public AuthorityBuilder name(String name) {
+        public UserAuthorityBuilder name(String name) {
             this.name = name;
             return this;
         }
 
-        public AuthorityBuilder create(Boolean create) {
+        public UserAuthorityBuilder create(Boolean create) {
             this.create = create;
             return this;
         }
 
-        public AuthorityBuilder read(Boolean read) {
+        public UserAuthorityBuilder read(Boolean read) {
             this.read = read;
             return this;
         }
 
-        public AuthorityBuilder update(Boolean update) {
+        public UserAuthorityBuilder update(Boolean update) {
             this.update = update;
             return this;
         }
 
-        public AuthorityBuilder delete(Boolean delete) {
+        public UserAuthorityBuilder delete(Boolean delete) {
             this.delete = delete;
             return this;
         }
 
-        public AuthorityBuilder authorize(Boolean authorize) {
+        public UserAuthorityBuilder authorize(Boolean authorize) {
             this.authorize = authorize;
             return this;
         }
 
-        public AuthorityBuilder roleId(String roleId) {
+        public UserAuthorityBuilder roleId(String roleId) {
             this.roleId = roleId;
             return this;
         }

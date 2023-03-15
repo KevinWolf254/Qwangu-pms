@@ -39,7 +39,7 @@ public class UserRoleServiceImpl implements UserRoleService {
                 .flatMap(userRoleRepository::save)
                 .doOnSuccess(r -> log.info("Created: {}", r))
                 .flatMap(userRole -> Flux.fromIterable(dto.getAuthorities())
-                        .map(authority -> new UserAuthority.AuthorityBuilder()
+                        .map(authority -> new UserAuthority.UserAuthorityBuilder()
                                 .create(authority.getCreate())
                                 .authorize(authority.getAuthorize())
                                 .delete(authority.getDelete())

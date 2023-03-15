@@ -277,7 +277,10 @@ class InvoiceConfigsTest {
                 .uri("/v1/invoices/{invoiceId}", invoiceId)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isUnauthorized();
+                .expectStatus().isUnauthorized()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .consumeWith(System.out::println);
     }
     
 	@Test
@@ -373,7 +376,10 @@ class InvoiceConfigsTest {
                 .uri("/v1/invoices")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isUnauthorized();
+                .expectStatus().isUnauthorized()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+                .consumeWith(System.out::println);
     }
     
 	@Test

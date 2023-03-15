@@ -64,7 +64,7 @@ class UserAuthorityConfigsTest {
         // then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
-                        .path("/v1/authorities")
+                        .path("/v1/userAuthorities")
                         .build();
         client
                 .get()
@@ -92,7 +92,7 @@ class UserAuthorityConfigsTest {
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
-                        .path("/v1/authorities")
+                        .path("/v1/userAuthorities")
                         .queryParam("name", name)
                         .queryParam("order", order)
                         .build();
@@ -124,7 +124,7 @@ class UserAuthorityConfigsTest {
     	// given
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
         uriBuilder
-                .path("/v1/authorities")
+                .path("/v1/userAuthorities")
                 .build();
         // when
         Mockito.when(userAuthorityService.findAll(null, null, OrderType.DESC)).thenReturn(Flux.empty());
@@ -152,7 +152,7 @@ class UserAuthorityConfigsTest {
         // then
         client
                 .get()
-                .uri("/v1/authorities/{authorityId}", userAuthorityId)
+                .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized()
@@ -170,7 +170,7 @@ class UserAuthorityConfigsTest {
         // then
         client
                 .get()
-                .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+                .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isNotFound()
@@ -207,7 +207,7 @@ class UserAuthorityConfigsTest {
         // then
         client
                 .get()
-                .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+                .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -241,7 +241,7 @@ class UserAuthorityConfigsTest {
         // then
         client
                 .put()
-                .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+                .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
     	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
@@ -261,7 +261,7 @@ class UserAuthorityConfigsTest {
     	// then
         client
 	        .put()
-            .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+            .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
 	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
 	        .accept(MediaType.APPLICATION_JSON)
 	        .exchange()
@@ -292,7 +292,7 @@ class UserAuthorityConfigsTest {
     	// then
         client
 	        .put()
-            .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+            .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
 	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
 	        .accept(MediaType.APPLICATION_JSON)
 	        .exchange()
@@ -323,7 +323,7 @@ class UserAuthorityConfigsTest {
 
         client
 	        .put()
-            .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+            .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
 	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
 	        .accept(MediaType.APPLICATION_JSON)
 	        .exchange()
@@ -373,7 +373,7 @@ class UserAuthorityConfigsTest {
     	// then
         client
 	        .put()
-            .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+            .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
 	        .body(Mono.just(userAuthorityDto), UserAuthorityDto.class)
 	        .accept(MediaType.APPLICATION_JSON)
 	        .exchange()
@@ -408,7 +408,7 @@ class UserAuthorityConfigsTest {
         // then
         client
                 .delete()
-                .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+                .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized()
@@ -426,7 +426,7 @@ class UserAuthorityConfigsTest {
         //then
         client
 	        .delete()
-	        .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+	        .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
 	        .accept(MediaType.APPLICATION_JSON)
 	        .exchange()
 	        .expectStatus().isOk()
@@ -450,7 +450,7 @@ class UserAuthorityConfigsTest {
         //then
         client
         .delete()
-        .uri("/v1/authorities/{userAuthorityId}", userAuthorityId)
+        .uri("/v1/userAuthorities/{userAuthorityId}", userAuthorityId)
         .accept(MediaType.APPLICATION_JSON)
         .exchange()
         .expectStatus().isOk()

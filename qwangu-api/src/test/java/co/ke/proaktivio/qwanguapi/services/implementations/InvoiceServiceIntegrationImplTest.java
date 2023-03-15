@@ -352,7 +352,6 @@ class InvoiceServiceIntegrationImplTest {
 		Mono<Invoice> findByIdDoesNotExist = reset().then(invoiceService.findById(invoiceId));
 		// then
 		StepVerifier.create(findByIdDoesNotExist).expectComplete().verify();
-
 	}
 
 	@Test
@@ -361,7 +360,6 @@ class InvoiceServiceIntegrationImplTest {
 		Flux<Invoice> findNonExist = reset().thenMany(invoiceService.findAll(null, null, null, null));
 		// then
 		StepVerifier.create(findNonExist).expectComplete().verify();
-		
 	}
 
 	@SuppressWarnings("serial")

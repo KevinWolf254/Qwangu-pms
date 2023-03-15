@@ -77,7 +77,7 @@ class UserAuthorityServiceImplIntegrationTest {
         userAuthorityDto.setUpdate(true);
 		userAuthorityDto.setRoleId(userRoleId);
     	
-		var userAuthority = new UserAuthority.AuthorityBuilder().name(name).create(true).read(true).update(true)
+		var userAuthority = new UserAuthority.UserAuthorityBuilder().name(name).create(true).read(true).update(true)
 				.delete(true).authorize(true).roleId(userRoleId).build();
 		userAuthority.setId(userAuthorityId);
 		
@@ -111,9 +111,9 @@ class UserAuthorityServiceImplIntegrationTest {
 	void findAll_returnsUserAuthorityList_whenSuccessful() {
 		// when
 		Flux<UserAuthority> saved = Flux
-				.just(new UserAuthority.AuthorityBuilder().name("USERS").create(true).read(true).update(true)
+				.just(new UserAuthority.UserAuthorityBuilder().name("USERS").create(true).read(true).update(true)
 						.delete(true).authorize(true).roleId("1").build(),
-						new UserAuthority.AuthorityBuilder().name("PROPERTIES").create(true).read(true).update(true)
+						new UserAuthority.UserAuthorityBuilder().name("PROPERTIES").create(true).read(true).update(true)
 								.delete(true).authorize(true).roleId("1").build())
 				.flatMap(a -> userAuthorityRepository.save(a))
 				.thenMany(userAuthorityService.findAll(null, null, OrderType.ASC));
@@ -141,7 +141,7 @@ class UserAuthorityServiceImplIntegrationTest {
 	void deleteById_returnTrue_whenUserAuthorityDeletedSuccessfully() {
 		// given
 		var userAuthorityId = "12345";
-		var userAuthority = new UserAuthority.AuthorityBuilder().name("USERS").create(true).read(true).update(true)
+		var userAuthority = new UserAuthority.UserAuthorityBuilder().name("USERS").create(true).read(true).update(true)
 				.delete(true).authorize(true).roleId("1").build();
 		userAuthority.setId(userAuthorityId);
 		// when
