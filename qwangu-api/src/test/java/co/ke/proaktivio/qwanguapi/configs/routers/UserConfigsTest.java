@@ -4,16 +4,12 @@ import co.ke.proaktivio.qwanguapi.configs.GlobalErrorConfig;
 import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
-import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UserService;
-import co.ke.proaktivio.qwanguapi.utils.CustomUtils;
 import org.junit.Before;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +19,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
@@ -35,7 +30,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -63,8 +57,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @DisplayName("create returns unauthorised when user is not authenticated status 401")
-    void create_returnsUnauthorized_status401() {
+    void create_returnsUnauthorized_status401_whenUserIsNotAuthenticated() {
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
@@ -78,8 +71,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns a user when email address does not exist")
-    void create_returnsUser_whenEmailAddressDoesNotExist_status201() {
+    void create_returnsUser_status201_whenEmailAddressDoesNotExist() {
         // given
         String roleId = "1";
         String emailAddress = "person@gmail.com";
@@ -118,45 +110,10 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns CustomAlreadyExistsException with status 400")
-    void create_returnsCustomAlreadyExistsException_status400() {
-        // given
-        String roleId = "1";
-        String emailAddress = "person@gmail.com";
-        Person person = new Person("John", "Doe", "Doe");
-        UserDto dto = new UserDto(person, emailAddress, roleId);
-
-        // when
-        Mockito.when(userService.createAndNotify(dto)).thenReturn(Mono.error(new CustomAlreadyExistsException("User with email address %s already exists!".formatted(emailAddress))));
-
-        // then
-        client
-                .post()
-                .uri("/v1/users")
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), UserDto.class)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("User with email address %s already exists!".formatted(emailAddress))
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns CustomBadRequestException when required validation fails with status 403")
-    void create_returnsCustomBadRequestException_whenRequiredValidationFails_status403() {
+    void create_returnsBadRequest_status400_whenRequiredValidationFails() {
         // given
         Person person = new Person(null, "Doe", null);
         UserDto dto = new UserDto(person, null, null);
-
-        // when
-        Mockito.when(userService.create(dto)).thenReturn(Mono.error(new CustomBadRequestException("")));
 
         // then
         client
@@ -178,8 +135,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns CustomBadRequestException when min length validation fails with status 403")
-    void create_returnsCustomBadRequestException_whenMinLengthValidationFails_status403() {
+    void create_returnsBadRequest_status400_whenMinLengthValidationFails() {
         // given
         Person person = new Person(" ", "Doe", " ");
         UserDto dto = new UserDto(person, " ", " ");
@@ -207,8 +163,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns CustomBadRequestException when max length validation fails with status 403")
-    void create_returnsCustomBadRequestException_whenMaxLengthValidationFails_status403() {
+    void create_returnsBadRequest_status400_whenMaxLengthValidationFails() {
         // given
         Person person = new Person("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
         UserDto dto = new UserDto(person, "person@gmail.com", "1");
@@ -236,8 +191,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns CustomBadRequestException when email address validation fails with status 403")
-    void create_returnsCustomBadRequestException_whenEmailValidationFails_status403() {
+    void create_returnsCustomBadRequestException_status400_whenEmailValidationFails() {
         // given
         Person person = new Person("John", "Doe", "Doe");
         UserDto dto = new UserDto(person, "abcdefghijklmnopqrstuvwxyz", "1");
@@ -264,67 +218,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns MailException with status 400")
-    void create_returnsMailException_status400() {
-        // given
-        String roleId = "1";
-        String emailAddress = "a@gmail.com";
-        Person person = new Person("John", "Doe", "Doe");
-        UserDto dto = new UserDto(person, emailAddress, roleId);
-
-        // when
-        Mockito.when(userService.createAndNotify(dto)).thenReturn(Mono.error(new MailSendException("")));
-
-        // then
-        client
-                .post()
-                .uri("/v1/users")
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), UserDto.class)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("Mail could not be sent!")
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("create returns Exception with status 500")
-    void create_returnsException_status500() {
-        // given
-        Person person = new Person("John", "Doe", "Doe");
-        UserDto dto = new UserDto(person, "person@gmail.com", "1");
-
-        //when
-        Mockito.when(userService.createAndNotify(dto)).thenThrow(new RuntimeException("Something happened!"));
-
-        //then
-        client
-                .post()
-                .uri("/v1/users")
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), UserDto.class)
-                .exchange()
-                .expectStatus().isEqualTo(500)
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @DisplayName("update returns unauthorised when user is not authenticated status 401")
-    void update_returnsUnauthorized_status401() {
+    void update_returnsUnauthorized_status401_whenUserIsNotAuthenticated() {
         // given
         String id = "1";
         // when
@@ -340,8 +234,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns a Mono of updated User when id and email address are paired")
-    void update_returnsUpdatedUser_status200() {
+    void update_returnsUpdatedUser_status200_whenSuccessful() {
         // given
         String id = "1";
         String roleId = "1";
@@ -382,8 +275,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns CustomBadRequestException when required validation fails with status 403")
-    void update_returnsCustomBadRequestException_whenRequiredValidationFails_status403() {
+    void update_returnsBadRequest_status400_whenRequiredValidationFails() {
         // given
         String id = "1";
         Person person = new Person(null, "Doe", null);
@@ -412,8 +304,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns CustomBadRequestException when min length validation fails with status 403")
-    void update_returnsCustomBadRequestException_whenMinLengthValidationFails_status403() {
+    void update_returnsBadRequest_status400_whenMinLengthValidationFails() {
         // given
         String id = "1";
         Person person = new Person(" ", "Doe", " ");
@@ -442,8 +333,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns CustomBadRequestException when max length validation fails with status 403")
-    void update_returnsCustomBadRequestException_whenMaxLengthValidationFails_status403() {
+    void update_returnsBadRequest_status400_whenMaxLengthValidationFails() {
         // given
         String id = "1";
         Person person = new Person("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
@@ -472,8 +362,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns CustomBadRequestException when email address validation fails with status 403")
-    void update_returnsCustomBadRequestException_whenEmailValidationFails_status403() {
+    void update_returnsBadRequest_status400_whenEmailValidationFails() {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
@@ -501,37 +390,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("update returns Exception with status 500")
-    void update_returnsException_status500() {
-        // given
-        String id = "1";
-        Person person = new Person("John", "Doe", "Doe");
-        UpdateUserDto dto = new UpdateUserDto(person, "person@gmail.com", "1", true);
-
-        //when
-        Mockito.when(userService.update(id, dto)).thenThrow(new RuntimeException("Something happened!"));
-
-        //then
-        client.put()
-                .uri("/v1/users/%s".formatted(id))
-                .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), PropertyDto.class)
-                .exchange()
-                .expectStatus().isEqualTo(500)
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-
-    }
-
-    @Test
-    @DisplayName("find returns unauthorised when user is not authenticated status 401")
-    void find_returnsUnauthorized_status401() {
+    void findAll_returnsUnauthorized_status401_whenUserIsNotAuthorised() {
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
@@ -540,8 +399,6 @@ class UserConfigsTest {
                         .path("/v1/users")
                         .queryParam("id", 1)
                         .queryParam("name", "name")
-                        .queryParam("page", 1)
-                        .queryParam("pageSize", 10)
                         .queryParam("order", OrderType.ASC)
                         .build();
         client
@@ -554,8 +411,7 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("Find returns a Flux of Users")
-    void find_returnsFluxOfUsers_status200() {
+    void findAll_returnsUsersList_status200_whenSuccessful() {
         // given
         String id = "1";
         LocalDateTime now = LocalDateTime.now();
@@ -563,30 +419,18 @@ class UserConfigsTest {
         String emailAddress = "person@gmail.com";
         Person person = new Person("John", "Doe", "Doe");
         User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
-
-        String page = "1";
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         OrderType order = OrderType.ASC;
 
         // when
         Mockito.when(userService
-                .findPaginated(
-                        Optional.of(emailAddress),
-                        finalPage,
-                        finalPageSize,
-                        order))
+                .findAll(emailAddress, order))
                 .thenReturn(Flux.just(user));
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/users")
-                        .queryParam("userId", id)
                         .queryParam("emailAddress", emailAddress)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
                         .queryParam("order", order)
                         .build();
         client
@@ -614,44 +458,30 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("find returns CustomNotFoundException with status 404")
-    void find_returnsCustomNotFoundException_status404() {
+    void findAll_returnsEmpty_status200_whenUsersWereNotFound() {
         // given
-        String id = "1";
         String emailAddress = "person@gmail.com";
-        String page = "1";
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
         String order = OrderType.ASC.name();
 
         // when
-        Mockito.when(userService.findPaginated(
-                        Optional.of(emailAddress),
-                        finalPage,
-                        finalPageSize,
-                        OrderType.valueOf(order)))
-                .thenReturn(Flux.error(new CustomNotFoundException("Users were not found!")));
+        Mockito.when(userService.findAll(emailAddress, OrderType.valueOf(order))).thenReturn(Flux.empty());
 
         //then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
                 uriBuilder
                         .path("/v1/users")
-                        .queryParam("userId", id)
                         .queryParam("emailAddress", emailAddress)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
                         .queryParam("order", order)
                         .build();
         client
                 .get()
                 .uri(uriFunc)
                 .exchange()
-                .expectStatus().isNotFound()
+                .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
+                .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
                 .jsonPath("$.message").isEqualTo("Users were not found!")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
@@ -659,53 +489,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("find returns Exception with status 500")
-    void find_returnsException_status500() {
-        // given
-        String id = "1";
-        String emailAddress = "person@gmail.com";
-        String page = "1";
-        String pageSize = "10";
-        Integer finalPage = CustomUtils.convertToInteger(page, "Page");
-        Integer finalPageSize = CustomUtils.convertToInteger(pageSize, "Page size");
-
-        // when
-        OrderType order = OrderType.ASC;
-        Mockito.when(userService.findPaginated(
-                        Optional.of(emailAddress),
-                        finalPage,
-                        finalPageSize,
-                        order))
-                .thenReturn(Flux.error(new RuntimeException("Something happened!")));
-
-        //then
-        Function<UriBuilder, URI> uriFunc = uriBuilder ->
-                uriBuilder
-                        .path("/v1/users")
-                        .queryParam("userId", id)
-                        .queryParam("emailAddress", emailAddress)
-                        .queryParam("page", page)
-                        .queryParam("pageSize", pageSize)
-                        .queryParam("order", order)
-                        .build();
-        client
-                .get()
-                .uri(uriFunc)
-                .exchange()
-                .expectStatus().isEqualTo(500)
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @DisplayName("Delete by id  returns unauthorised when user is not authenticated status 401")
-    void deleteById_returnsUnauthorized_status401() {
+    void deleteById_returnsUnauthorized_status401_whenUserIsNotAuthenticated() {
         // given
         String id = "1";
         // when
@@ -721,7 +505,6 @@ class UserConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("delete by id returns a Mono of boolean when id exists")
     void deleteById_returnsTrue_status200() {
         // given
         String id = "1";
@@ -745,135 +528,7 @@ class UserConfigsTest {
     }
 
     @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("delete by id returns CustomNotFoundException with status 404")
-    void deleteById_returnsCustomNotFoundException_status404() {
-        // given
-        String id = "1";
-
-        // when
-        Mockito.when(userService.deleteById(id))
-                .thenReturn(Mono.error(new CustomNotFoundException("User with id %s does not exist!".formatted(id))));
-
-        // then
-        client
-                .delete()
-                .uri("/v1/users/{id}", id)
-                .exchange()
-                .expectStatus().isNotFound()
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.status").isEqualTo(HttpStatus.NOT_FOUND.value())
-                .jsonPath("$.message").isEqualTo("User with id %s does not exist!".formatted(id))
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("delete by id returns Exception with status 500")
-    void deleteById_returnsException_status500() {
-        // given
-        String id = "1";
-
-        // when
-        Mockito.when(userService.deleteById(id))
-                .thenReturn(Mono.error(new RuntimeException("Something happened!")));
-
-        // then
-        client
-                .delete()
-                .uri("/v1/users/{id}", id)
-                .exchange()
-                .expectStatus().isEqualTo(500)
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-//
-//    @Test
-//    @DisplayName("signIn returns BadRequestException when username is null status 400")
-//    void signIn_returnsBadRequestException_whenUsernameIsNull_status400() {
-//        // given
-//        String password = "QwwsefRgvt_@er23";
-//        SignInDto dto = new SignInDto(null, password);
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/signIn")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(dto), SignInDto.class)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-//                .jsonPath("$.message").isEqualTo("Username is required.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//    }
-//
-//    @Test
-//    @DisplayName("signIn returns BadRequestException when username is empty status 400")
-//    void signIn_returnsBadRequestException_whenUsernameIsEmpty_status400() {
-//        // given
-//        String password = "QwwsefRgvt_@er23";
-//        SignInDto dto = new SignInDto(" ", password);
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/signIn")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(dto), SignInDto.class)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-//                .jsonPath("$.message").isEqualTo("Username is required. Username must be at least 6 characters in length. Username is not a valid email address.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//    }
-//
-//    @Test
-//    @DisplayName("signIn returns BadRequestException when password is null status 400")
-//    void signIn_returnsBadRequestException_whenPasswordIsNull_status400() {
-//        // given
-//        SignInDto dto = new SignInDto("person@gmail.com", null);
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/signIn")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(dto), SignInDto.class)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-//                .jsonPath("$.message").isEqualTo("Password is required.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//    }
-
-    @Test
-    @DisplayName("changePassword returns unauthorised when user is not authenticated status 401")
-    void changePassword_returnsUnauthorized_status401() {
+    void changePassword_returnsUnauthorized_status401_whenUserIsUnauthenticated() {
         // given
         String id = "1";
         // when
@@ -881,50 +536,24 @@ class UserConfigsTest {
 
         // then
         client
-                .get()
-                .uri("/v1/users/{id}/changePassword", id)
+                .put()
+                .uri("/v1/users/{id}/password", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
-
+    
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    void changePassword() {
-        // given
+    void changePassword_returnsBadRequest_whenPasswordsFailValidation() {
+    	// given
         String id = "1";
-        PasswordDto dto = new PasswordDto("pass!123@Pass", "pass@1234!Pass");
-        LocalDateTime now = LocalDateTime.now();
-        String roleId = "1";
-        String emailAddress = "person@gmail.com";
-        Person person = new Person("John", "Doe", "Doe");
-        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
-
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userService.changePassword(id, dto)).thenReturn(Mono.just(user));
-
-        // then
-        String uri = "/v1/users/%s/changePassword".formatted(id);
-        client
-                .post()
-                .uri(uri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(dto), PasswordDto.class)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("User updated successfully.")
-                .jsonPath("$.data").isNotEmpty()
-                .consumeWith(System.out::println);
 
         // then
         PasswordDto passwordsNotValid = new PasswordDto("pass!123", "pass@1234");
         client
-                .post()
-                .uri("/v1/users/{id}/changePassword", id)
+                .put()
+                .uri("/v1/users/{id}/password", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(passwordsNotValid), PasswordDto.class)
                 .exchange()
@@ -938,276 +567,34 @@ class UserConfigsTest {
     }
 
     @Test
-    @DisplayName("activate returns unauthorised when user is not authenticated status 401")
-    void activate_returnsUnauthorized_status401() {
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void changePassword_returnsUser_whenPasswordChangedSuccessfully() {
         // given
         String id = "1";
-        Function<UriBuilder, URI> uriFunc = uriBuilder ->
-                uriBuilder
-                        .path("/v1/users/%s/activate".formatted(id))
-                        .queryParam("token", "")
-                        .build();
+        PasswordDto dto = new PasswordDto("pass!123@Pass", "pass@1234!Pass");
+        LocalDateTime now = LocalDateTime.now();
+        String roleId = "1";
+        String emailAddress = "person@gmail.com";
+        Person person = new Person("John", "Doe", "Doe");
+        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
+
         // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        when(userService.changePassword(id, dto)).thenReturn(Mono.just(user));
 
         // then
+//        String uri = "/v1/users/%s/password".formatted(id);
         client
-                .get()
-                .uri(uriFunc)
-                .accept(MediaType.APPLICATION_JSON)
+                .put()
+                .uri("/v1/users/{id}/password", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), PasswordDto.class)
                 .exchange()
-                .expectStatus().isUnauthorized();
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("User password updated successfully.")
+                .jsonPath("$.data").isNotEmpty()
+                .consumeWith(System.out::println);
     }
-
-//    @Test
-//    @WithMockUser(roles = {"SUPER_ADMIN"})
-//    void activate() {
-//        // given
-//        String id = "1";
-//        Function<UriBuilder, URI> uriFunc = uriBuilder ->
-//                uriBuilder
-//                        .path("/v1/users/%s/activate".formatted(id))
-//                        .queryParam("token", "")
-//                        .build();
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//
-//        // then
-//        client
-//                .get()
-//                .uri(uriFunc)
-//                .accept(MediaType.APPLICATION_JSON)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-//                .jsonPath("$.message").isEqualTo("Token is required!")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//
-//        // given
-//        String uuid = UUID.randomUUID().toString();
-//        LocalDateTime now = LocalDateTime.now();
-//        String roleId = "1";
-//        String emailAddress = "person@gmail.com";
-//        Person person = new Person("John", "Doe", "Doe");
-//        User user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
-//        Function<UriBuilder, URI> uriFunc2 = uriBuilder ->
-//                uriBuilder
-//                        .path("/v1/users/%s/activate".formatted(id))
-//                        .queryParam("token", uuid)
-//                        .build();
-//        // when
-//        when(userService.activate(uuid, id)).thenReturn(Mono.just(user));
-//
-//        // then
-//        client
-//                .get()
-//                .uri(uriFunc2)
-//                .accept(MediaType.APPLICATION_JSON)
-//                .exchange()
-//                .expectStatus().isOk()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(true)
-//                .jsonPath("$.message").isEqualTo("User updated successfully.")
-//                .jsonPath("$.data").isNotEmpty()
-//                .jsonPath("$.data.id").isEqualTo("1")
-//                .consumeWith(System.out::println);
-//    }
-//
-//    @Test
-//    @DisplayName("sendResetPassword returns success when user is not authenticated status 200")
-//    void sendResetPassword_returnsSuccess_status200() {
-//        // given
-//        var emailDto = new EmailDto("person@gmail.com");
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        when(userService.sendResetPassword(emailDto)).thenReturn(Mono.empty());
-//
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/users/sendResetPassword")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(emailDto), EmailDto.class)
-//                .exchange()
-//                .expectStatus().isOk()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(true)
-//                .jsonPath("$.message").isEqualTo("Email for password reset will be sent if email address exists.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//    }
-//
-//    @Test
-//    void sendResetPassword() {
-//        // given
-//        var emailDto = new EmailDto("person.com");
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/users/sendResetPassword")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(emailDto), EmailDto.class)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-//                .jsonPath("$.message").isEqualTo("Email address is not valid.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//
-//        // given
-//        var emailDto1 = new EmailDto("");
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/users/sendResetPassword")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(emailDto1), EmailDto.class)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-//                .jsonPath("$.message").isEqualTo("Email address is required. Email address must be at least 6 characters in length. Email address is not valid.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//
-//        // given
-//        var emailDto2 = new EmailDto(null);
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/users/sendResetPassword")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(emailDto2), EmailDto.class)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-//                .jsonPath("$.message").isEqualTo("Email address is required.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//
-//        // given
-//        var emailDto3 = new EmailDto("person@gmail.com");
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        when(userService.sendResetPassword(emailDto3)).thenReturn(Mono.error(new CustomNotFoundException("")));
-//
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/users/sendResetPassword")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(emailDto3), EmailDto.class)
-//                .exchange()
-//                .expectStatus().isOk()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(true)
-//                .jsonPath("$.message").isEqualTo("Email for password reset will be sent if email address exists.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//    }
-//
-//    @Test
-//    @DisplayName("resetPassword returns success when user is not authenticated status 200")
-//    void resetPassword_returnsSuccess_status200() {
-//        // given
-//        String id = "1";
-//        String password = "qwerty@123Man";
-//        var resetPasswordDto = new ResetPasswordDto(password);
-//        var token = UUID.randomUUID().toString();
-//        var now = LocalDateTime.now();
-//        String roleId = "1";
-//        String emailAddress = "person@gmail.com";
-//        Person person = new Person("John", "Doe", "Doe");
-//        var user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
-//        Function<UriBuilder, URI> uriFunc = uriBuilder ->
-//                uriBuilder
-//                        .path("/v1/resetPassword")
-//                        .queryParam("token", token)
-//                        .build();
-//        // when
-//        when(contextRepository.load(any())).thenReturn(Mono.empty());
-//        when(userService.resetPassword(token, resetPasswordDto.getPassword())).thenReturn(Mono.just(user));
-//
-//        // then
-//        client
-//                .post()
-//                .uri(uriFunc)
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(resetPasswordDto), ResetPasswordDto.class)
-//                .exchange()
-//                .expectStatus().isOk()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(true)
-//                .jsonPath("$.message").isEqualTo("User password updated successfully.")
-//                .jsonPath("$.data").isNotEmpty()
-//                .jsonPath("$.data.id").isEqualTo("1")
-//                .consumeWith(System.out::println);
-//
-//        // then
-//        client
-//                .post()
-//                .uri("/v1/resetPassword")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(resetPasswordDto), ResetPasswordDto.class)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.message").isEqualTo("Token is required!")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//
-//        // then
-//        client
-//                .post()
-//                .uri(uriFunc)
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(new ResetPasswordDto()), ResetPasswordDto.class)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.message").isEqualTo("Password is required.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//
-//        // then
-//        client
-//                .post()
-//                .uri(uriFunc)
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(Mono.just(new ResetPasswordDto("pass")), ResetPasswordDto.class)
-//                .exchange()
-//                .expectStatus().isBadRequest()
-//                .expectBody()
-//                .jsonPath("$").isNotEmpty()
-//                .jsonPath("$.success").isEqualTo(false)
-//                .jsonPath("$.message").isEqualTo("Password is not valid.")
-//                .jsonPath("$.data").isEmpty()
-//                .consumeWith(System.out::println);
-//    }
 }

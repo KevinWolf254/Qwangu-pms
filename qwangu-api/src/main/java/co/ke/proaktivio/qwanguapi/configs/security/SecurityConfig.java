@@ -47,10 +47,11 @@ public class SecurityConfig {
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/webjars/**",
-                        "/v1/signIn",
-                        "/v1/forgotPassword",
+                        "/v1/sign-in",
+                        "/v1/forgot-password",
+                        "/v1/password",
+                        "/v1/activate",
                         "/v1/tokens",
-                        "/v1/setPassword",
                         "/v1/payments/mpesa/v2/confirm",
                         "/v1/payments/mpesa/v2/validate"
                 ).permitAll()

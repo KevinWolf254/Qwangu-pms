@@ -6,12 +6,15 @@ import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.services.OneTimeTokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class OneTimeTokenServiceImpl implements OneTimeTokenService {
@@ -26,13 +29,19 @@ public class OneTimeTokenServiceImpl implements OneTimeTokenService {
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s could not be found!".formatted(userId))))
                 .map(user -> {
                     LocalDateTime now = LocalDateTime.now();
-                    return new OneTimeToken(null, uuid, now, now.plusHours(TOKEN_EXPIRATION_HOURS), userId);
+                    return new OneTimeToken(null, uuid.concat(userId), now, now.plusHours(TOKEN_EXPIRATION_HOURS), userId);
                 })
-                .flatMap(oneTimeTokenRepository::save);
+                .flatMap(oneTimeTokenRepository::save)
+                .doOnSuccess(a -> log.info("Created: {}", a));
     }
 
     @Override
-    public Mono<OneTimeToken> find(String token, String userId) {
+    public Mono<OneTimeToken> findByToken(String token) {
+    	return oneTimeTokenRepository.findByToken(token);
+    }
+    
+    @Override
+    public Mono<OneTimeToken> findAll(String token, String userId) {
         OneTimeToken oneTimeToken = new OneTimeToken(null, token, null, null, userId);
         return oneTimeTokenRepository
                 .findOne(Example.of(oneTimeToken))

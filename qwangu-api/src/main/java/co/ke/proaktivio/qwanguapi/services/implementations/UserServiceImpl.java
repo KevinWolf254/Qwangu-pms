@@ -15,8 +15,6 @@ import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -31,7 +29,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 @Log4j2
@@ -54,7 +51,7 @@ public class UserServiceImpl implements UserService {
     public Mono<User> create(UserDto dto) {
         String emailAddress = dto.getEmailAddress();
         return roleRepository.findById(dto.getRoleId())
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Role with id %s does not exist!"
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("UserRole with id %s does not exist!"
                         .formatted(dto.getRoleId()))))
                 .flatMap(role -> findByEmailAddress(emailAddress))
                 .filter(exists -> !exists)
@@ -62,7 +59,8 @@ public class UserServiceImpl implements UserService {
                         .formatted(emailAddress))))
                 .map($ -> new User(null, dto.getPerson(), emailAddress, dto.getRoleId(), null,
                             false, false, false, false, null, null, null, null))
-                .flatMap(userRepository::save);
+                .flatMap(userRepository::save)
+                .doOnSuccess(a -> log.info("Created: {}", a));
     }
 
     public Mono<Boolean> findByEmailAddress(String emailAddress) {
@@ -97,35 +95,33 @@ public class UserServiceImpl implements UserService {
                 .flatMap(role -> template.findOne(query, User.class))
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s and email address %s does not exist!"
                         .formatted(id, emailAddress))))
-                .flatMap(user -> {
+                .map(user -> {
                     user.setPerson(dto.getPerson());
                     user.setRoleId(roleId);
                     user.setModifiedOn(LocalDateTime.now());
-                    return template.save(user, "USER");
-                });
+                    return user;
+                })
+                .flatMap(userRepository::save)
+                .doOnSuccess(user -> log.info("Updated: {}", user));
     }
 
     @Override
     public Mono<User> findById(String userId) {
-        Query query = new Query().addCriteria(Criteria.where("id").is(userId));
-        return template.findOne(query, User.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %S was not found!"
-                        .formatted(userId))));
+    	return userRepository.findById(userId);
     }
 
     @Override
-    public Flux<User> findPaginated(Optional<String> emailAddress, int page, int pageSize,
-                                    OrderType order) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
-        Sort sort = order.equals(OrderType.ASC) ?
-                Sort.by(Sort.Order.asc("id")) :
-                Sort.by(Sort.Order.desc("id"));
+    public Flux<User> findAll(String emailAddress, OrderType order) {
         Query query = new Query();
-        emailAddress.ifPresent(s -> query.addCriteria(Criteria.where("emailAddress").is(s)));
-        query.with(pageable)
-                .with(sort);
-        return template.find(query, User.class)
-                .switchIfEmpty(Flux.error(new CustomNotFoundException("Users were not found!")));
+        if(StringUtils.hasText(emailAddress))
+        	query.addCriteria(Criteria.where("emailAddress").is(emailAddress.trim()));
+
+        Sort sort = order != null ? order.equals(OrderType.ASC) ?
+                Sort.by(Sort.Order.asc("id")) :
+                Sort.by(Sort.Order.desc("id")) :
+                    Sort.by(Sort.Order.desc("id"));
+        query.with(sort);
+        return template.find(query, User.class);
     }
 
     @Override
@@ -134,15 +130,17 @@ public class UserServiceImpl implements UserService {
                 .findById(id, User.class)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s does not exist!".formatted(id))))
                 .flatMap(template::remove)
-                .map(DeleteResult::wasAcknowledged);
+                .map(DeleteResult::wasAcknowledged)
+                .doOnSuccess($ -> log.info("Deleted user with id %s: ".formatted(id)));
     }
 
     @Override
-    public Mono<User> activate(String token, String userId) {
-        return oneTimeTokenService.find(token, userId)
+    public Mono<User> activateByToken(String token) {
+        return oneTimeTokenService.findByToken(token)
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Token does not exist!")))
                 .filter(t -> t.getExpiration().isAfter(LocalDateTime.now()) || t.getExpiration().isEqual(LocalDateTime.now()))
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token has expired! Contact administrator.")))
-                .flatMap(ott -> userRepository.findById(userId)
+                .flatMap(ott -> userRepository.findById(ott.getUserId())
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("User could not be found!")))
                         .doOnSuccess(user -> {
                             user.setModifiedOn(LocalDateTime.now());
@@ -228,7 +226,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Mono<Void> sendForgotPasswordEmail(EmailDto dto) {
         return userRepository.findOne(Example.of(new User(dto.getEmailAddress())))
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Email address %s could not be found!".formatted(dto.getEmailAddress()))))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Email address %s could not be found!".formatted(dto.getEmailAddress()))))
                 .flatMap(user -> {
                     String token = UUID.randomUUID().toString();
                     Email email = emailGenerator.generatePasswordForgottenEmail(user, token);

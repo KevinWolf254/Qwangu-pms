@@ -31,7 +31,7 @@ public class EmailGeneratorImpl implements EmailGenerator {
 
         Map<String, Object> models = new HashMap<>();
         models.put("companyUrl", cpc.getUrl());
-        var activationUrl = apc.getEndPoints().get(0) + apc.getEndPoints().get(1) + user.getId() + "/activate" + "/?token=" + token;
+        var activationUrl = apc.getEndPoints().get(0) + apc.getEndPoints().get(1) + "activate/" + "?token=" + token;
         models.put("accountActivationUrl", activationUrl);
         models.put("linkedInUrl", fmpc.getTemplates().get(0).getModels().get(0));
         models.put("twitterUrl", fmpc.getTemplates().get(0).getModels().get(1));

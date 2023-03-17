@@ -58,7 +58,7 @@ class EmailGeneratorImplTest {
         Map<String, Object> templateModel = email.getTemplateModel();
         assertThat(templateModel).isNotEmpty();
         assertThat(templateModel.get("companyUrl")).isEqualTo(cpc.getUrl());
-        var activationUrl = apc.getEndPoints().get(0) + apc.getEndPoints().get(1) + user.getId() + "/activate" + "/?token=" + token;
+        var activationUrl = apc.getEndPoints().get(0) + apc.getEndPoints().get(1) + "/activate" + "/?token=" + token;
         assertThat(templateModel.get("accountActivationUrl")).isEqualTo(activationUrl);
         assertThat(templateModel.get("linkedInUrl")).isEqualTo(fmpc.getTemplates().get(0).getModels().get(0));
         assertThat(templateModel.get("twitterUrl")).isEqualTo(fmpc.getTemplates().get(0).getModels().get(1));

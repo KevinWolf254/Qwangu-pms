@@ -3,6 +3,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.UserAuthority;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
@@ -39,7 +40,6 @@ import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Testcontainers
@@ -78,194 +78,117 @@ class UserServiceImplIntegrationTest {
         registry.add("spring.data.mongodb.uri", MONGO_DB_CONTAINER::getReplicaSetUrl);
     }
 
-    private Mono<Void> deleteAll() {
-        return userRepository.deleteAll()
-                .doOnSuccess($ -> System.out.println("---- Deleted all users!"))
-                .then(roleRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("---- Deleted all roles!"))
-                .then(userAuthorityRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("---- Deleted all authorities!"))
-                .then(oneTimeTokenRepository.deleteAll())
-                .doOnSuccess($ -> System.out.println("---- Deleted all tokens!"));
-    }
-
-    @Test
-    @DisplayName("createAndNotify rollsBack when a runtime exception occurs")
-    void createAndNotify() {
-        // given
-        Person person = new Person("John", "Doe", "Doe");
-        UserDto dto = new UserDto(person, "john.doe@gmail.com", "1");
-        UserDto dto2 = new UserDto(person, "john.doe1@gmail.com", "1");
-
-        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
-                true, "1", LocalDateTime.now(), null, null, null);
-		var role = new UserRole.UserRoleBuilder()
-				.name("ADMIN")
-				.build();
-		role.setId("1");
-		
-        // when
-        Mono<User> create = userRepository.deleteAll()
+	private Mono<Void> reset() {
+		return userRepository.deleteAll()
                 .doOnSuccess(t -> System.out.println("---- Deleted all Users!"))
                 .then(roleRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Roles!"))
                 .then(userAuthorityRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Authorities!"))
-                .then(userAuthorityRepository.save(userAuthority))
-                .doOnSuccess(System.out::println)
-                .flatMap(authResult -> roleRepository.save(role))
-                .doOnSuccess(r -> System.out.println("---- Saved " + r))
-                .flatMap(roleResult -> underTest.create(dto))
-                .doOnSuccess(u -> System.out.println("---- Saved " + u));
+                .then(oneTimeTokenRepository.deleteAll())
+                .doOnSuccess($ -> System.out.println("---- Deleted all Tokens!"));
+	}
 
+    @Test
+    void create_returnsCustomNotFoundException_whenUserRoleDoesNotExist() {
+    	// given
+        Person person = new Person("John", "Doe", "Doe");
+        String userRoleId = "1";
+		UserDto dto = new UserDto(person, "john.doe@gmail.com", userRoleId);
+
+		var role = new UserRole.UserRoleBuilder()
+				.name("ADMIN")
+				.build();
+		role.setId(userRoleId);
+		// when
+		Mono<User> createWithUserRoleIdNotExisting = reset().then(underTest.create(dto));
+		// then
+        StepVerifier
+                .create(createWithUserRoleIdNotExisting)
+                .expectErrorMatches(e -> e instanceof CustomNotFoundException 
+                		&& e.getMessage().equals("UserRole with id %s does not exist!".formatted(userRoleId)))
+                .verify();
+		
+    }
+    
+	@Test
+	void create_returnsUser_whenSuccessful() {
+		String firstName = "John";
+		String otherNames = "Doe";
+		String surname = "Doe";
+		Person person = new Person(firstName, otherNames, surname);
+		String emailAddress = "john.doe@gmail.com";
+		String userRoleId = "1";
+		UserDto dto = new UserDto(person, emailAddress, userRoleId);
+
+		var role = new UserRole.UserRoleBuilder().name("ADMIN").build();
+		role.setId(userRoleId);
+
+		UserAuthority userAuthority = new UserAuthority(userRoleId, "ADMIN_USERS", true, true, true, true, true,
+				userRoleId, LocalDateTime.now(), null, null, null);
+
+		// when
+		Mono<User> create = reset().then(userAuthorityRepository.save(userAuthority)).doOnSuccess(System.out::println)
+				.flatMap(authResult -> roleRepository.save(role))
+				.doOnSuccess(r -> System.out.println("---- Saved: " + r)).flatMap(roleResult -> underTest.create(dto))
+				.doOnSuccess(u -> System.out.println("---- Created: " + u));
+
+		// then
+		StepVerifier
+			.create(create)
+			.expectNextMatches(u -> u.getId() != null && u.getPerson() != null
+				&& u.getPerson().getFirstName().equals(firstName) && u.getPerson().getOtherNames().equals(otherNames)
+				&& u.getPerson().getSurname().equals(surname) && u.getEmailAddress().equals(emailAddress)
+				&& u.getRoleId().equals(userRoleId) && u.getPassword() == null && !u.getIsAccountExpired()
+				&& !u.getIsCredentialsExpired() && !u.getIsAccountExpired() && !u.getIsEnabled()
+				&& u.getCreatedOn() != null && u.getCreatedBy().equals("SYSTEM") && u.getModifiedBy().equals("SYSTEM")
+				&& u.getModifiedOn() != null)
+			.verifyComplete();
+	}
+    
+    @Test
+    void createAndNotify_returnsCustomAlreadyExistsException_whenEmailAddressAlreadyExists() {
+    	// given
+        Person person = new Person("John", "Doe", "Doe");
+        String emailAddress = "john.doe@gmail.com";
+		UserDto dto2 = new UserDto(person, emailAddress, "1");
+        // when
+    	create_returnsUser_whenSuccessful();
         Mono<User> userCreateWithEmailError = underTest
                 .createAndNotify(dto2)
                 .doOnError(System.out::println);
-
-        Flux<User> getUsers = userRepository
-                .findAll()
-                .doOnNext(System.out::println);
-
-        // then
-        StepVerifier
-                .create(create)
-                .expectNextCount(1)
-                .verifyComplete();
-
         // then
         StepVerifier
                 .create(userCreateWithEmailError)
-                .expectError()
-                .verify();
-
-        // then
-        StepVerifier
-                .create(getUsers)
-                .expectNextCount(1)
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("create returns a Mono of User when email address does not exist")
-    void create_returnsMonoOfUser_whenEmailAddressDoesNotExist() {
-        // given
-        Person person = new Person("John", "Doe", "Doe");
-        UserDto dto = new UserDto(person, "person@gmail.com", "1");
-
-        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true, true,
-                "1", LocalDateTime.now(), null, null, null);
-//        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
-
-		var role = new UserRole.UserRoleBuilder()
-				.name("ADMIN")
-				.build();
-		role.setId("1");
-		
-        // when
-        Mono<User> user = template
-                .dropCollection(User.class)
-                .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
-                .then(template
-                        .dropCollection(UserRole.class)
-                        .doOnSuccess(t -> System.out.println("---- Dropped table Role!")))
-                .then(template
-                        .dropCollection(UserAuthority.class)
-                        .doOnSuccess(t -> System.out.println("---- Dropped table Authority!")))
-                .then(userAuthorityRepository.save(userAuthority))
-                        .doOnSuccess(a -> System.out.println("---- Created " + a))
-                .flatMap(authResult -> roleRepository.save(role))
-                .doOnSuccess(a -> System.out.println("---- Created " + a))
-                .flatMap(roleResult -> underTest.create(dto))
-                .doOnSuccess(a -> System.out.println("---- Created " + a));
-
-        // then
-        StepVerifier
-                .create(user)
-                .expectNextCount(1)
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("create returns CustomNotFoundException when role id does not exist")
-    void create_returnsCustomNotFoundException_whenRoleIdDoesNotExist() {
-        // given
-        Person person = new Person("John", "Doe", "Doe");
-        String roleId = "1";
-        UserDto dto = new UserDto(person, "person@gmail.com", roleId);
-
-        // when
-        Mono<User> user = template
-                .dropCollection(UserRole.class)
-                .doOnSuccess(t -> System.out.println("---- Dropped table Role!"))
-                .then(underTest
-                        .create(dto)
-                        .doOnError(System.out::println));
-
-        // then
-        StepVerifier
-                .create(user)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Role with id %s does not exist!".formatted(roleId)))
+                .expectErrorMatches(e -> e instanceof CustomAlreadyExistsException 
+                		&& e.getMessage().equals("User with email address %s already exists!".formatted(emailAddress)))
                 .verify();
     }
 
     @Test
-    @DisplayName("create returns CustomAlreadyExistsException when email address exists")
-    void create_returnsCustomAlreadyExistsException_whenEmailAddressExists() {
+    void update_returnsUser_whenSuccessful() {
         // given
+        String userRoleId = "1";
+		String id = userRoleId;
         Person person = new Person("John", "Doe", "Doe");
         String emailAddress = "person@gmail.com";
-        UserDto dto = new UserDto(person, emailAddress, "1");
-
-        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
-                true, "1", LocalDateTime.now(), null, null, null);
-//        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
-
-		var role = new UserRole.UserRoleBuilder()
-				.name("ADMIN")
-				.build();
-		role.setId("1");
-        // when
-        Mono<User> user = deleteAll()
-                .then(userAuthorityRepository.save(userAuthority))
-                .doOnSuccess(a -> System.out.println("---- Created: " + a))
-                .then(roleRepository.save(role))
-                .doOnSuccess(a -> System.out.println("---- Created: " + a))
-                .then(underTest.create(dto))
-                .doOnSuccess(a -> System.out.println("---- Created: " + a))
-                .then(underTest.create(dto))
-                .doOnSuccess(a -> System.out.println("---- Created: " + a));
-
-        // then
-        StepVerifier
-                .create(user)
-                .expectErrorMatches(e -> e instanceof CustomAlreadyExistsException &&
-                        e.getMessage().equalsIgnoreCase("User with email address %s already exists!".formatted(emailAddress)))
-                .verify();
-    }
-
-    @Test
-    @DisplayName("update returns Mono of user when successful")
-    void update_returnsMonoOfUser_whenRoleIdUserIdAndEmailAddressExists() {
-        // given
-        String id = "1";
-        Person person = new Person("John", "Doe", "Doe");
-        String emailAddress = "person@gmail.com";
-        UserDto dto = new UserDto(person, emailAddress, "1");
-        User userEntity = new User(id, person, emailAddress, "1", null, false,
+        String firstName = "Peter";
+		String otherNames = "Jane";
+		String surname = "Joe";
+		UserDto dto = new UserDto(new Person(firstName, otherNames, surname), emailAddress, userRoleId);
+        User userEntity = new User(id, person, emailAddress, userRoleId, null, false,
                 false, false, true, LocalDateTime.now(), null,
                 null, null);
 
-        UserAuthority userAuthority = new UserAuthority("1", "ADMIN_USERS", true, true, true, true,
-                true, "1", LocalDateTime.now(), null, null, null);
-//        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
+        UserAuthority userAuthority = new UserAuthority(userRoleId, "ADMIN_USERS", true, true, true, true,
+                true, userRoleId, LocalDateTime.now(), null, null, null);
 
 		var role = new UserRole.UserRoleBuilder()
 				.name("ADMIN")
 				.build();
-		role.setId("1");
+		role.setId(userRoleId);
         // when
-        Mono<User> user = template
+        Mono<User> update = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
                 .then(template.dropCollection(UserRole.class))
@@ -279,17 +202,21 @@ class UserServiceImplIntegrationTest {
                 .flatMap(roleResult -> userRepository.save(userEntity))
                 .doOnSuccess(a -> System.out.println("---- Created " + a))
                 .flatMap(userResult -> underTest.update(id, dto))
-                .doOnSuccess(a -> System.out.println("---- Created " + a));
-
+                .doOnSuccess(a -> System.out.println("---- Updated " + a));
         // then
-        StepVerifier
-                .create(user)
-                .expectNextCount(1)
-                .verifyComplete();
+		StepVerifier
+		.create(update)
+		.expectNextMatches(u -> u.getId() != null && u.getPerson() != null
+			&& u.getPerson().getFirstName().equals(firstName) && u.getPerson().getOtherNames().equals(otherNames)
+			&& u.getPerson().getSurname().equals(surname) && u.getEmailAddress().equals(emailAddress)
+			&& u.getRoleId().equals(userRoleId) && u.getPassword() == null && !u.getIsAccountExpired()
+			&& !u.getIsCredentialsExpired() && !u.getIsAccountExpired() && u.getIsEnabled()
+			&& u.getCreatedOn() != null && u.getModifiedBy().equals("SYSTEM")
+			&& u.getModifiedOn() != null)
+		.verifyComplete();
     }
 
     @Test
-    @DisplayName("update returns CustomNotFoundException when role id does not exists")
     void update_returnsCustomNotFoundException_whenRoleIdDoesNotExist() {
         // given
         String roleId = "2";
@@ -298,7 +225,6 @@ class UserServiceImplIntegrationTest {
         String emailAddress = "person@gmail.com";
         UserDto dto = new UserDto(person, emailAddress, roleId);
         User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
-//        UserRole role = new UserRole("1", "ADMIN", LocalDateTime.now(), null, null, null);
 
 		var role = new UserRole.UserRoleBuilder()
 				.name("ADMIN")
@@ -335,7 +261,6 @@ class UserServiceImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("update returns CustomNotFoundException when role id does not exists")
     void update_returnsCustomNotFoundException_whenUserIdWithEmailAddressDoesNotExist() {
         // given
         String roleId = "1";
@@ -382,15 +307,14 @@ class UserServiceImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("find paginated returns Flux of users when exists")
-    void find_paginated_returnsFluxOfUsers_whenSuccessful() {
+    void findAll_returnsUsers_whenSuccessful() {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
         User userEntity = new User(id, person, "person@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
 
         String id2 = "2";
-        Person person2 = new Person("Jane", "Doe", "Doe");
+        Person person2 = new Person("Jane", "Doe2", "Doe2");
         User userEntity2 = new User(id2, person2, "person2@gmail.com", "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
 
         //when
@@ -400,29 +324,36 @@ class UserServiceImplIntegrationTest {
                 .thenMany(Flux
                         .just(userEntity, userEntity2))
                 .flatMap(entity -> template.save(entity, "USER"))
-                .thenMany(underTest.findPaginated(
-                        Optional.empty(), 1, 10,
-                        OrderType.ASC))
+                .thenMany(underTest.findAll(null, null))
                 .doOnNext(System.out::println);
 
         // then
         StepVerifier.create(saved)
-                .expectNextCount(2)
+        		.expectNextMatches(u -> u.getId() != null && u.getPerson() != null
+    			&& u.getPerson().getFirstName().equals("Jane") && u.getPerson().getOtherNames().equals("Doe2")
+    			&& u.getPerson().getSurname().equals("Doe2") && u.getEmailAddress().equals("person2@gmail.com")
+    			&& u.getRoleId().equals("1") && u.getPassword() == null && !u.getIsAccountExpired()
+    			&& !u.getIsCredentialsExpired() && !u.getIsAccountExpired() && u.getIsEnabled()
+    			&& u.getCreatedOn() != null && u.getModifiedBy().equals("SYSTEM")
+    			&& u.getModifiedOn() != null)
+        		.expectNextMatches(u -> u.getId() != null && u.getPerson() != null
+    			&& u.getPerson().getFirstName().equals("John") && u.getPerson().getOtherNames().equals("Doe")
+    			&& u.getPerson().getSurname().equals("Doe") && u.getEmailAddress().equals("person@gmail.com")
+    			&& u.getRoleId().equals("1") && u.getPassword() == null && !u.getIsAccountExpired()
+    			&& !u.getIsCredentialsExpired() && !u.getIsAccountExpired() && u.getIsEnabled()
+    			&& u.getCreatedOn() != null && u.getModifiedBy().equals("SYSTEM")
+    			&& u.getModifiedOn() != null)
                 .verifyComplete();
     }
 
     @Test
-    @DisplayName("find paginated returns Mono of CustomNotFoundException when users do not exist")
-    void find_paginated_returnsCustomNotFoundException_whenUsersDoNotExist() {
+    void findAll_returnsCustomNotFoundException_whenUsersDoNotExist() {
         // given
         //when
         Flux<User> saved = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
-                .thenMany(underTest.findPaginated(
-                        Optional.empty(),
-                        1, 10,
-                        OrderType.ASC))
+                .thenMany(underTest.findAll(null, OrderType.ASC))
                 .doOnError(a -> System.out.println("---- Found no users!"));
         // then
         StepVerifier
@@ -433,8 +364,7 @@ class UserServiceImplIntegrationTest {
     }
 
     @Test
-    @DisplayName("delete returns a true when successful")
-    void delete_ReturnsTrue_WhenSuccessful() {
+    void delete_returnsTrue_whenSuccessful() {
         // given
         String id = "1";
         Person person = new Person("John", "Doe", "Doe");
@@ -481,6 +411,34 @@ class UserServiceImplIntegrationTest {
                         e.getMessage().equalsIgnoreCase("User with id %s does not exist!".formatted(id)))
                 .verify();
     }
+    
+    @Test
+    void activate_returnsCustomBadRequestException_whenTokenHasExpired() {
+    	// given
+    	var userId = "1";
+    	LocalDateTime now = LocalDateTime.now();
+    	Person person = new Person("John", "Doe", "Doe");
+        User user = new User(userId, person, "person@gmail.com", "1", null,
+                false, false, false, false, now.minusDays(5), "SYSTEM", now.minusDays(5), "SYSTEM");
+        
+    	String token = UUID.randomUUID().toString();
+    	var oneTimeToken = new OneTimeToken();
+		oneTimeToken.setToken(token);
+		oneTimeToken.setCreated(now.minusDays(5));
+    	oneTimeToken.setExpiration(now.minusDays(4));
+    	oneTimeToken.setUserId(userId);
+    	
+    	// when
+		Mono<User> expiredOneTimeToken = reset().then(userRepository.save(user))
+				.doOnSuccess(u -> System.out.println("---- Created: " + u)).then(underTest.activateByToken(token));
+		
+		// then
+		StepVerifier
+			.create(expiredOneTimeToken)
+			.expectErrorMatches(e -> e instanceof CustomBadRequestException
+					&& e.getMessage().equals("Token has expired! Contact administrator."))
+			.verify();
+    }
 
     @Test
     void activate_returnsUser_whenSuccessful() {
@@ -490,14 +448,12 @@ class UserServiceImplIntegrationTest {
         User user = new User(null, person, "person@gmail.com", "1", null,
                 false, false, false, false, LocalDateTime.now(), null, null, null);
         // when
-        Mono<User> activateUser = deleteAll()
-                .then(oneTimeTokenRepository.deleteAll()
-                        .doOnSuccess($ -> System.out.println("---- Deleted all tokens!")))
+        Mono<User> activateUser = reset()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created: " + u))
                 .flatMap(u -> oneTimeTokenService.create(u.getId(), token)
                         .doOnSuccess(ott -> System.out.println("---- Created: " + ott))
-                        .flatMap(ott -> underTest.activate(token, u.getId())))
+                        .flatMap(ott -> underTest.activateByToken(token)))
                 .doOnSuccess(ott -> System.out.println("---- Result: " + ott));
 
         // then
@@ -533,7 +489,7 @@ class UserServiceImplIntegrationTest {
         var authority = new UserAuthority(null, "USER", true, true, true, true,
                 true, null, now, null, null, null);
         // when
-        Mono<TokenDto> signIn = deleteAll()
+        Mono<TokenDto> signIn = reset()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created " + u))
                 .doOnSuccess(u -> u.setPassword(encoder.encode(u.getPassword()))).subscribeOn(Schedulers.parallel())
@@ -571,7 +527,7 @@ class UserServiceImplIntegrationTest {
                 false, false, false, true, now,
                 null, null, null);
         // when
-        Mono<User> changePassword = deleteAll()
+        Mono<User> changePassword = reset()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created " + u))
                 .doOnSuccess(u -> u.setPassword(encoder.encode(u.getPassword()))).subscribeOn(Schedulers.parallel())
@@ -602,7 +558,7 @@ class UserServiceImplIntegrationTest {
         var token = UUID.randomUUID().toString();
 
         // when
-        Mono<User> resetPassword = deleteAll()
+        Mono<User> resetPassword = reset()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created " + u))
                 .flatMap(u -> oneTimeTokenService.create(u.getId(), token))
@@ -628,7 +584,7 @@ class UserServiceImplIntegrationTest {
                 null, null, null);
         // when
         Mockito.when(emailService.send(Mockito.any(Email.class))).thenReturn(Mono.just(true));
-        Flux<OneTimeToken> resetPassword = deleteAll()
+        Flux<OneTimeToken> resetPassword = reset()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created " + u))
                 .then(underTest.sendForgotPasswordEmail(new EmailDto(emailAddress)))

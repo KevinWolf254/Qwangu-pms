@@ -1,14 +1,20 @@
 package co.ke.proaktivio.qwanguapi.validators;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.pojos.EmailDto;
 import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationForNewTenantDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
+import co.ke.proaktivio.qwanguapi.pojos.PasswordDto;
 import co.ke.proaktivio.qwanguapi.pojos.PropertyDto;
 import co.ke.proaktivio.qwanguapi.pojos.ReceiptDto;
+import co.ke.proaktivio.qwanguapi.pojos.ResetPasswordDto;
+import co.ke.proaktivio.qwanguapi.pojos.SignInDto;
 import co.ke.proaktivio.qwanguapi.pojos.TenantDto;
+import co.ke.proaktivio.qwanguapi.pojos.UpdateUserDto;
 import co.ke.proaktivio.qwanguapi.pojos.UserAuthorityDto;
+import co.ke.proaktivio.qwanguapi.pojos.UserDto;
 import co.ke.proaktivio.qwanguapi.pojos.UserRoleDto;
 import co.ke.proaktivio.qwanguapi.pojos.VacateOccupationDto;
 
@@ -25,7 +31,91 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ValidationUtil {
-	
+
+    public static Function<UserDto, UserDto> validateUserDto(Validator validator) {
+        return userDto -> {
+            Errors errors = new BeanPropertyBindingResult(userDto, UserDto.class.getName());
+            validator.validate(userDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return userDto;
+        };
+    }
+
+    public static Function<UpdateUserDto, UpdateUserDto> validateUpdateUserDto(Validator validator) {
+        return userDto -> {
+            Errors errors = new BeanPropertyBindingResult(userDto, UpdateUserDto.class.getName());
+            validator.validate(userDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return userDto;
+        };
+    }
+
+    public static Function<PasswordDto, PasswordDto> validatePasswordDto(Validator validator) {
+        return passwordDto -> {
+            Errors errors = new BeanPropertyBindingResult(passwordDto, PasswordDto.class.getName());
+            validator.validate(passwordDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return passwordDto;
+        };
+    }
+
+    public static Function<SignInDto, SignInDto> validateSignInDto(Validator validator) {
+        return signInDto -> {
+            Errors errors = new BeanPropertyBindingResult(signInDto, SignInDto.class.getName());
+            validator.validate(signInDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return signInDto;
+        };
+    }
+
+    public static Function<EmailDto, EmailDto> validateEmailDto(Validator validator) {
+        return emailDto -> {
+            Errors errors = new BeanPropertyBindingResult(emailDto, EmailDto.class.getName());
+            validator.validate(emailDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return emailDto;
+        };
+    }
+
+    public static Function<ResetPasswordDto, ResetPasswordDto> validateResetPasswordDto(Validator validator) {
+        return passwordDto -> {
+            Errors errors = new BeanPropertyBindingResult(passwordDto, ResetPasswordDto.class.getName());
+            validator.validate(passwordDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return passwordDto;
+        };
+    }
+    
 	public static Function<ReceiptDto, ReceiptDto> validateReceiptDto(Validator validator) {
         return createReceiptDto -> {
             Errors errors = new BeanPropertyBindingResult(createReceiptDto, ReceiptDto.class.getName());
@@ -39,7 +129,6 @@ public class ValidationUtil {
             return createReceiptDto;
         };
     }
-
 
     public static Function<InvoiceDto, InvoiceDto> validateInvoiceDto(Validator validator) {
         return invoiceDto -> {
@@ -83,7 +172,6 @@ public class ValidationUtil {
         };
     }
 
-
     public static Function<OccupationForNewTenantDto, OccupationForNewTenantDto> validateOccupationForNewTenantDto(Validator validator) {
         return occupationForNewTenantDto -> {
             Errors errors = new BeanPropertyBindingResult(occupationForNewTenantDto, OccupationForNewTenantDto.class.getName());
@@ -97,7 +185,6 @@ public class ValidationUtil {
             return occupationForNewTenantDto;
         };
     }
-
 
     public static Function<TenantDto, TenantDto> validateTenantDtoFunc(Validator validator) {
         return tenantDto -> {

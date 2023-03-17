@@ -79,7 +79,7 @@ class OneTimeTokenServiceImplTest {
         Mockito.when(oneTimeTokenRepository.findOne(any())).thenReturn(Mono.just(token));
         // then
         StepVerifier
-                .create(oneTimeTokenService.find(uuid, userId))
+                .create(oneTimeTokenService.findAll(uuid, userId))
                 .expectNext(token)
                 .verifyComplete();
     }
@@ -93,7 +93,7 @@ class OneTimeTokenServiceImplTest {
         Mockito.when(oneTimeTokenRepository.findOne(any())).thenReturn(Mono.empty());
         // then
         StepVerifier
-                .create(oneTimeTokenService.find(uuid, userId))
+                .create(oneTimeTokenService.findAll(uuid, userId))
                 .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
                         e.getMessage().equals("Token could not be found!"))
                 .verify();

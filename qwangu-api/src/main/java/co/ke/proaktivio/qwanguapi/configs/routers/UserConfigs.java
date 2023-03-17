@@ -116,29 +116,11 @@ public class UserConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/users/{userId}/activate",
+                            path = "/v1/users/reset-password",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = UserHandler.class, beanMethod = "activate",
+                            method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "resetPassword",
                             operation = @Operation(
-                                    operationId = "activate",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "User updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "User was not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {
-                                            @Parameter(in = ParameterIn.PATH, name = "userId"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "token")
-                                    }
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/users/sendResetPassword",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "sendResetPassword",
-                            operation = @Operation(
-                                    operationId = "sendResetPassword",
+                                    operationId = "resetPassword",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Email for password reset will be sent if email address exists.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
@@ -152,26 +134,9 @@ public class UserConfigs {
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/resetPassword",
+                            path = "/v1/users/{userId}/password",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "resetPassword",
-                            operation = @Operation(
-                                    operationId = "resetPassword",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "User password updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "Token is required!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "Token is required!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {@Parameter(in = ParameterIn.QUERY, name = "token")}
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/users/{userId}/changePassword",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "changePassword",
+                            method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "password",
                             operation = @Operation(
                                     operationId = "changePassword",
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PasswordDto.class))),
@@ -183,44 +148,21 @@ public class UserConfigs {
                                     },
                                     parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")}
                             )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/signIn",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "signIn",
-                            operation = @Operation(
-                                    operationId = "signIn",
-                                    requestBody = @RequestBody(content = @Content(
-                                            schema = @Schema(implementation = SignInDto.class)
-                                    )),
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Signed in successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "User id not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    security = @SecurityRequirement(name = "")
-                            )
                     )
             }
     )
+    //
     RouterFunction<ServerResponse> routeUser(UserHandler handler) {
         return route()
                 .path("v1", builder -> builder
                         .path("users", b -> b
-//                                .GET("/{userId}/activate", handler::activate)
                                 .GET("/{userId}", handler::findById)
-                                .GET(handler::find)
-//                                .POST("/sendResetPassword", handler::sendResetPassword)
-                                .POST("/{userId}/changePassword", handler::changePassword)
+                                .GET(handler::findAll)
+                                .PUT("/{userId}/password", handler::updatePassword)
                                 .POST(handler::create)
                                 .PUT("/{userId}", handler::update)
                                 .DELETE("/{userId}", handler::delete)
                         )
-//                        .path("signIn", b -> b
-//                                .POST(handler::signIn))
-//                        .path("resetPassword", b -> b
-//                                .POST(handler::resetPassword))
                 )
                 .build();
     }
