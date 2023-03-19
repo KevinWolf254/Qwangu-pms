@@ -23,7 +23,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -142,8 +141,7 @@ class TenantServiceImplIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all Tenants!"))
                 .then(tenantRepository.save(tenant))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(tenantService.findPaginated(Optional.of(mobileNumber), Optional.of(emailAddress),
-                        OrderType.ASC))
+                .thenMany(tenantService.findAll(mobileNumber, emailAddress, OrderType.ASC))
                 .doOnNext(a -> System.out.println("---- Found " + a));
         // then
         StepVerifier
@@ -153,8 +151,7 @@ class TenantServiceImplIntegrationTest {
 
         // when
         Flux<Tenant> findNotExist = tenantService
-                .findPaginated(Optional.of("0700000001"), Optional.of("person2@gmail.com"),
-                        OrderType.ASC);
+                .findAll("0700000001", "person2@gmail.com", OrderType.ASC);
         // then
         StepVerifier
                 .create(findNotExist)
@@ -164,8 +161,7 @@ class TenantServiceImplIntegrationTest {
         // when
         Flux<Tenant> findPaginatedDesc = tenantRepository.save(tenant2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(tenantService.findPaginated( Optional.empty(), Optional.empty(),
-                        OrderType.DESC))
+                .thenMany(tenantService.findAll(null, null, OrderType.DESC))
                 .doOnNext(a -> System.out.println("---- Found " + a));
         // then
         StepVerifier

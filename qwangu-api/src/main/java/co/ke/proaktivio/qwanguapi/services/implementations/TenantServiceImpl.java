@@ -21,7 +21,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
 
 @Log4j2
 @Service
@@ -112,22 +111,18 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public Flux<Tenant> findPaginated(Optional<String> mobileNumber, Optional<String> emailAddress, OrderType order) {
-        Sort sort = order.equals(OrderType.ASC) ?
+    public Flux<Tenant> findAll(String mobileNumber, String emailAddress, OrderType order) {
+        Sort sort = order != null ?order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
-                Sort.by(Sort.Order.desc("id"));
+                Sort.by(Sort.Order.desc("id")):
+                    Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
-        mobileNumber.ifPresent(mobile -> {
-            if(StringUtils.hasText(mobile))
-                query.addCriteria(Criteria.where("mobileNumber").regex(".*" +mobile.trim()+ ".*", "i"));
-        });
-        emailAddress.ifPresent(email -> {
-            if(StringUtils.hasText(email))
-                query.addCriteria(Criteria.where("emailAddress").regex(".*" +email.trim()+ ".*", "i"));
-        });
+        if(StringUtils.hasText(mobileNumber))
+            query.addCriteria(Criteria.where("mobileNumber").regex(".*" +mobileNumber.trim()+ ".*", "i"));
+        if(StringUtils.hasText(emailAddress))
+            query.addCriteria(Criteria.where("emailAddress").regex(".*" +emailAddress.trim()+ ".*", "i"));
         query.with(sort);
-        return template
-                .find(query, Tenant.class);
+        return template.find(query, Tenant.class);
     }
 
     @Override

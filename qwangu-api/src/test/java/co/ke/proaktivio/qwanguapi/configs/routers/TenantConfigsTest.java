@@ -29,7 +29,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -248,11 +247,7 @@ class TenantConfigsTest {
                         .queryParam("order", order)
                         .build();
         // when
-        when(tenantService.findPaginated(
-                Optional.of(mobileNumber),
-                Optional.of(emailAddress),
-                order
-        )).thenReturn(Flux.just(tenant));
+        when(tenantService.findAll(mobileNumber, emailAddress, order)).thenReturn(Flux.just(tenant));
         // then
         client
                 .get()
@@ -273,43 +268,6 @@ class TenantConfigsTest {
                 .jsonPath("$.data.[0].emailAddress").isEqualTo(emailAddress)
                 .jsonPath("$.data.[0].createdOn").isNotEmpty()
                 .jsonPath("$.data.[0].modifiedOn").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @DisplayName("delete returns unauthorised when user is not authenticated status 401")
-    void delete_returnsUnauthorized_status401() {
-        // given
-        var id = "1";
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        // then
-        client
-                .delete()
-                .uri("/v1/tenants/{tenantId}", id)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isUnauthorized();
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    void deleteById() {
-        // given
-        String id = "1";
-        // when
-        when(tenantService.deleteById(id)).thenReturn(Mono.just(true));
-        // then
-        client
-                .delete()
-                .uri("/v1/tenants/{tenantId}", id)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Tenant with id %s deleted successfully.".formatted(id))
                 .consumeWith(System.out::println);
     }
 }
