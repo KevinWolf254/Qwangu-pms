@@ -74,6 +74,8 @@ public class InvoiceHandler {
 			String states = String.join(" or ", arrayOfState);
 			throw new CustomBadRequestException("Type should be " + states + "!");
 		}
+		
+		ValidationUtil.vaidateOrderType(orderOptional);
 		log.debug("Received request for querying invoices.");
 		return invoiceService
 				.findAll(typeOptional.map(Invoice.Type::valueOf).orElse(null),

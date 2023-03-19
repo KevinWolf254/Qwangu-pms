@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -29,13 +31,11 @@ public class InvoiceConfigs {
                     @RouterOperation(
                             path = "/v1/invoices",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = InvoiceHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = InvoiceHandler.class, beanMethod = "findAll",
                             operation = @Operation(
-                                    operationId = "find",
+                                    operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Invoices found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Invoices were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
@@ -43,7 +43,8 @@ public class InvoiceConfigs {
                                             @Parameter(in = ParameterIn.QUERY, name = "invoiceNo"),
                                             @Parameter(in = ParameterIn.QUERY, name = "occupationId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -54,9 +55,12 @@ public class InvoiceConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Invoice found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class)))
+                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                            @ApiResponse(responseCode = "404", description = "Invoice was not found!",
+                                            content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "invoiceId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "invoiceId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -70,27 +74,9 @@ public class InvoiceConfigs {
                                             @ApiResponse(responseCode = "201", description = "Invoice created successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "400", description = "Invoice already exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Invoice were not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    }
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/invoices/{invoiceId}",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.DELETE, beanClass = InvoiceHandler.class, beanMethod = "delete",
-                            operation = @Operation(
-                                    operationId = "delete",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Invoice deleted successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
-                                            @ApiResponse(responseCode = "400", description = "Invoice does not exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Invoice was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "invoiceId")}
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     )
             }
