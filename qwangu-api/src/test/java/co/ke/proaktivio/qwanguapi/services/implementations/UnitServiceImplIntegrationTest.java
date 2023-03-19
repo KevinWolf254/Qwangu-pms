@@ -322,7 +322,7 @@ class UnitServiceImplIntegrationTest {
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(unitRepository.save(unit))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.find(
+                .thenMany(unitService.findAll(
                         propertyId,
                         Unit.Status.VACANT,
                         "TE34",
@@ -360,7 +360,7 @@ class UnitServiceImplIntegrationTest {
         // when
         Flux<Unit> createUnitAndFindAllOnSecondFloor = unitRepository.save(unit2)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(unitService.find(
+                .thenMany(unitService.findAll(
                         propertyId,
                         null,
                         null,
@@ -386,7 +386,7 @@ class UnitServiceImplIntegrationTest {
         var propertyId = "5";
 
         // when
-        Flux<Unit> findUnitNonExisting = unitService.find(
+        Flux<Unit> findUnitNonExisting = unitService.findAll(
                         propertyId,
                         Unit.Status.VACANT,
                         "TE35",

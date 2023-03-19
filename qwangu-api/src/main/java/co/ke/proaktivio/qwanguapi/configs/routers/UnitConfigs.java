@@ -40,8 +40,6 @@ public class UnitConfigs {
                                             @ApiResponse(responseCode = "200", description = "Unit created successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "400", description = "Unit already exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Unit were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     security = @SecurityRequirement(name = "Bearer authentication")
@@ -69,24 +67,6 @@ public class UnitConfigs {
                     @RouterOperation(
                             path = "/v1/units/{unitId}",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.DELETE, beanClass = UnitHandler.class, beanMethod = "delete",
-                            operation = @Operation(
-                                    operationId = "delete",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Unit deleted successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
-                                            @ApiResponse(responseCode = "400", description = "Unit does not exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Unit was not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "unitId")},
-                                    security = @SecurityRequirement(name = "Bearer authentication")
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/users/{unitId}",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
                             method = RequestMethod.GET, beanClass = UnitHandler.class, beanMethod = "findById",
                             operation = @Operation(
                                     operationId = "findById",
@@ -102,9 +82,9 @@ public class UnitConfigs {
                     @RouterOperation(
                             path = "/v1/units",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = UnitHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = UnitHandler.class, beanMethod = "findAll",
                             operation = @Operation(
-                                    operationId = "find",
+                                    operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Units found successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
@@ -129,11 +109,10 @@ public class UnitConfigs {
     RouterFunction<ServerResponse> unitRoute(UnitHandler handler) {
         return route()
                 .path("v1/units", builder -> builder
-                        .GET(handler::find)
+                        .GET(handler::findAll)
                         .POST(handler::create)
                         .PUT("/{unitId}", handler::update)
                         .GET("/{unitId}", handler::findById)
-                        .DELETE("/{unitId}", handler::delete)
                 ).build();
     }
 }

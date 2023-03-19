@@ -330,7 +330,7 @@ public class UnitConfigsTest {
                         .build();
 
         // when
-        when(unitService.find(
+        when(unitService.findAll(
                 propertyId,
                 Unit.Status.VACANT,
                 accountNo,
@@ -394,46 +394,6 @@ public class UnitConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Unit type should be APARTMENT_UNIT or TOWN_HOUSE or MAISONETTES or VILLA!")
                 .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @DisplayName("delete returns unauthorised when user is not authenticated status 401")
-    void delete_returnsUnauthorized_status401() {
-        // given
-        var id = "1";
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        // then
-        client
-                .delete()
-                .uri("/v1/units/{id}", id)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isUnauthorized();
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("Delete by id returns a Mono of boolean when id exists")
-    void deleteById_returnsTrue_withStatus200() {
-        // given
-        String id = "1";
-
-        // when
-        when(unitService.deleteById(id)).thenReturn(Mono.just(true));
-
-        // then
-        client
-                .delete()
-                .uri("/v1/units/{id}", id)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Unit with id %s deleted successfully.".formatted(id))
                 .consumeWith(System.out::println);
     }
 }

@@ -139,12 +139,13 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public Flux<Unit> find(String propertyId, Unit.Status status, String accountNo,
+    public Flux<Unit> findAll(String propertyId, Unit.Status status, String accountNo,
                            Unit.UnitType type, Unit.Identifier identifier, Integer floorNo,
                            Integer bedrooms, Integer bathrooms, OrderType order) {
-        Sort sort = order.equals(OrderType.ASC) ?
+        Sort sort = order != null ? order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :
-                Sort.by(Sort.Order.desc("id"));
+                Sort.by(Sort.Order.desc("id")):
+                    Sort.by(Sort.Order.desc("id"));
         Query query = new Query();
         if (StringUtils.hasText(propertyId))
             query.addCriteria(Criteria.where("propertyId").is(propertyId));

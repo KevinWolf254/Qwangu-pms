@@ -15,7 +15,7 @@ public interface UnitService {
 
 	Mono<Unit> findById(String unitId);
 
-	Flux<Unit> find(String apartmentId, Unit.Status status, String accountNo, Unit.UnitType type,
+	Flux<Unit> findAll(String apartmentId, Unit.Status status, String accountNo, Unit.UnitType type,
 			Unit.Identifier identifier, Integer floorNo, Integer bedrooms, Integer bathrooms, OrderType order);
 
 	Flux<Unit> findByOccupationIds(List<String> occupationIds);

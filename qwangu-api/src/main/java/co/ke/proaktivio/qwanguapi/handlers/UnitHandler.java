@@ -1,21 +1,19 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.models.Unit.Identifier;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.UnitService;
 import co.ke.proaktivio.qwanguapi.validators.UnitDtoValidator;
+import co.ke.proaktivio.qwanguapi.validators.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -23,8 +21,6 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Log4j2
@@ -36,7 +32,7 @@ public class UnitHandler {
     public Mono<ServerResponse> create(ServerRequest request) {
         return request.bodyToMono(UnitDto.class)
                 .doOnSuccess(a -> log.info(" Received request to create {}", a))
-                .map(validateUnitDtoFunc(new UnitDtoValidator()))
+                .map(ValidationUtil.validateUnitDto(new UnitDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to create unit was successful"))
                 .flatMap(unitService::create)
                 .doOnSuccess(a -> log.info(" Created unit {} successfully", a.getNumber()))
@@ -55,7 +51,7 @@ public class UnitHandler {
         String id = request.pathVariable("unitId");
         return request.bodyToMono(UnitDto.class)
                 .doOnSuccess(a -> log.info(" Received request to update {}", a))
-                .map(validateUnitDtoFunc(new UnitDtoValidator()))
+                .map(ValidationUtil.validateUnitDto(new UnitDtoValidator()))
                 .doOnSuccess(a -> log.debug(" Validation of request to update unit was successful"))
                 .flatMap(dto -> unitService.update(id, dto))
                 .doOnSuccess(a -> log.info(" Updated unit {} successfully", a.getNumber()))
@@ -83,16 +79,8 @@ public class UnitHandler {
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("unitId");
         return unitService.findById(id)
+        		.switchIfEmpty(Mono.error(new CustomNotFoundException("Unit with id %s does not exist!".formatted(id))))
                 .flatMap(results -> {
-                    if (results == null) {
-                        return ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(), true, "Unit with id %s does not exist!".formatted(id),
-                                        null)), Response.class);
-                    }
                     return ServerResponse
                             .ok()
                             .body(Mono.just(new Response<>(
@@ -104,7 +92,7 @@ public class UnitHandler {
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for querying unit by id", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> find(ServerRequest request) {
+    public Mono<ServerResponse> findAll(ServerRequest request) {
         Optional<String> propertyIdOptional = request.queryParam("propertyId");
         Optional<String> statusOptional = request.queryParam("status");
         Optional<String> accountNoOPtional = request.queryParam("accountNo");
@@ -120,6 +108,8 @@ public class UnitHandler {
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Unit type should be " + states + "!");
         }
+        
+        ValidationUtil.vaidateOrderType(orderOptional);
         log.debug(" Validation of request param Unit.Type was successful");
 
         if (statusOptional.isPresent() &&  !EnumUtils.isValidEnum(Unit.Status.class, statusOptional.get())) {
@@ -132,18 +122,17 @@ public class UnitHandler {
             Integer floorNoResult = convertToInteger(floorNoOptional);
             Integer noOfBedrooms = convertToInteger(bedroomsOptional);
             Integer noOfBathrooms = convertToInteger(bathroomsOptional);
-            OrderType finalOrder = orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC);
 
-            return unitService.find(
-                            propertyIdOptional.map(propertyId -> propertyId).orElse(""),
+            return unitService.findAll(
+                            propertyIdOptional.map(propertyId -> propertyId).orElse(null),
                             statusOptional.map(Unit.Status::valueOf).orElse(null),
-                            accountNoOPtional.map(accountNo -> accountNo).orElse(""),
+                            accountNoOPtional.map(accountNo -> accountNo).orElse(null),
                             typeOPtional.map(Unit.UnitType::valueOf).orElse(null),
                             identifierOptional.map(Identifier::valueOf).orElse(null),
                             floorNoResult,
                             noOfBedrooms,
                             noOfBathrooms,
-                            finalOrder
+                            orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC)
                     ).collectList()
                     .doOnSuccess(a -> log.info(" Query request returned {} units", a.size()))
                     .doOnError(e -> log.error(" Failed to find units. Error ", e))
@@ -166,7 +155,6 @@ public class UnitHandler {
                             });
     }
 
-    // TODO FIND IF ITS IMPORTANT
     public Mono<ServerResponse> findByOccupationIds(ServerRequest request) {
         return request.bodyToMono(FindUnitsDto.class)
                 .filter(dto -> dto.getOccupationIds() != null && !dto.getOccupationIds().isEmpty())
@@ -181,37 +169,5 @@ public class UnitHandler {
                                         HttpStatus.OK.value(),true, "Units found successfully.",
                                         units)), Response.class))
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for querying units", a.rawStatusCode()));
-    }
-
-    public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("unitId");
-        log.info(" Received request to delete unit with id {}", id);
-        return unitService.deleteById(id)
-                .doOnSuccess($ -> log.info(" Deleted unit successfully"))
-                .doOnError(e -> log.error(" Failed to delete unit. Error ", e))
-                .flatMap(result ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true,
-                                        "Unit with id %s deleted successfully.".formatted(id), null)),
-                                        Response.class))
-                .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting unit", a.rawStatusCode()));
-    }
-
-    private Function<UnitDto, UnitDto> validateUnitDtoFunc(Validator validator) {
-        return apartmentDto -> {
-            Errors errors = new BeanPropertyBindingResult(apartmentDto, PropertyDto.class.getName());
-            validator.validate(apartmentDto, errors);
-            if (!errors.getAllErrors().isEmpty()) {
-                String errorMessage = errors.getAllErrors().stream()
-                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                        .collect(Collectors.joining(" "));
-                throw new CustomBadRequestException(errorMessage);
-            }
-            return apartmentDto;
-        };
     }
 }

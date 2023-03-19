@@ -12,6 +12,7 @@ import co.ke.proaktivio.qwanguapi.pojos.ReceiptDto;
 import co.ke.proaktivio.qwanguapi.pojos.ResetPasswordDto;
 import co.ke.proaktivio.qwanguapi.pojos.SignInDto;
 import co.ke.proaktivio.qwanguapi.pojos.TenantDto;
+import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateUserDto;
 import co.ke.proaktivio.qwanguapi.pojos.UserAuthorityDto;
 import co.ke.proaktivio.qwanguapi.pojos.UserDto;
@@ -250,4 +251,19 @@ public class ValidationUtil {
 			throw new CustomBadRequestException("Order should be " + states + "!");
 		}
 	}
+
+
+    public static Function<UnitDto, UnitDto> validateUnitDto(Validator validator) {
+        return apartmentDto -> {
+            Errors errors = new BeanPropertyBindingResult(apartmentDto, PropertyDto.class.getName());
+            validator.validate(apartmentDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return apartmentDto;
+        };
+    }
 }
