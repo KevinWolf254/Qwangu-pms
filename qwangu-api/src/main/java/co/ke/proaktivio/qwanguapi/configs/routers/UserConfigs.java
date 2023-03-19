@@ -30,9 +30,9 @@ public class UserConfigs {
                     @RouterOperation(
                             path = "/v1/users",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = UserHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = UserHandler.class, beanMethod = "findAll",
                             operation = @Operation(
-                                    operationId = "find",
+                                    operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Users found successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
@@ -42,10 +42,9 @@ public class UserConfigs {
                                     parameters = {
                                             @Parameter(in = ParameterIn.QUERY, name = "userId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "emailAddress"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -62,7 +61,8 @@ public class UserConfigs {
                                             @ApiResponse(responseCode = "404", description = "User was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -76,10 +76,9 @@ public class UserConfigs {
                                             @ApiResponse(responseCode = "201", description = "User created successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "400", description = "User already exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "User were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -95,7 +94,8 @@ public class UserConfigs {
                                             @ApiResponse(responseCode = "400", description = "User already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -107,46 +107,28 @@ public class UserConfigs {
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "User deleted successfully.",
                                                     content = @Content(schema = @Schema(implementation = Boolean.class))),
-                                            @ApiResponse(responseCode = "400", description = "User does not exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "User was not found!",
+                                            @ApiResponse(responseCode = "404", description = "User does not exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
-                            path = "/v1/users/reset-password",
+                            path = "/v1/users/{userId}/change-password",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "resetPassword",
-                            operation = @Operation(
-                                    operationId = "resetPassword",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Email for password reset will be sent if email address exists.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "Token is required!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "Token is required!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {@Parameter(in = ParameterIn.QUERY, name = "token")},
-                                    security = @SecurityRequirement(name = "")
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/users/{userId}/password",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "password",
+                            method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "changePassword",
                             operation = @Operation(
                                     operationId = "changePassword",
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PasswordDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "User updated successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "User id not found!",
+                                            @ApiResponse(responseCode = "404", description = "User does not exist!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "userId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     )
             }
@@ -158,7 +140,7 @@ public class UserConfigs {
                         .path("users", b -> b
                                 .GET("/{userId}", handler::findById)
                                 .GET(handler::findAll)
-                                .PUT("/{userId}/password", handler::updatePassword)
+                                .PUT("/{userId}/change-password", handler::changePassword)
                                 .POST(handler::create)
                                 .PUT("/{userId}", handler::update)
                                 .DELETE("/{userId}", handler::delete)

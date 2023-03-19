@@ -45,10 +45,6 @@ public class User {
         private String emailAddress;
         private String roleId;
         private String password;
-        private Boolean isAccountExpired;
-        private Boolean isCredentialsExpired;
-        private Boolean isAccountLocked;
-        private Boolean isEnabled;
 
         public UserBuilder person(Person person) {
             this.person = person;
@@ -65,41 +61,16 @@ public class User {
             return this;
         }
 
-        public UserBuilder password(String password) {
-            this.password = password;
-            return this;
-        }
-
-        public UserBuilder accountExpired(Boolean accountExpired) {
-            isAccountExpired = accountExpired;
-            return this;
-        }
-
-        public UserBuilder credentialsExpired(Boolean credentialsExpired) {
-            isCredentialsExpired = credentialsExpired;
-            return this;
-        }
-
-        public UserBuilder accountLocked(Boolean accountLocked) {
-            isAccountLocked = accountLocked;
-            return this;
-        }
-
-        public UserBuilder enabled(Boolean enabled) {
-            isEnabled = enabled;
-            return this;
-        }
-
         public User build() {
             var user = new User();
             user.setPerson(this.person);
             user.setEmailAddress(this.emailAddress);
             user.setRoleId(this.roleId);
             user.setPassword(this.password);
-            user.setIsAccountExpired(this.isAccountExpired);
-            user.setIsCredentialsExpired(this.isCredentialsExpired);
-            user.setIsAccountLocked(this.isAccountLocked);
-            user.setIsEnabled(this.isEnabled);
+            user.setIsAccountExpired(false);
+            user.setIsCredentialsExpired(false);
+            user.setIsAccountLocked(false);
+            user.setIsEnabled(false);
             return user;
         }
     }

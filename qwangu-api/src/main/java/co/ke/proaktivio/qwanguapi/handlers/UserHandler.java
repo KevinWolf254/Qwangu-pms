@@ -118,7 +118,7 @@ public class UserHandler {
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting user", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> updatePassword(ServerRequest request) {
+    public Mono<ServerResponse> changePassword(ServerRequest request) {
         String id = request.pathVariable("userId");
         return request
                 .bodyToMono(PasswordDto.class)

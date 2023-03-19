@@ -10,13 +10,13 @@ public interface UserService {
 
 	Mono<User> createAndNotify(UserDto dto);
 
-	Mono<User> activateByToken(String token);
+	Mono<User> activate(String token);
 
 	Mono<TokenDto> signIn(SignInDto signInDto);
 
 	Mono<User> changePassword(String userId, PasswordDto dto);
 
-	Mono<User> resetPassword(String token, String password);
+	Mono<User> setPassword(String token, String password);
 
 	Mono<User> update(String id, UserDto dto);
 
@@ -26,5 +26,5 @@ public interface UserService {
 
 	Mono<Boolean> deleteById(String id);
 
-	Mono<Void> sendForgotPasswordEmail(EmailDto dto);
+	Mono<Void> requestPasswordReset(EmailDto dto);
 }

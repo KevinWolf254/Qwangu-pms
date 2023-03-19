@@ -37,8 +37,15 @@ public class SignInDtoValidator implements Validator {
     private void validatePassword(SignInDto request, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password", "field.required", "Password is required.");
         String password = request.getPassword();
-        if (password != null)
+        if (password != null) {
             if (password.trim().length() < MINIMUM_LENGTH)
                 errors.rejectValue("password", "field.min.length", new Object[]{Integer.valueOf(MINIMUM_LENGTH)}, "Password must be at least %s characters in length.".formatted(MINIMUM_LENGTH));
+            
+            String PASSWORD_REGEX = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{8,20}$";
+            var p = Pattern.compile(PASSWORD_REGEX);
+            if (!p.matcher(password).matches())
+                errors.rejectValue("password", "field.invalid", "Your password does not meet the required complexity. Passwords must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character. Please choose a new password that meets these requirements.");
+        	
+        }
     }
 }

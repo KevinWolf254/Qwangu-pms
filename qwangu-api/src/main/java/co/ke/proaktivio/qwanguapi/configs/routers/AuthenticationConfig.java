@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -66,9 +65,9 @@ public class AuthenticationConfig {
                         )
                 ),
                 @RouterOperation(
-                        path = "/v1/password",
+                        path = "/v1/set-password",
                         produces = MediaType.APPLICATION_JSON_VALUE,
-                        method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "password",
+                        method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "setPassword",
                         operation = @Operation(
                                 operationId = "setPassword",
                                 requestBody = @RequestBody(content = @Content(
@@ -99,8 +98,7 @@ public class AuthenticationConfig {
                                 },
                                 parameters = {
                                         @Parameter(in = ParameterIn.QUERY, name = "token")
-                                },
-                                security = @SecurityRequirement(name = "Bearer token")
+                                }
                         )
                 )
             	
@@ -114,9 +112,9 @@ public class AuthenticationConfig {
                         .path("sign-in", b -> b
                                 .POST(handler::signIn))
                         .path("forgot-password", b -> b
-                                .POST(handler::sendForgotPasswordEmail))
-                        .path("password", b -> b
-                                .POST(handler::createPassword)))
+                                .POST(handler::requestPasswordReset))
+                        .path("set-password", b -> b
+                                .POST(handler::setPassword)))
                 .build();
     }
 }

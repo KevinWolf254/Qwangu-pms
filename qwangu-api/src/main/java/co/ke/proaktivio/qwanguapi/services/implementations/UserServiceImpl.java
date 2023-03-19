@@ -1,12 +1,10 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.*;
-import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.models.UserToken;
 import co.ke.proaktivio.qwanguapi.pojos.*;
-import co.ke.proaktivio.qwanguapi.repositories.OneTimeTokenRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRoleRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UserRepository;
 import co.ke.proaktivio.qwanguapi.security.jwt.JwtUtil;
@@ -14,7 +12,6 @@ import co.ke.proaktivio.qwanguapi.services.*;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -29,7 +26,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Log4j2
 @Service
@@ -39,7 +35,6 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final EmailGenerator emailGenerator;
     private final OneTimeTokenService oneTimeTokenService;
-    private final OneTimeTokenRepository oneTimeTokenRepository;
     private final PasswordEncoder encoder;
     private final UserRoleRepository roleRepository;
     private final JwtUtil jwtUtil;
@@ -57,8 +52,10 @@ public class UserServiceImpl implements UserService {
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("User with email address %s already exists!"
                         .formatted(emailAddress))))
-                .map($ -> new User(null, dto.getPerson(), emailAddress, dto.getRoleId(), null,
-                            false, false, false, false, null, null, null, null))
+                .map($ -> new User.UserBuilder()
+                		.person(dto.getPerson())
+                		.emailAddress(emailAddress)
+                		.roleId(dto.getRoleId()).build())
                 .flatMap(userRepository::save)
                 .doOnSuccess(a -> log.info("Created: {}", a));
     }
@@ -68,20 +65,17 @@ public class UserServiceImpl implements UserService {
                 .addCriteria(Criteria.where("emailAddress").is(emailAddress)), User.class);
     }
 
-    @Override
-    @Transactional
-    public Mono<User> createAndNotify(UserDto dto) {
-        return create(dto)
-                .flatMap(user -> {
-                            String token = UUID.randomUUID().toString();
-                            Email email = emailGenerator.generateAccountActivationEmail(user, token);
-                            return oneTimeTokenService.create(user.getId(), token)
-                                    .flatMap(tokenDto -> emailService.send(email))
-                                    .map(success -> user);
-                        }
-                );
-    }
-
+	@Override
+	@Transactional
+	public Mono<User> createAndNotify(UserDto dto) {
+		return create(dto).flatMap(user -> notify(user).flatMap($ -> Mono.just(user)));
+	}
+	
+	private Mono<Boolean> notify(User user) {
+		return oneTimeTokenService.create(user.getId())
+		.flatMap(ott -> emailService.send(emailGenerator.generateAccountActivationEmail(user, ott.getToken())));
+	}
+	
     @Override
     public Mono<User> update(String id, UserDto dto) {
         String emailAddress = dto.getEmailAddress();
@@ -91,9 +85,9 @@ public class UserServiceImpl implements UserService {
                 .addCriteria(Criteria.where("emailAddress").is(emailAddress).and("id").is(id));
 
         return template.findById(roleId, UserRole.class)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Role with id %s does not exist!".formatted(roleId))))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Role with id %s does not exist!".formatted(roleId))))
                 .flatMap(role -> template.findOne(query, User.class))
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("User with id %s and email address %s does not exist!"
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("User with id %s and email address %s does not exist!"
                         .formatted(id, emailAddress))))
                 .map(user -> {
                     user.setPerson(dto.getPerson());
@@ -135,10 +129,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> activateByToken(String token) {
+    public Mono<User> activate(String token) {
         return oneTimeTokenService.findByToken(token)
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token does not exist!")))
-                .filter(t -> t.getExpiration().isAfter(LocalDateTime.now()) || t.getExpiration().isEqual(LocalDateTime.now()))
+                .filter(t -> !t.hasExpired())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token has expired! Contact administrator.")))
                 .flatMap(ott -> userRepository.findById(ott.getUserId())
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("User could not be found!")))
@@ -147,8 +141,8 @@ public class UserServiceImpl implements UserService {
                             user.setIsEnabled(true);
                         })
                         .flatMap(userRepository::save)
-                        .flatMap(user -> oneTimeTokenRepository.deleteById(ott.getId())
-                                    .then(Mono.just(user)))
+//                        .flatMap(user -> oneTimeTokenService.deleteById(ott.getId())
+//                                    .then(Mono.just(user)))
                 );
     }
 
@@ -156,13 +150,13 @@ public class UserServiceImpl implements UserService {
     public Mono<TokenDto> signIn(SignInDto signInDto) {
         String emailAddress = signInDto.getUsername();
         String password = signInDto.getPassword();
-        return userRepository
-                .findOne(Example.of(new User(emailAddress)))
+        
+        return userRepository.findByEmailAddress(emailAddress)
                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("Invalid username or password!")))
                 .filter(user -> user.getIsEnabled() && !user.getIsAccountLocked() && !user.getIsCredentialsExpired() &&
                         !user.getIsAccountExpired())
-                .switchIfEmpty(Mono.error(new UsernameNotFoundException("Account could be disabled! Contact Administrator!")))
-                .doOnSuccess(a -> log.debug(" Checks for signing in {} were successful", emailAddress))
+                .switchIfEmpty(Mono.error(new CustomBadRequestException("Account is disabled! Contact Administrator!")))
+                .doOnSuccess($ -> log.debug("Checks for signing in {} were successful", emailAddress))
                 .flatMap(user -> Mono
                         .just(encoder.matches(password, user.getPassword())).subscribeOn(Schedulers.parallel())
                         .filter(passwordsMatch -> passwordsMatch)
@@ -201,10 +195,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> resetPassword(String token, String password) {
-        return oneTimeTokenRepository.findOne(Example.of(new OneTimeToken(token)))
+    public Mono<User> setPassword(String token, String password) {
+        return oneTimeTokenService.findByToken(token)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Token could not be found!")))
-                .filter(t -> t.getExpiration().isAfter(LocalDateTime.now()) || t.getExpiration().isEqual(LocalDateTime.now()))
+                .filter(t -> !t.hasExpired())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token has expired! Contact administrator.")))
                 .flatMap(ott -> userRepository.findById(ott.getUserId())
                         .switchIfEmpty(Mono.error(new CustomNotFoundException("User could not be found!")))
@@ -216,24 +210,18 @@ public class UserServiceImpl implements UserService {
                         })
                         .flatMap(userRepository::save)
                         .map(user -> {
-                            oneTimeTokenRepository.deleteById(ott.getId());
+                        	oneTimeTokenService.deleteById(ott.getId());
                             return user;
                         })
                 );
     }
 
-    @Override
-    @Transactional
-    public Mono<Void> sendForgotPasswordEmail(EmailDto dto) {
-        return userRepository.findOne(Example.of(new User(dto.getEmailAddress())))
-                .switchIfEmpty(Mono.error(new CustomBadRequestException("Email address %s could not be found!".formatted(dto.getEmailAddress()))))
-                .flatMap(user -> {
-                    String token = UUID.randomUUID().toString();
-                    Email email = emailGenerator.generatePasswordForgottenEmail(user, token);
-                    return oneTimeTokenService.create(user.getId(), token)
-                            .flatMap(tokenDto -> emailService.send(email))
-                            .map(success -> email);
-                })
-                .flatMap(r -> Mono.empty());
-    }
+	@Override
+	@Transactional
+	public Mono<Void> requestPasswordReset(EmailDto dto) {
+		return userRepository.findByEmailAddress(dto.getEmailAddress())
+				.switchIfEmpty(Mono.error(new CustomBadRequestException(
+						"Email address %s could not be found!".formatted(dto.getEmailAddress()))))
+				.flatMap(user -> notify(user)).flatMap($ -> Mono.empty());
+	}
 }

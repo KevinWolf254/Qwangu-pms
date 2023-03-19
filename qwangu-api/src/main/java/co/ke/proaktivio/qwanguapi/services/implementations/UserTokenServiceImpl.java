@@ -5,14 +5,15 @@ import co.ke.proaktivio.qwanguapi.pojos.UserTokenDto;
 import co.ke.proaktivio.qwanguapi.repositories.UserTokenRepository;
 import co.ke.proaktivio.qwanguapi.services.UserTokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
-
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class UserTokenServiceImpl implements UserTokenService {
@@ -21,17 +22,12 @@ public class UserTokenServiceImpl implements UserTokenService {
 
     @Override
     public Mono<UserToken> create(UserTokenDto dto) {
-        LocalDateTime now = LocalDateTime.now();
-        return template.findOne(new Query()
-                .addCriteria(Criteria
-                        .where("emailAddress").is(dto.getEmailAddress())), UserToken.class)
-                .switchIfEmpty(Mono.just(new UserToken(null, dto.getEmailAddress(), null, now, null)))
-                .map(userToken -> {
-                    userToken.setToken(dto.getToken());
-                    userToken.setLastSignIn(now);
-                    return userToken;
-                })
-                .flatMap(userTokenRepository::save);
+        String emailAddress = dto.getEmailAddress();
+		return userTokenRepository.findByEmailAddress(emailAddress)
+                .switchIfEmpty(Mono.just(new UserToken.UserTokenBuilder().emailAddress(emailAddress).build()))
+                .doOnSuccess(userToken -> userToken.setToken(dto.getToken()))
+                .flatMap(userTokenRepository::save)
+                .doOnSuccess(ut -> log.info("Created: {}", ut));
     }
 
     @Override

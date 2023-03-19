@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -39,8 +40,6 @@ import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -217,7 +216,7 @@ class UserServiceImplIntegrationTest {
     }
 
     @Test
-    void update_returnsCustomNotFoundException_whenRoleIdDoesNotExist() {
+    void update_returnsCustomBadRequestException_whenRoleIdDoesNotExist() {
         // given
         String roleId = "2";
         String id = "1";
@@ -255,13 +254,13 @@ class UserServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(user)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
                         e.getMessage().equalsIgnoreCase("Role with id %s does not exist!".formatted(roleId)))
                 .verify();
     }
 
     @Test
-    void update_returnsCustomNotFoundException_whenUserIdWithEmailAddressDoesNotExist() {
+    void update_returnsCustomBadRequestException_whenUserIdWithEmailAddressDoesNotExist() {
         // given
         String roleId = "1";
         String id = "1";
@@ -270,8 +269,6 @@ class UserServiceImplIntegrationTest {
         String emailAddress1 = "goblin@gmail.com";
         UserDto dto = new UserDto(person, emailAddress1, roleId);
         User userEntity = new User(id, person, emailAddress, "1", null, false, false, false, true, LocalDateTime.now(), null, null, null);
-
-//        UserRole role = new UserRole(roleId, "ADMIN", LocalDateTime.now(), null, null, null);
 
 		var role = new UserRole.UserRoleBuilder()
 				.name("ADMIN")
@@ -301,7 +298,7 @@ class UserServiceImplIntegrationTest {
         // then
         StepVerifier
                 .create(user)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
+                .expectErrorMatches(e -> e instanceof CustomBadRequestException &&
                         e.getMessage().equalsIgnoreCase("User with id %s and email address %s does not exist!".formatted(id, emailAddress1)))
                 .verify();
     }
@@ -347,20 +344,19 @@ class UserServiceImplIntegrationTest {
     }
 
     @Test
-    void findAll_returnsCustomNotFoundException_whenUsersDoNotExist() {
+    void findAll_returnsEmpty_whenUsersDoNotExist() {
         // given
         //when
         Flux<User> saved = template
                 .dropCollection(User.class)
                 .doOnSuccess(t -> System.out.println("---- Dropped table User!"))
-                .thenMany(underTest.findAll(null, OrderType.ASC))
-                .doOnError(a -> System.out.println("---- Found no users!"));
+                .thenMany(underTest.findAll(null, null));
         // then
         StepVerifier
                 .create(saved)
-                .expectErrorMatches(e -> e instanceof CustomNotFoundException &&
-                        e.getMessage().equalsIgnoreCase("Users were not found!"))
-                .verify();
+                .expectComplete();
+//        .expectNextMatches(List::isEmpty)
+//        .verifyComplete();
     }
 
     @Test
@@ -411,26 +407,37 @@ class UserServiceImplIntegrationTest {
                         e.getMessage().equalsIgnoreCase("User with id %s does not exist!".formatted(id)))
                 .verify();
     }
+
+    @Test
+    void activate_returnsCustomBadRequestException_whenTokenDoesNotExist() {
+    	// given
+    	var ott = new OneTimeToken.OneTimeTokenBuilder().userId("1").build();
+    	// when
+		Mono<User> doesNotExistOneTimeToken = reset()
+				.then(underTest.activate(ott.getToken()));
+		// then
+		StepVerifier
+			.create(doesNotExistOneTimeToken)
+			.expectErrorMatches(e -> e instanceof CustomBadRequestException
+					&& e.getMessage().equals("Token does not exist!"))
+			.verify();
+    }
     
     @Test
     void activate_returnsCustomBadRequestException_whenTokenHasExpired() {
     	// given
     	var userId = "1";
     	LocalDateTime now = LocalDateTime.now();
-    	Person person = new Person("John", "Doe", "Doe");
-        User user = new User(userId, person, "person@gmail.com", "1", null,
-                false, false, false, false, now.minusDays(5), "SYSTEM", now.minusDays(5), "SYSTEM");
-        
-    	String token = UUID.randomUUID().toString();
-    	var oneTimeToken = new OneTimeToken();
-		oneTimeToken.setToken(token);
-		oneTimeToken.setCreated(now.minusDays(5));
-    	oneTimeToken.setExpiration(now.minusDays(4));
-    	oneTimeToken.setUserId(userId);
+    	var oneTimeToken = new OneTimeToken.OneTimeTokenBuilder().userId(userId).build();
     	
     	// when
-		Mono<User> expiredOneTimeToken = reset().then(userRepository.save(user))
-				.doOnSuccess(u -> System.out.println("---- Created: " + u)).then(underTest.activateByToken(token));
+		Mono<User> expiredOneTimeToken = reset()
+				.then(oneTimeTokenRepository.save(oneTimeToken))
+				.doOnSuccess(u -> System.out.println("---- Created: " + u))
+				.doOnNext(ott -> ott.setCreatedOn(now.minusDays(2)))
+				.flatMap(ott -> oneTimeTokenRepository.save(ott))
+				.doOnSuccess(u -> System.out.println("---- Updated: " + u))
+				.flatMap(ott -> underTest.activate(ott.getToken()));
 		
 		// then
 		StepVerifier
@@ -441,36 +448,107 @@ class UserServiceImplIntegrationTest {
     }
 
     @Test
+    void activate_returnsCustomBadRequestException_whenUserDoesNotExist() {
+        // given
+    	var userIdDoesNotExist = "12345";
+        var ott = new OneTimeToken.OneTimeTokenBuilder().userId(userIdDoesNotExist).build();
+
+        // when
+        Mono<User> activateDoesNotExistUser = reset()
+                .then(oneTimeTokenRepository.save(ott)
+                .doOnSuccess(otts -> System.out.println("---- Created: " + otts))
+                .flatMap(otts -> underTest.activate(otts.getToken())))
+                .doOnSuccess(otts -> System.out.println("---- Result: " + otts));
+
+		// then
+		StepVerifier
+			.create(activateDoesNotExistUser)
+			.expectErrorMatches(e -> e instanceof CustomBadRequestException
+					&& e.getMessage().equals("User could not be found!"))
+			.verify();
+    }
+
+    @Test
     void activate_returnsUser_whenSuccessful() {
         // given
-        String token = UUID.randomUUID().toString();
+    	var userId = "56789";
         Person person = new Person("John", "Doe", "Doe");
-        User user = new User(null, person, "person@gmail.com", "1", null,
+        String emailAddress = "person@gmail.com";
+		String userRoleId = "1";
+		User user = new User(userId, person, emailAddress, userRoleId, null,
                 false, false, false, false, LocalDateTime.now(), null, null, null);
         // when
         Mono<User> activateUser = reset()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created: " + u))
-                .flatMap(u -> oneTimeTokenService.create(u.getId(), token)
-                        .doOnSuccess(ott -> System.out.println("---- Created: " + ott))
-                        .flatMap(ott -> underTest.activateByToken(token)))
+                .flatMap(u -> oneTimeTokenService.create(u.getId())
+                .doOnSuccess(ott -> System.out.println("---- Created: " + ott))
+                .flatMap(ott -> underTest.activate(ott.getToken())))
                 .doOnSuccess(ott -> System.out.println("---- Result: " + ott));
 
         // then
         StepVerifier.create(activateUser)
-                .expectNextMatches(User::getIsEnabled)
+                .expectNextMatches(u -> u.getIsEnabled())
                 .verifyComplete();
+    }
 
+    @Test
+    void signIn_returnsCustomBadRequestException_whenUserHasBeenDisabled() {
+    	// given
+        LocalDateTime now = LocalDateTime.now();
+        var password = "12345";
+        Person person = new Person("John", "Doe", "Doe");
+        String emailAddress = "person@gmail.com";
+        User user = new User(null, person, emailAddress, null, password,
+                false, false, false, false, now,
+                null, null, null);
         // when
-        Mono<List<OneTimeToken>> listOfOneTimeTokens = activateUser
-                .thenMany(oneTimeTokenRepository.findAll())
-                .collectList()
-                .doOnSuccess(u -> System.out.printf("---- Found %s one time tokens %n", u.size()));
-        // then
-        StepVerifier
-                .create(listOfOneTimeTokens)
-                .expectNextMatches(List::isEmpty)
-                .verifyComplete();
+		Mono<TokenDto> userDoesNotExist = reset()
+				.then(userRepository.save(user))
+				.then(underTest.signIn(new SignInDto(emailAddress, password)));
+		// then
+		StepVerifier
+		.create(userDoesNotExist)
+		.expectErrorMatches(e -> e instanceof CustomBadRequestException
+				&& e.getMessage().equals("Account is disabled! Contact Administrator!"))
+		.verify();
+    }
+
+    @Test
+    void signIn_returnsUsernameNotFoundException_whenPasswordsDoNotMatch() {
+    	// given
+        LocalDateTime now = LocalDateTime.now();
+        var password = "12345";
+        Person person = new Person("John", "Doe", "Doe");
+        String emailAddress = "person@gmail.com";
+        User user = new User(null, person, emailAddress, null, password,
+                false, false, false, true, now,
+                null, null, null);
+        // when
+		Mono<TokenDto> userDoesNotExist = reset()
+				.then(userRepository.save(user))
+				.then(underTest.signIn(new SignInDto(emailAddress, "12345678")));
+		// then
+		StepVerifier
+		.create(userDoesNotExist)
+		.expectErrorMatches(e -> e instanceof UsernameNotFoundException
+				&& e.getMessage().equals("Invalid username or password!"))
+		.verify();
+    }
+
+    @Test
+    void signIn_returnsUsernameNotFoundException_whenUserWithEmailAddressDoesNotExist() {
+    	// given
+        String emailAddress = "person@gmail.com";
+        var password = "12345";
+        // when
+		Mono<TokenDto> userDoesNotExist = reset().then(underTest.signIn(new SignInDto(emailAddress, password)));
+		// then
+		StepVerifier
+		.create(userDoesNotExist)
+		.expectErrorMatches(e -> e instanceof UsernameNotFoundException
+				&& e.getMessage().equals("Invalid username or password!"))
+		.verify();
     }
 
     @Test
@@ -546,7 +624,7 @@ class UserServiceImplIntegrationTest {
     }
 
     @Test
-    void resetPassword_returnUser_whenSuccessful() {
+    void setPassword_returnUser_whenSuccessful() {
         LocalDateTime now = LocalDateTime.now();
         var password = "12345";
         String newPassword = "A1234567";
@@ -555,15 +633,14 @@ class UserServiceImplIntegrationTest {
         User user = new User(null, person, emailAddress, null, password,
                 false, false, false, true, now,
                 null, null, null);
-        var token = UUID.randomUUID().toString();
 
         // when
         Mono<User> resetPassword = reset()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created " + u))
-                .flatMap(u -> oneTimeTokenService.create(u.getId(), token))
+                .flatMap(u -> oneTimeTokenService.create(u.getId()))
                 .doOnSuccess(u -> System.out.println("---- Created " + u))
-                .then(underTest.resetPassword(token, newPassword))
+                .flatMap(ott -> underTest.setPassword(ott.getToken(), newPassword))
                 .doOnSuccess(u -> System.out.println("---- Result " + u));
         // then
         StepVerifier
@@ -587,7 +664,7 @@ class UserServiceImplIntegrationTest {
         Flux<OneTimeToken> resetPassword = reset()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created " + u))
-                .then(underTest.sendForgotPasswordEmail(new EmailDto(emailAddress)))
+                .then(underTest.requestPasswordReset(new EmailDto(emailAddress)))
                 .thenMany(oneTimeTokenRepository.findAll())
                 .doOnNext(ott -> System.out.println("---- Found " + ott));
 

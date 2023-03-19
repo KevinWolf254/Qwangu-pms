@@ -81,7 +81,8 @@ public class PropertyConfigs {
                                             @ApiResponse(responseCode = "404", description = "Property was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "propertyId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "propertyId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(

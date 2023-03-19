@@ -26,7 +26,7 @@ public class ResetPasswordDtoValidator implements Validator {
             String PASSWORD_REGEX = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{8,20}$";
             var p = Pattern.compile(PASSWORD_REGEX);
             if (!p.matcher(password).matches())
-                errors.rejectValue("password", "field.invalid", "Password is not valid.");
+                errors.rejectValue("password", "field.invalid", "Your password does not meet the required complexity. Passwords must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character. Please choose a new password that meets these requirements.");
         }
     }
 }

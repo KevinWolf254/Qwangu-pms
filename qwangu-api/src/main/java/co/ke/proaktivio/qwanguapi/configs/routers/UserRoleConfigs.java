@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +41,8 @@ public class UserRoleConfigs {
                                             @ApiResponse(responseCode = "404", description = "Role were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "roleId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "roleId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -60,7 +63,8 @@ public class UserRoleConfigs {
                                             @Parameter(in = ParameterIn.QUERY, name = "page"),
                                             @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -77,7 +81,8 @@ public class UserRoleConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Role were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -95,7 +100,8 @@ public class UserRoleConfigs {
                                             @ApiResponse(responseCode = "404", description = "Role was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "roleId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "roleId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -112,7 +118,8 @@ public class UserRoleConfigs {
                                             @ApiResponse(responseCode = "404", description = "Role was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "roleId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "roleId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     )
             }

@@ -149,21 +149,21 @@
 			<version>1.6.10</version>
 			<scope>test</scope>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.springdoc</groupId>-->
-<!--			<artifactId>springdoc-openapi-webflux-core</artifactId>-->
-<!--			<version>1.6.11</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-webflux-core</artifactId>
+			<version>1.6.11</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-webflux-ui</artifactId>
 			<version>1.6.11</version>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.springdoc</groupId>-->
-<!--			<artifactId>springdoc-openapi-security</artifactId>-->
-<!--			<version>1.6.10</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-security</artifactId>
+			<version>1.6.10</version>
+		</dependency>
 <!--		<dependency>-->
 <!--			<groupId>io.projectreactor.tools</groupId>-->
 <!--			<artifactId>blockhound-junit-platform</artifactId>-->

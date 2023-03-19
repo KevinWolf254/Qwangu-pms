@@ -109,7 +109,7 @@ public class AuthenticationConfigTest {
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.BAD_REQUEST.value())
-                .jsonPath("$.message").isEqualTo("Password is required. Password must be at least 6 characters in length.")
+                .jsonPath("$.message").isEqualTo("Password is required. Password must be at least 6 characters in length. Your password does not meet the required complexity. Passwords must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character. Please choose a new password that meets these requirements.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -165,12 +165,58 @@ public class AuthenticationConfigTest {
     }
 
     @Test
-    void sendForgotPasswordEmail_returnsSuccess_status200_whenEmailAddressDoesNotExists_returnsCustomBadRequestException() {
+    void signin_returnsBadRequest_status400_whenPasswordFailsValidation() {
+        // given
+    	SignInDto dto = new SignInDto("person@gmail.com", "password");
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+		client
+                .post()
+                .uri("/v1/sign-in")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(dto), SignInDto.class)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(false)
+                .jsonPath("$.message").isEqualTo("Your password does not meet the required complexity. Passwords must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character. Please choose a new password that meets these requirements.")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
+    
+    @Test
+    void requestPasswordReset_returnsSuccess_status200_whenEmailAddressDoesNotExists_returnsCustomBadRequestException() {
         // given
         var emailDto = new EmailDto("person@gmail.com");
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userService.sendForgotPasswordEmail(emailDto)).thenReturn(Mono.error(new CustomBadRequestException("Email address %s could not be found!".formatted(emailDto.getEmailAddress()))));
+        when(userService.requestPasswordReset(emailDto)).thenReturn(Mono.error(new CustomBadRequestException("Email address %s could not be found!".formatted(emailDto.getEmailAddress()))));
+
+        // then
+        client
+                .post()
+                .uri("/v1/forgot-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(emailDto), EmailDto.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$").isNotEmpty()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.message").isEqualTo("Email for password reset will be sent if email address exists.")
+                .jsonPath("$.data").isEmpty()
+                .consumeWith(System.out::println);
+    }
+
+    @Test
+    void requestPasswordReset_returnsSuccess_status200_whenEmailAddressFailsValidation() {
+        // given
+        var emailDto = new EmailDto(" ");
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        when(userService.requestPasswordReset(emailDto)).thenReturn(Mono.empty());
 
         // then
         client
@@ -189,12 +235,12 @@ public class AuthenticationConfigTest {
     }
 
   @Test
-  void sendForgotPasswordEmail_returnsSuccess_status200_whenEmailAddressExists() {
+  void requestPasswordReset_returnsSuccess_status200_whenEmailAddressExists() {
       // given
       var emailDto = new EmailDto("person@gmail.com");
       // when
       when(contextRepository.load(any())).thenReturn(Mono.empty());
-      when(userService.sendForgotPasswordEmail(emailDto)).thenReturn(Mono.empty());
+      when(userService.requestPasswordReset(emailDto)).thenReturn(Mono.empty());
 
       // then
       client
@@ -213,7 +259,7 @@ public class AuthenticationConfigTest {
   }
 
     @Test
-    void createPassword_returnsUser_status200_whenSuccessful() {
+    void setPassword_returnsUser_status200_whenSuccessful() {
     	// given
         String password = "qwerty@123Man";
         var resetPasswordDto = new ResetPasswordDto(password);
@@ -227,12 +273,12 @@ public class AuthenticationConfigTest {
         var user = new User(id, person, emailAddress, roleId, null, false, false, false, true, now, null, null ,null);
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userService.resetPassword(token, resetPasswordDto.getPassword())).thenReturn(Mono.just(user));
+        when(userService.setPassword(token, resetPasswordDto.getPassword())).thenReturn(Mono.just(user));
 
         // then
     	Function<UriBuilder, URI> uriFunc = uriBuilder ->
         uriBuilder
-                .path("/v1/password")
+                .path("/v1/set-password")
                 .queryParam("token", token)
                 .build();
         client
@@ -252,7 +298,7 @@ public class AuthenticationConfigTest {
     }
 
     @Test
-    void createPassword_returnsBadRequest_status400_whenTokenIsNullOrEmpty() {
+    void setPassword_returnsBadRequest_status400_whenTokenIsNullOrEmpty() {
     	// given
         String password = "qwerty@123Man";
         var resetPasswordDto = new ResetPasswordDto(password);
@@ -263,7 +309,7 @@ public class AuthenticationConfigTest {
         // then
         client
                 .post()
-                .uri("/v1/password")
+                .uri("/v1/set-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(resetPasswordDto), ResetPasswordDto.class)
                 .exchange()
@@ -277,7 +323,7 @@ public class AuthenticationConfigTest {
     }
 
     @Test
-    void createPassword_returnsBadRequest_status400_whenPasswordIsNull() {
+    void setPassword_returnsBadRequest_status400_whenPasswordIsNull() {
     	// given
         var token = UUID.randomUUID().toString();
         
@@ -287,7 +333,7 @@ public class AuthenticationConfigTest {
         // then
     	  Function<UriBuilder, URI> uriFunc = uriBuilder ->
           uriBuilder
-                  .path("/v1/password")
+                  .path("/v1/set-password")
                   .queryParam("token", token)
                   .build();
         client
@@ -306,8 +352,7 @@ public class AuthenticationConfigTest {
     }
     
     @Test
-    @DisplayName("setFirstTimePassword returns success when user is not authenticated status 200")
-    void createPassword_returnsBadRequest_status400_whenPasswordFailsValidation() {
+    void setPassword_returnsBadRequest_status400_whenPasswordFailsValidation() {
         // given
         var token = UUID.randomUUID().toString();
         // when
@@ -315,7 +360,7 @@ public class AuthenticationConfigTest {
         // then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->
         uriBuilder
-                .path("/v1/password")
+                .path("/v1/set-password")
                 .queryParam("token", token)
                 .build();
         client
@@ -328,7 +373,7 @@ public class AuthenticationConfigTest {
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
                 .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Password is not valid.")
+                .jsonPath("$.message").isEqualTo("Your password does not meet the required complexity. Passwords must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character. Please choose a new password that meets these requirements.")
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
@@ -373,7 +418,7 @@ public class AuthenticationConfigTest {
 
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
-        when(userService.activateByToken(uuid)).thenReturn(Mono.just(user));
+        when(userService.activate(uuid)).thenReturn(Mono.just(user));
 
         // then
         Function<UriBuilder, URI> uriFunc = uriBuilder ->

@@ -43,12 +43,12 @@ public class AuthenticationHandler {
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for signing in", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> sendForgotPasswordEmail(ServerRequest request) {
+    public Mono<ServerResponse> requestPasswordReset(ServerRequest request) {
         return request
                 .bodyToMono(EmailDto.class)
                 .doOnSuccess(a -> log.info("Request: ", a))
                 .map(ValidationUtil.validateEmailDto(new EmailDtoValidator()))
-                .flatMap(userService::sendForgotPasswordEmail)
+                .flatMap(userService::requestPasswordReset)
                 .doOnError(e -> log.error("Failed to send reset password request. Error ", e))
                 .then(
                         ServerResponse
@@ -75,7 +75,7 @@ public class AuthenticationHandler {
                 .doOnSuccess(a -> log.debug(" Sent response with status code {} for resetting password", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> createPassword(ServerRequest request) {
+    public Mono<ServerResponse> setPassword(ServerRequest request) {
         Optional<String> tokenOpt = request.queryParam("token");
         return Mono.just(tokenOpt)
                 .doOnSuccess(a -> log.info(" Request to reset password"))
@@ -85,7 +85,7 @@ public class AuthenticationHandler {
                 .flatMap(token -> request
                         .bodyToMono(ResetPasswordDto.class)
                         .map(ValidationUtil.validateResetPasswordDto(new ResetPasswordDtoValidator()))
-                        .flatMap(dto -> userService.resetPassword(token, dto.getPassword())))
+                        .flatMap(dto -> userService.setPassword(token, dto.getPassword())))
                 .doOnSuccess(u -> log.info("Reset password successful for {}", u.getEmailAddress()))
                 .doOnError(e -> log.error("Failed to reset password. Error ", e))
                 .map(UserWithoutPasswordDto::new)
@@ -105,7 +105,7 @@ public class AuthenticationHandler {
                 .filter(t -> t.isPresent() && !t.get().trim().isEmpty() && !t.get().trim().isBlank())
                 .switchIfEmpty(Mono.error(new CustomBadRequestException("Token is required!")))
                 .map(Optional::get)
-                .flatMap(token -> userService.activateByToken(token))
+                .flatMap(token -> userService.activate(token))
                 .doOnSuccess(u -> log.info("Activated: {}", u))
                 .doOnError(e -> log.error("Failed to activate user. Error ", e))
                 .map(UserWithoutPasswordDto::new)
