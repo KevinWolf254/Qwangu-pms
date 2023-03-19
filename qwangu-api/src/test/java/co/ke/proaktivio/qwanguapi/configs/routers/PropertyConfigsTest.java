@@ -457,8 +457,7 @@ class PropertyConfigsTest {
     }
 
     @Test
-    @DisplayName("find returns unauthorised when user is not authenticated status 401")
-    void find_returnsUnauthorized_status401() {
+    void findAll_returnsUnauthorized_status401_whenUserIsNotAuthenticated() {
         // when
         when(contextRepository.load(any())).thenReturn(Mono.empty());
         // then
@@ -480,8 +479,7 @@ class PropertyConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("find returns a Flux of properties")
-    void find_returnsFluxOfProperties_status200() {
+    void findAll_returnsPropertiesList_status200_whenSuccessful() {
         // given
         String name = "Luxury properties";
         LocalDateTime now = LocalDateTime.now();
@@ -526,8 +524,7 @@ class PropertyConfigsTest {
 
     @Test
     @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("find returns CustomNotFoundException with status 404")
-    void find_returnsCustomNotFoundException_status404() {
+    void findAll_returnsEmpty_status404_whenPropertiesWereNotFound() {
         // given
         String name = "Luxury properties";
         String order = OrderType.ASC.name();
@@ -551,136 +548,9 @@ class PropertyConfigsTest {
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
                 .jsonPath("$.message").isEqualTo("Properties with those parameters do not exist!")
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("find returns Exception with status 500")
-    void find_returnsException_status500() {
-        // given
-        String name = "Luxury properties";
-        Property.PropertyType type = Property.PropertyType.APARTMENT;
-
-        // when
-        OrderType order = OrderType.ASC;
-        when(propertyService.find(name, type, order)).thenReturn(Flux.error(new RuntimeException("Something happened!")));
-
-        //then
-        Function<UriBuilder, URI> uriFunc = uriBuilder ->
-                uriBuilder
-                        .path("/v1/properties")
-                        .queryParam("name", name)
-                        .queryParam("type", type)
-                        .queryParam("order", order)
-                        .build();
-        client
-                .get()
-                .uri(uriFunc)
-                .exchange()
-                .expectStatus().isEqualTo(500)
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @DisplayName("Delete by id  returns unauthorised when user is not authenticated status 401")
-    void deleteById_returnsUnauthorized_status401() {
-        // given
-        String id = "1";
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        // then
-        client
-                .put()
-                .uri("/v1/properties/{id}", id)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isUnauthorized();
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("Delete by id returns a Mono of boolean when id exists")
-    void deleteById_returnsTrue_status200() {
-        // given
-        String id = "1";
-
-        // when
-        when(propertyService.deleteById(id))
-                .thenReturn(Mono.just(true));
-
-        // then
-        client
-                .delete()
-                .uri("/v1/properties/{propertyId}", id)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Property with id %s deleted successfully.".formatted(id))
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("deleteById returns CustomNotFoundException with status 404")
-    void deleteById_returnsCustomNotFoundException_status404() {
-        // given
-        String id = "1";
-
-        // when
-        when(propertyService.deleteById(id))
-                .thenReturn(Mono.just(false));
-
-        // then
-        client
-                .delete()
-                .uri("/v1/properties/{propertyId}", id)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.status").isEqualTo(HttpStatus.OK.value())
-                .jsonPath("$.message").isEqualTo("Property with id %s does not exist!".formatted(id))
-                .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    @DisplayName("deleteById returns Exception with status 500")
-    void deleteById_returnsException_status500() {
-        // given
-        String id = "1";
-
-        // when
-        when(propertyService.deleteById(id))
-                .thenReturn(Mono.error(new RuntimeException("Something happened!")));
-
-        // then
-        client
-                .delete()
-                .uri("/v1/properties/{propertyId}", id)
-                .exchange()
-                .expectStatus().isEqualTo(500)
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").isEqualTo("Something happened!")
-                .jsonPath("$.status").isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }

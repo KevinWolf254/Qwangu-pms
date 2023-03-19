@@ -88,9 +88,9 @@ public class PropertyConfigs {
                     @RouterOperation(
                             path = "/v1/properties",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = PropertyHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = PropertyHandler.class, beanMethod = "findAll",
                             operation = @Operation(
-                                    operationId = "find",
+                                    operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Properties found successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
@@ -111,7 +111,7 @@ public class PropertyConfigs {
     RouterFunction<ServerResponse> apartmentRoute(PropertyHandler handler) {
         return route()
                 .path("v1/properties", builder -> builder
-                        .GET(handler::find)
+                        .GET(handler::findAll)
                         .POST(handler::create)
                         .PUT("/{propertyId}", handler::update)
                         .GET("/{propertyId}", handler::findById)

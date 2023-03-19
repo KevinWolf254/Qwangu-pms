@@ -68,9 +68,8 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    public Mono<Property> findById(String apartmentId) {
-        Query query = new Query().addCriteria(Criteria.where("id").is(apartmentId));
-        return template.findOne(query, Property.class);
+    public Mono<Property> findById(String propertyId) {
+    	return propertyRepository.findById(propertyId);
     }
 
     public Mono<Boolean> exists(String name) {

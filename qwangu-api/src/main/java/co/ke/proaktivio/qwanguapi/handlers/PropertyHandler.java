@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Property;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.PropertyService;
@@ -71,16 +72,9 @@ public class PropertyHandler {
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("propertyId");
         return propertyService.findById(id)
+        		.switchIfEmpty(Mono.error(new CustomNotFoundException("Property with id %s does not exist!"
+                        .formatted(id))))
                 .flatMap(results -> {
-                    if(results == null)
-                        return ServerResponse
-                                        .ok()
-                                        .body(Mono.just(new Response<>(
-                                                LocalDateTime.now().toString(),
-                                                request.uri().getPath(),
-                                                HttpStatus.OK.value(),true,"Property with id %s does not exist!"
-                                                .formatted(id),
-                                                null)), Response.class);
                     return ServerResponse
                                     .ok()
                                     .body(Mono.just(new Response<>(
@@ -93,26 +87,28 @@ public class PropertyHandler {
                         a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> find(ServerRequest request) {
-        Optional<String> type = request.queryParam("type");
-        Optional<String> name = request.queryParam("name");
-        Optional<String> order = request.queryParam("order");
+    public Mono<ServerResponse> findAll(ServerRequest request) {
+        Optional<String> typeOptional = request.queryParam("type");
+        Optional<String> nameOptional = request.queryParam("name");
+        Optional<String> orderOptional = request.queryParam("order");
 
-        if (type.isPresent() && !EnumUtils.isValidEnum(Property.PropertyType.class, type.get())) {
+        if (typeOptional.isPresent() && !EnumUtils.isValidEnum(Property.PropertyType.class, typeOptional.get())) {
             String[] arrayOfState = Stream.of(Property.PropertyType.values()).map(Property.PropertyType::getName)
                     .toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Property type should be " + states + "!");
         }
+        ValidationUtil.vaidateOrderType(orderOptional);
+        
         log.debug(" Validation of request param Unit.Type was successful");
 
         return ServerResponse
                 .ok()
                 .body(propertyService
                         .find(
-                                name.orElse(null),
-                                type.map(Property.PropertyType::valueOf).orElse(null),
-                                order.map(OrderType::valueOf).orElse(OrderType.DESC)
+                                nameOptional.orElse(null),
+                                typeOptional.map(Property.PropertyType::valueOf).orElse(null),
+                                orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC)
                         )
                         .collectList()
                         .flatMap(apartments -> {
