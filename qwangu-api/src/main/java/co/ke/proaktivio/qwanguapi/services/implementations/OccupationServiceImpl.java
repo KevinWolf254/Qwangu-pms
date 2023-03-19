@@ -180,8 +180,7 @@ public class OccupationServiceImpl implements OccupationService {
 
     @Override
     public Mono<Occupation> findById(String id) {
-        return occupationRepository.findById(id)
-                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))));
+        return occupationRepository.findById(id);
     }
 
     @Override
@@ -225,11 +224,7 @@ public class OccupationServiceImpl implements OccupationService {
 
     @Override
     public Flux<Occupation> findAll(Occupation.Status status, String occupationNo, String unitId,
-                                    String tenantId, OrderType order) {
-        Sort sort = order.equals(OrderType.ASC) ?
-                Sort.by(Sort.Order.asc("id")) :
-                Sort.by(Sort.Order.desc("id"));
-        
+                                    String tenantId, OrderType order) {        
         Query query = new Query();
         if(StringUtils.hasText(occupationNo))
             query.addCriteria(Criteria.where("number").regex(".*" + occupationNo.trim() + ".*", "i"));
@@ -240,9 +235,12 @@ public class OccupationServiceImpl implements OccupationService {
         if(StringUtils.hasText(tenantId))
             query.addCriteria(Criteria.where("tenantId").is(tenantId.trim()));
 
+        Sort sort = order != null ? order.equals(OrderType.ASC) ?
+                Sort.by(Sort.Order.asc("id")) :
+                Sort.by(Sort.Order.desc("id")) :
+                    Sort.by(Sort.Order.desc("id"));
         query.with(sort);
-        return template
-                .find(query, Occupation.class);
+        return template.find(query, Occupation.class);
     }
 
     @Override

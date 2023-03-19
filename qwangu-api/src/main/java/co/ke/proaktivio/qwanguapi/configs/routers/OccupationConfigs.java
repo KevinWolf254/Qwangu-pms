@@ -42,20 +42,7 @@ public class OccupationConfigs {
                                                     content = @Content(schema = @Schema(implementation = OccupationResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "Occupation already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
-                                    }
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/occupations/{occupationId}",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.DELETE, beanClass = OccupationHandler.class, beanMethod = "delete",
-                            operation = @Operation(
-                                    operationId = "delete",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Occupation deleted successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "occupationId")},
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
@@ -67,17 +54,20 @@ public class OccupationConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Occupation found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = OccupationResponse.class)))
+                                                    content = @Content(schema = @Schema(implementation = OccupationResponse.class))),
+                                            @ApiResponse(responseCode = "404", description = "Occupation was not found!",
+                                            content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "occupationId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "occupationId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
                             path = "/v1/occupations",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = OccupationHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = OccupationHandler.class, beanMethod = "findAll",
                             operation = @Operation(
-                                    operationId = "find",
+                                    operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Occupations found successfully.",
                                                     content = @Content(schema = @Schema(implementation = OccupationsResponse.class)))
@@ -87,7 +77,8 @@ public class OccupationConfigs {
                                             @Parameter(in = ParameterIn.QUERY, name = "unitId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "tenantId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     )
             }
@@ -96,9 +87,8 @@ public class OccupationConfigs {
         return route()
                 .path("v1/occupations", builder -> builder
                         .GET("/{occupationId}", handler::findById)
-                        .GET(handler::find)
+                        .GET(handler::findAll)
                         .POST(handler::create)
-                        .DELETE("/{occupationId}", handler::delete)
                 ).build();
     }
 }

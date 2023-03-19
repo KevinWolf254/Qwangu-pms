@@ -350,41 +350,4 @@ class OccupationConfigsTest {
                 .jsonPath("$.data").isEmpty()
                 .consumeWith(System.out::println);
     }
-
-    @Test
-    @DisplayName("delete returns unauthorised when user is not authenticated status 401")
-    void delete_returnsUnauthorized_status401() {
-        // given
-        var id = "1";
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        // then
-        client
-                .delete()
-                .uri("/v1/occupations/{occupationId}", id)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isUnauthorized();
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    void deleteById_returnsTrue_whenSuccessful() {
-        // given
-        String id = "1";
-        // when
-        when(occupationService.deleteById(id)).thenReturn(Mono.just(true));
-        // then
-        client
-                .delete()
-                .uri("/v1/occupations/{occupationId}", id)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Occupation with id %s deleted successfully.".formatted(id))
-                .consumeWith(System.out::println);
-    }
 }

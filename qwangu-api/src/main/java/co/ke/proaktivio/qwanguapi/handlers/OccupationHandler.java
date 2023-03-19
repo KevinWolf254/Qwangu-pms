@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.handlers;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
@@ -29,13 +30,11 @@ public class OccupationHandler {
     public Mono<ServerResponse> create(ServerRequest request) {
         return request
                 .bodyToMono(OccupationForNewTenantDto.class)
-                .doOnSuccess(dto -> log.debug(" Received request to create {}", dto))
+                .doOnSuccess(dto -> log.info("Request: {}", dto))
                 .map(ValidationUtil.validateOccupationForNewTenantDto(new OccupationForNewTenantDtoValidator()))
-                .doOnSuccess(a -> log.debug(" Validation of request to create user was successful"))
+                .doOnSuccess(a -> log.debug("Validation of request to create user was successful"))
                 .flatMap(occupationService::create)
-                .doOnSuccess(a -> log.info(" Created occupation for tenant {} and unit {} successfully",
-                        a.getTenantId(), a.getUnitId()))
-                .doOnError(e -> log.error(" Failed to create occupation. Error {}", e.getMessage()))
+                .doOnError(e -> log.error("Failed to create occupation. Error {}", e.getMessage()))
                 .flatMap(created -> ServerResponse
                         .created(URI.create("v1/occupations/%s".formatted(created.getId())))
                         .body(Mono.just(new Response<>(
@@ -43,12 +42,13 @@ public class OccupationHandler {
                                 request.uri().getPath(),
                                 HttpStatus.CREATED.value(),true, "Occupation created successfully.",
                                 created)), Response.class))
-                .doOnSuccess(a -> log.debug(" Sent response with status code {} for creating occupation", a.rawStatusCode()));
+                .doOnSuccess(a -> log.debug("Sent response with status code {} for creating occupation", a.rawStatusCode()));
     }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
         String id = request.pathVariable("occupationId");
         return occupationService.findById(id)
+                .switchIfEmpty(Mono.error(new CustomNotFoundException("Occupation with id %s does not exist!".formatted(id))))
                 .flatMap(results ->
                         ServerResponse
                                 .ok()
@@ -60,7 +60,7 @@ public class OccupationHandler {
                 .doOnSuccess(a -> log.info(" Sent response with status code {} for querying occupation by id", a.rawStatusCode()));
     }
 
-    public Mono<ServerResponse> find(ServerRequest request) {
+    public Mono<ServerResponse> findAll(ServerRequest request) {
         Optional<String> statusOptional = request.queryParam("status");
         Optional<String> occupationNoOptional = request.queryParam("occupationNo");
         Optional<String> unitIdOptional = request.queryParam("unitId");
@@ -71,6 +71,8 @@ public class OccupationHandler {
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Status should be " + states + "!");
         }
+        
+        ValidationUtil.vaidateOrderType(orderOptional);
         return ServerResponse
                 .ok()
                 .body(occupationService.findAll(
@@ -89,23 +91,5 @@ public class OccupationHandler {
                                     HttpStatus.OK.value(), success, message,
                                     occupations));
                         }), Response.class);
-    }
-
-    public Mono<ServerResponse> delete(ServerRequest request) {
-        String id = request.pathVariable("occupationId");
-        log.info(" Received request to delete occupation with id {}", id);
-        return occupationService
-                .deleteById(id)
-                .doOnSuccess($ -> log.info(" Deleted occupation successfully"))
-                .doOnError(e -> log.error(" Failed to delete occupation. Error ", e))
-                .flatMap(result ->
-                        ServerResponse
-                                .ok()
-                                .body(Mono.just(new Response<>(
-                                        LocalDateTime.now().toString(),
-                                        request.uri().getPath(),
-                                        HttpStatus.OK.value(),true, "Occupation with id %s deleted successfully."
-                                        .formatted(id), null)), Response.class))
-                .doOnSuccess(a -> log.info(" Sent response with status code {} for deleting user", a.rawStatusCode()));
     }
 }
