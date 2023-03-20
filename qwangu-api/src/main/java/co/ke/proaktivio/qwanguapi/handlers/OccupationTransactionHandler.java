@@ -5,6 +5,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
+import co.ke.proaktivio.qwanguapi.validators.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.EnumUtils;
@@ -45,19 +46,21 @@ public class OccupationTransactionHandler {
         Optional<String> type = request.queryParam("type");
         Optional<String> invoiceIdOptional = request.queryParam("invoiceId");
         Optional<String> receiptIdOptional = request.queryParam("receiptId");
-        Optional<String> order = request.queryParam("order");
+        Optional<String> orderOptional = request.queryParam("order");
         if (type.isPresent() &&  !EnumUtils.isValidEnum(OccupationTransaction.Type.class, type.get())) {
             String[] arrayOfState = Stream.of(OccupationTransaction.Type.values()).map(OccupationTransaction.Type::getType).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Type should be " + states + "!");
         }
+        
+        ValidationUtil.vaidateOrderType(orderOptional);
         log.debug(" Received request for querying occupations");
         return occupationTransactionService.findAll(
                         type.map(OccupationTransaction.Type::valueOf).orElse(null),
                         occupationIdOptional.map(occupationId -> occupationId).orElse(null),
                         invoiceIdOptional.map(invoiceId -> invoiceId).orElse(null),
                         receiptIdOptional.map(receiptId -> receiptId).orElse(null),
-                        order.map(OrderType::valueOf).orElse(OrderType.DESC)
+                        orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC)
                 ).collectList()
                 .doOnSuccess(a -> log.info(" Query request returned {} Occupation Transaction", a.size()))
                 .doOnError(e -> log.error(" Failed to find Occupation Transactions. Error ", e))

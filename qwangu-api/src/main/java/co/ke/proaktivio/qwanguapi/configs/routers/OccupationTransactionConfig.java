@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import org.springdoc.core.annotations.RouterOperation;
 import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
@@ -28,13 +30,11 @@ public class OccupationTransactionConfig {
                     @RouterOperation(
                             path = "/v1/occupationTransactions",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = OccupationTransactionHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = OccupationTransactionHandler.class, beanMethod = "findAll",
                             operation = @Operation(
-                                    operationId = "find",
+                                    operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "occupation Transaction found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "occupation Transaction were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
@@ -45,7 +45,8 @@ public class OccupationTransactionConfig {
                                             @Parameter(in = ParameterIn.QUERY, name = "page"),
                                             @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
-                                    }
+                                    },
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     ),
                     @RouterOperation(
@@ -55,10 +56,13 @@ public class OccupationTransactionConfig {
                             operation = @Operation(
                                     operationId = "findById",
                                     responses = {
+                                            @ApiResponse(responseCode = "200", description = "occupation Transaction found successfully.",
+                                                    content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "occupation Transaction was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "occupationTransactionId")}
+                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "occupationTransactionId")},
+                                    security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     )
             }
