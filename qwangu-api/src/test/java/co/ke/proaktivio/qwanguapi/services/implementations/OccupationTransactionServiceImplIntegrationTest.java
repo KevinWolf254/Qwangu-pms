@@ -254,7 +254,7 @@ class OccupationTransactionServiceImplIntegrationTest {
 		payment.setCurrency(Currency.KES);
 		payment.setOccupationNumber(occupation.getNumber());
 		payment.setReferenceNumber("23456");
-		payment.setType(Payment.PaymentType.MPESA_TILL);
+		payment.setType(Payment.PaymentType.MOBILE);
 		
 		String receiptId = "1000";
 		var receipt = new Receipt();

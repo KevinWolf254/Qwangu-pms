@@ -15,5 +15,7 @@ public interface MpesaPaymentService {
 
 	Mono<MpesaPayment> findById(String mpesaPaymentId);
 
-	Flux<MpesaPayment> findAll(String transactionId, String referenceNo, String shortCode, OrderType order);
+	Mono<MpesaPayment> findByTransactionId(String transactionId);
+
+	Flux<MpesaPayment> findAll(String transactionId, String referenceNumber, String shortCode, OrderType order);
 }

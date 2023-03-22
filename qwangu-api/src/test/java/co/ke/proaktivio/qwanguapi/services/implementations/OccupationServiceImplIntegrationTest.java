@@ -95,8 +95,8 @@ class OccupationServiceImplIntegrationTest {
 
     private Payment getPayment() {
         var payment = new Payment();
-        payment.setStatus(PaymentStatus.UNPROCESSED);
-        payment.setType(Payment.PaymentType.MPESA_PAY_BILL);
+        payment.setStatus(PaymentStatus.UNCLAIMED);
+        payment.setType(Payment.PaymentType.MOBILE);
         payment.setReferenceNumber("RKTQDM7W67");
         payment.setCurrency(Unit.Currency.KES);
         payment.setAmount(BigDecimal.valueOf(20000));
@@ -146,7 +146,7 @@ class OccupationServiceImplIntegrationTest {
                 .build();
 
         var payment = getPayment();
-        payment.setStatus(PaymentStatus.PROCESSED);
+        payment.setStatus(PaymentStatus.CLAIMED);
         var tenantDto = new TenantDto("John", "middle", "Doe","0700000000",
                 "person@gmail.com");
         var dto = new OccupationForNewTenantDto(null, tenantDto, new OccupationDto(now.plusDays(6),

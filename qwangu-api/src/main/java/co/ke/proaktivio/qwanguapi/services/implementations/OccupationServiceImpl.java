@@ -111,7 +111,7 @@ public class OccupationServiceImpl implements OccupationService {
                 .flatMap(tenant -> paymentService
                         .findById(paymentId)
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment with id %s does not exist!".formatted(paymentId))))
-                        .filter(payment -> payment.getStatus().equals(PaymentStatus.UNPROCESSED))
+                        .filter(payment -> payment.getStatus().equals(PaymentStatus.UNCLAIMED))
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment with id %s has already been processed!".formatted(paymentId)))))
                 .flatMap(payment -> {
                     return unitService
@@ -168,7 +168,7 @@ public class OccupationServiceImpl implements OccupationService {
                                                 .flatMap(invoice -> receiptService.create(new ReceiptDto(occupationPending.getId(), paymentId)))
                                                 .doOnSuccess(a -> System.out.println("---- Created " + a))
                                                 .flatMap(receipt -> {
-                                                    payment.setStatus(PaymentStatus.PROCESSED);
+                                                    payment.setStatus(PaymentStatus.CLAIMED);
                                                     return paymentRepository.save(payment);
                                                 })
                                                 .doOnSuccess(a -> System.out.println("---- Updated " + a));
@@ -191,10 +191,10 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     @Override
-    public Mono<Occupation> findByOccupationNo(String occupationNo) {
+    public Mono<Occupation> findByNumber(String number) {
         return template.findOne(new Query()
                 .addCriteria(Criteria
-                        .where("occupationNo").is(occupationNo)), Occupation.class);
+                        .where("number").is(number)), Occupation.class);
     }
 
     @Override

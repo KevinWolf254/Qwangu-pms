@@ -76,7 +76,7 @@ ftl:
       name: activate_account.ftlh
       path: src/main/resources/templates
     -
-      name: reset_password:ftlh
+      name: set_password.ftlh
       path: src/main/resources/templates
       resources:
         - templates/images/resetPassword/password_reset.gif
@@ -97,3 +97,8 @@ notice:
   levelThree: 0.5
   levelFour: 0.25
   levelFive: 0
+  
+notifications:
+  send-sms: 'true'
+  sender-id: 'PROAKTIVIO'
+  

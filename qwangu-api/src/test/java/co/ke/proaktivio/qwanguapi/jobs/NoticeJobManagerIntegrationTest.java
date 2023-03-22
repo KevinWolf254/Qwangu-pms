@@ -1,11 +1,14 @@
 package co.ke.proaktivio.qwanguapi.jobs;
 
+import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
+import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.models.*;
 import co.ke.proaktivio.qwanguapi.repositories.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -22,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class NoticeJobManagerIntegrationTest {
     @Autowired
     private UnitRepository unitRepository;
@@ -39,6 +42,11 @@ class NoticeJobManagerIntegrationTest {
     @Autowired
     private RefundRepository refundRepository;
     private final LocalDate today = LocalDate.now();
+
+	@MockBean
+	private BootstrapConfig bootstrapConfig;
+	@MockBean
+	private GlobalErrorWebExceptionHandler globalErrorWebExceptionHandler;
 
     @Container
     private static final MongoDBContainer MONGO_DB_CONTAINER = new MongoDBContainer(DockerImageName.parse("mongo:latest"));

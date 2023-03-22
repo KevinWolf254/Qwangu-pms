@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @Data
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @Document(value = "OCCUPATION_TRANSACTION")
 public class OccupationTransaction {
     @Id

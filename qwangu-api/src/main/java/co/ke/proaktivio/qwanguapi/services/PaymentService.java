@@ -8,8 +8,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface PaymentService {
-    Mono<Payment> findById(String paymentId);
-    
-    Flux<Payment> findAll(PaymentStatus status, PaymentType type, String referenceNumber, String mpesaPaymentId, OrderType order);
+	Mono<Payment> create(Payment payment);
+
+	Mono<Payment> update(Payment payment);
+
+	Mono<Payment> findById(String paymentId);
+
+	Flux<Payment> findAll(PaymentStatus status, PaymentType type, String referenceNumber, OrderType order);
 
 }

@@ -16,7 +16,7 @@ public interface OccupationService {
 
 	Mono<Occupation> findByUnitId(String unitId);
 
-	Mono<Occupation> findByOccupationNo(String occupationNo);
+	Mono<Occupation> findByNumber(String occupationNo);
 
 	Mono<Occupation> findByUnitIdAndNotBooked(String unitId);
 

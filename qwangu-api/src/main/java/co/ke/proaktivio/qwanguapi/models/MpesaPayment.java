@@ -33,7 +33,7 @@ public class MpesaPayment {
     @Indexed
     private String shortCode;
     @Indexed
-    private String referenceNo;
+    private String referenceNumber;
     private String invoiceNo;
     private String balance;
     private String thirdPartyId;

@@ -59,7 +59,7 @@ public class NoticeJobManager {
                                 .where("status").is("ACTIVE")
                                 .and("vacatingDate").is(LocalDate.now().minusDays(1))))
                 .flatMapMany(query -> template.find(query, Notice.class))
-                .doOnNext(n -> log.info(" Found " + n))
+                .doOnNext(n -> log.info("Found " + n))
                 .flatMap(notice -> occupationRepository.findById(notice.getOccupationId())
                         .filter(Objects::nonNull)
                         .doOnSuccess(occupation -> log.info(" Found " + occupation))

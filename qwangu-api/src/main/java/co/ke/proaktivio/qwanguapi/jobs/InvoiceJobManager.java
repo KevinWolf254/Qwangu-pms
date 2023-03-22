@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 
 import java.time.LocalDate;
@@ -21,14 +20,14 @@ import java.util.List;
 public class InvoiceJobManager {
 	private final OccupationService occupationService;
 	private final InvoiceService invoiceService;
-	// TODO CREATE JOB TO PROCESS PENDING_OCCUPATION
-	// TODO CREATE JOB TO PROCESS PENALTIES (PERCENTAGE OF RENT E.G. 0.08)
-	// TODO CREATE JOB TO SEND NOTIFICATIONS OF OVERDUE PAYMENTS
+	// TODO - CREATE JOB TO PROCESS OVERDUE PAYMENTS (PENALTIES - PERCENTAGE OF RENT E.G. 0.08) AND CREATE NOTIFICATION
 
-	// TODO - ADD SEND SMS
+	// TODO - ADD CREATE NOTIFICATION
 	@Scheduled(cron = "${rent.cronToCreateInvoice}")
 	void createRentInvoice() {
-		createRentInvoices().subscribeOn(Schedulers.parallel()).subscribe();
+		createRentInvoices()
+//			.subscribeOn(Schedulers.parallel())
+			.subscribe();
 	}
 
 	public Flux<Invoice> createRentInvoices() {

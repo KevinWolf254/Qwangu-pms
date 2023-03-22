@@ -23,8 +23,6 @@ public class Payment {
     private String referenceNumber;
     private Unit.Currency currency;
     private BigDecimal amount;
-    @Indexed(unique = true)
-    private String mpesaPaymentId;
     @CreatedDate
     private LocalDateTime createdOn;
     @LastModifiedDate
@@ -33,8 +31,8 @@ public class Payment {
     @Getter
     @RequiredArgsConstructor
     public enum PaymentType {
-        MPESA_PAY_BILL("MPESA_PAY_BILL"),
-        MPESA_TILL("MPESA_TILL"),
+        MOBILE("MOBILE"),
+        CARD("CARD"),
         PAYPAL("PAYPAL");
         private final String type;
     }
@@ -42,8 +40,52 @@ public class Payment {
     @Getter
     @RequiredArgsConstructor
     public enum PaymentStatus {
-    	UNPROCESSED("UNPROCESSED"),
-        PROCESSED("PROCESSED");
+    	UNCLAIMED("UNCLAIMED"),
+        CLAIMED("CLAIMED");
         private final String state;
+    }
+    
+    public static class PaymentBuilder {
+        private PaymentType type;
+        private String occupationNumber;
+        private String referenceNumber;
+        private Unit.Currency currency;
+        private BigDecimal amount;
+        
+		public PaymentBuilder setType(PaymentType type) {
+			this.type = type;
+			return this;
+		}
+		
+		public PaymentBuilder occupationNumber(String occupationNumber) {
+			this.occupationNumber = occupationNumber;
+			return this;
+		}
+		
+		public PaymentBuilder referenceNumber(String referenceNumber) {
+			this.referenceNumber = referenceNumber;
+			return this;
+		}
+		
+		public PaymentBuilder currency(Unit.Currency currency) {
+			this.currency = currency;
+			return this;
+		}
+		
+		public PaymentBuilder amount(BigDecimal amount) {
+			this.amount = amount;
+			return this;
+		}
+
+		public Payment build() {
+			var payment = new Payment();
+			payment.setStatus(PaymentStatus.UNCLAIMED);
+			payment.setType(type);
+			payment.setOccupationNumber(occupationNumber);
+			payment.setReferenceNumber(referenceNumber);
+			payment.setCurrency(currency);
+			payment.setAmount(amount);
+			return payment;
+		}
     }
 }
