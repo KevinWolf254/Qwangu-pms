@@ -33,7 +33,6 @@ import java.time.LocalDateTime;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final EmailService emailService;
-    private final EmailGenerator emailGenerator;
     private final OneTimeTokenService oneTimeTokenService;
     private final PasswordEncoder encoder;
     private final UserRoleRepository roleRepository;
@@ -41,7 +40,9 @@ public class UserServiceImpl implements UserService {
     private final UserAuthorityService userAuthorityService;
     private final ReactiveMongoTemplate template;
     private final UserTokenService userTokenService;
-
+    private final AccountActivationEmailNotificationService accountActivationEmailNotificationService;
+    private final RequestPasswordResetEmailNotificationService requestPasswordResetEmailNotificationService;
+    
     @Override
     public Mono<User> create(UserDto dto) {
         String emailAddress = dto.getEmailAddress();
@@ -73,7 +74,10 @@ public class UserServiceImpl implements UserService {
 	
 	private Mono<Boolean> notify(User user) {
 		return oneTimeTokenService.create(user.getId())
-		.flatMap(ott -> emailService.send(emailGenerator.generateAccountActivationEmail(user, ott.getToken())));
+		.flatMap(ott -> {
+			return accountActivationEmailNotificationService.create(user, ott.getToken())
+				.flatMap(email -> emailService.send(email));
+		});
 	}
 	
     @Override
@@ -141,8 +145,6 @@ public class UserServiceImpl implements UserService {
                             user.setIsEnabled(true);
                         })
                         .flatMap(userRepository::save)
-//                        .flatMap(user -> oneTimeTokenService.deleteById(ott.getId())
-//                                    .then(Mono.just(user)))
                 );
     }
 
@@ -222,6 +224,14 @@ public class UserServiceImpl implements UserService {
 		return userRepository.findByEmailAddress(dto.getEmailAddress())
 				.switchIfEmpty(Mono.error(new CustomBadRequestException(
 						"Email address %s could not be found!".formatted(dto.getEmailAddress()))))
-				.flatMap(user -> notify(user)).flatMap($ -> Mono.empty());
+				.flatMap(user -> notifyForRequestPasswordReset(user)).flatMap($ -> Mono.empty());
+	}
+
+	private Mono<Boolean> notifyForRequestPasswordReset(User user) {
+		return oneTimeTokenService.create(user.getId())
+		.flatMap(ott -> {
+			return requestPasswordResetEmailNotificationService.create(user, ott.getToken())
+					.flatMap(email -> emailService.send(email));
+		});
 	}
 }

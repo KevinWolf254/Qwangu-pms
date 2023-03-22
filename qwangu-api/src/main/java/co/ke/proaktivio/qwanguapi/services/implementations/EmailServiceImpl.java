@@ -1,10 +1,11 @@
 package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.configs.properties.CompanyPropertiesConfig;
-import co.ke.proaktivio.qwanguapi.pojos.Email;
+import co.ke.proaktivio.qwanguapi.models.EmailNotification;
 import co.ke.proaktivio.qwanguapi.services.EmailService;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Mono<Boolean> send(Email email) {
+    public Mono<Boolean> send(EmailNotification email) {
         Mono<Boolean> blockingWrapper = Mono.fromCallable(() -> {
                 Template template = freemarkerConfigurer.getConfiguration().getTemplate(email.getTemplate());
 
@@ -45,7 +46,7 @@ public class EmailServiceImpl implements EmailService {
                             .getResources()
                             .forEach((name, resource) -> {
                                 try {
-                                    helper.addInline(name, resource);
+                                    helper.addInline(name, new ClassPathResource(resource));
                                 } catch (MessagingException e) {
                                     e.printStackTrace();
                                 }

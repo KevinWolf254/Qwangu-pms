@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "application")
-public class ApplicationPropertiesConfig {
+@ConfigurationProperties(prefix = "api")
+public class ApiPropertiesConfig {
     private List<String> endPoints;
 }

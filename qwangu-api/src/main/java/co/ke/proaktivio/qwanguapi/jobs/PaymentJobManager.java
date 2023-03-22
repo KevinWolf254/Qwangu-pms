@@ -43,7 +43,8 @@ public class PaymentJobManager {
 	@Transactional
 	public Flux<Payment> processMobilePayments() {
 		return paymentService.findAll(PaymentStatus.UNCLAIMED, PaymentType.MOBILE, null, null)
-				.doOnNext(n -> log.info("Found " + n)).flatMap(payment -> {
+				.doOnNext(n -> log.info("Found " + n))
+				.flatMap(payment -> {
 					var houseNumber = payment.getOccupationNumber();
 					return occupationService.findByNumber(houseNumber).doOnSuccess(n -> log.info("Found " + n))
 							.map(occupation -> {
@@ -55,7 +56,8 @@ public class PaymentJobManager {
 				}).map(payment -> {
 					payment.setStatus(PaymentStatus.CLAIMED);
 					return payment;
-				}).flatMap(paymentService::update).flatMap(payment -> {
+				}).flatMap(paymentService::update)
+				.flatMap(payment -> {
 					var referenceNumber = payment.getReferenceNumber();
 					var houseNumber = payment.getOccupationNumber();
 
@@ -74,7 +76,7 @@ public class PaymentJobManager {
 								return dto;
 							}).flatMap(smsNotificationService::create).then(Mono.just(payment));
 				}).map(payment -> {
-
+					
 					return payment;
 				}).doOnError(e -> log.error("Error occurred: " + e));
 	}

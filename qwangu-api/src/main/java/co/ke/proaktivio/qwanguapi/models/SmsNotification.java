@@ -6,10 +6,10 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import co.ke.proaktivio.qwanguapi.pojos.NotificationStatus;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -25,15 +25,6 @@ public class SmsNotification {
     private LocalDateTime createdOn;
     @LastModifiedDate
     private LocalDateTime modifiedOn;
-    
-    @Getter
-    @RequiredArgsConstructor
-    public enum NotificationStatus {
-    	PENDING("PENDING"),
-    	SENT("SENT"),
-    	FAILED("FAILED");
-    	private final String status;
-    }
     
     public static class SmsNotificationBuilder {
         private String message;

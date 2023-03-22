@@ -21,11 +21,15 @@ company:
     facebook-url: https://facebook.com
     instagram-url: https://instagram.com
 
-application:
+api:
   end-points:
-    - http://localhost:8080/
-    - v1/users/
-
+    - http://localhost:3001/
+    
+ui:
+  end-points:
+    - http://localhost/activate/?token=
+    - http://localhost/forgot-password/?token=
+  
 ftl:
   templates:
     -

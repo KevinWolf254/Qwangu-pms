@@ -6,6 +6,7 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomAlreadyExistsException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.UserAuthority;
+import co.ke.proaktivio.qwanguapi.models.EmailNotification;
 import co.ke.proaktivio.qwanguapi.models.OneTimeToken;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.models.User;
@@ -660,7 +661,7 @@ class UserServiceImplIntegrationTest {
                 false, false, false, true, now,
                 null, null, null);
         // when
-        Mockito.when(emailService.send(Mockito.any(Email.class))).thenReturn(Mono.just(true));
+        Mockito.when(emailService.send(Mockito.any(EmailNotification.class))).thenReturn(Mono.just(true));
         Flux<OneTimeToken> resetPassword = reset()
                 .then(userRepository.save(user))
                 .doOnSuccess(u -> System.out.println("---- Created " + u))

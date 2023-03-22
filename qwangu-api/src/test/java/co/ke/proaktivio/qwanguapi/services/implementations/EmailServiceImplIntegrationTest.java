@@ -2,10 +2,10 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
-import co.ke.proaktivio.qwanguapi.configs.properties.ApplicationPropertiesConfig;
+import co.ke.proaktivio.qwanguapi.configs.properties.ApiPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.CompanyPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.FreeMarkerTemplatesPropertiesConfig;
-import co.ke.proaktivio.qwanguapi.pojos.Email;
+import co.ke.proaktivio.qwanguapi.models.EmailNotification;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
@@ -15,8 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.reactive.result.view.freemarker.FreeMarkerConfigurer;
 import reactor.core.publisher.Mono;
@@ -43,7 +41,10 @@ class EmailServiceImplIntegrationTest {
     @Autowired
     private FreeMarkerTemplatesPropertiesConfig fmpc;
     @Autowired
-    private ApplicationPropertiesConfig apc;
+    private ApiPropertiesConfig apc;
+    @Autowired
+    private EmailServiceImpl underTest;
+    
     @MockBean
     private BootstrapConfig bootstrapConfig;
     @MockBean
@@ -54,8 +55,6 @@ class EmailServiceImplIntegrationTest {
             .withConfiguration(GreenMailConfiguration.aConfig().withUser("person@gmail.com", "testing"))
             .withPerMethodLifecycle(false);
 
-    @Autowired
-    EmailServiceImpl emailService;
 
     @Test
     void init(){
@@ -79,7 +78,7 @@ class EmailServiceImplIntegrationTest {
     @Test
     void send_returnsTrue_whenSuccessful() throws MessagingException {
         // given
-        Email email = new Email();
+        EmailNotification email = new EmailNotification();
         email.setTo(List.of("person@gmail.com"));
         email.setSubject("Account Activation");
         email.setTemplate(this.fmpc.getTemplates().get(1).getName());
@@ -94,19 +93,19 @@ class EmailServiceImplIntegrationTest {
         models.put("designedBy", fmpc.getTemplates().get(0).getModels().get(4));
         email.setTemplateModel(models);
 
-        Map<String, Resource> resourceMap = new HashMap<>();
+        Map<String, String> resourceMap = new HashMap<>();
         List<String> resources = fmpc.getTemplates().get(0).getResources();
-        resourceMap.put("companyLogoImage", new ClassPathResource(resources.get(0)));
-        resourceMap.put("passwordImage", new ClassPathResource(resources.get(1)));
-        resourceMap.put("footerImage", new ClassPathResource(resources.get(2)));
-        resourceMap.put("linkedInImage", new ClassPathResource(resources.get(3)));
-        resourceMap.put("twitterImage", new ClassPathResource(resources.get(4)));
-        resourceMap.put("facebookImage", new ClassPathResource(resources.get(5)));
-        resourceMap.put("instagramImage", new ClassPathResource(resources.get(6)));
+        resourceMap.put("companyLogoImage", resources.get(0));
+        resourceMap.put("passwordImage", resources.get(1));
+        resourceMap.put("footerImage", resources.get(2));
+        resourceMap.put("linkedInImage", resources.get(3));
+        resourceMap.put("twitterImage", resources.get(4));
+        resourceMap.put("facebookImage", resources.get(5));
+        resourceMap.put("instagramImage", resources.get(6));
         email.setResources(resourceMap);
 
         // when
-        Mono<Boolean> send = emailService.send(email);
+        Mono<Boolean> send = underTest.send(email);
         // then
         StepVerifier
                 .create(send)
@@ -122,7 +121,7 @@ class EmailServiceImplIntegrationTest {
     void send_returnsMailSendException_whenResourceIsNotFound() throws MessagingException {
 
         // given
-        Email email = new Email();
+    	EmailNotification email = new EmailNotification();
         email.setTo(List.of("person@gmail.com"));
         email.setSubject("Account Activation");
         email.setTemplate(this.fmpc.getTemplates().get(1).getName());
@@ -137,20 +136,20 @@ class EmailServiceImplIntegrationTest {
         models.put("designedBy", fmpc.getTemplates().get(0).getModels().get(4));
         email.setTemplateModel(models);
 
-        Map<String, Resource> resourceMap = new HashMap<>();
+        Map<String, String> resourceMap = new HashMap<>();
         List<String> resources = fmpc.getTemplates().get(0).getResources();
-        resourceMap.put("companyLogoImage", new ClassPathResource(resources.get(0)));
-        resourceMap.put("passwordImage", new ClassPathResource(resources.get(1)));
-        resourceMap.put("footerImage", new ClassPathResource(resources.get(2)));
-        resourceMap.put("linkedInImage", new ClassPathResource(resources.get(3)));
-        resourceMap.put("twitterImage", new ClassPathResource(resources.get(4)));
-        resourceMap.put("facebookImage", new ClassPathResource(resources.get(5)));
-        resourceMap.put("instagramImage", new ClassPathResource(resources.get(6)));
+        resourceMap.put("companyLogoImage", resources.get(0));
+        resourceMap.put("passwordImage", resources.get(1));
+        resourceMap.put("footerImage", resources.get(2));
+        resourceMap.put("linkedInImage", resources.get(3));
+        resourceMap.put("twitterImage", resources.get(4));
+        resourceMap.put("facebookImage", resources.get(5));
+        resourceMap.put("instagramImage", resources.get(6));
         email.setResources(resourceMap);
         // when
         // then
         StepVerifier
-                .create(emailService.send(email))
+                .create(underTest.send(email))
                 .expectNext(true)
                 .verifyComplete();
     }
