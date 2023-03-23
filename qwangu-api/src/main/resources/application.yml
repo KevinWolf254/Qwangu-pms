@@ -56,7 +56,8 @@ api:
 ui:
   end-points:
     - http://localhost/activate/?token=
-    - http://localhost/forgot-password/?token=  
+    - http://localhost/forgot-password/?token= 
+    - http://localhost/sign-in
 
 ftl:
   templates:
@@ -83,6 +84,10 @@ ftl:
       path: src/main/resources/templates
       resources:
         - templates/images/resetPassword/password_reset.gif
+#       TODO - ADD TEMPLATE FOR PAYMENT CONFIRMATION
+    -
+      name: activate_account.ftlh
+      path: src/main/resources/templates
 safaricom:
   whiteListedUrls:
     - '127.0.0.1'

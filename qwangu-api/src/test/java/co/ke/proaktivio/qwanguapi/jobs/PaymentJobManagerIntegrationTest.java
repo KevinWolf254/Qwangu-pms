@@ -17,6 +17,7 @@ import org.testcontainers.utility.DockerImageName;
 
 import co.ke.proaktivio.qwanguapi.configs.BootstrapConfig;
 import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
+import co.ke.proaktivio.qwanguapi.models.EmailNotification;
 import co.ke.proaktivio.qwanguapi.models.MpesaPayment;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Occupation.Status;
@@ -27,14 +28,17 @@ import co.ke.proaktivio.qwanguapi.models.Payment.PaymentStatus;
 import co.ke.proaktivio.qwanguapi.models.Payment.PaymentType;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
 import co.ke.proaktivio.qwanguapi.models.SmsNotification;
+import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
 import co.ke.proaktivio.qwanguapi.pojos.NotificationStatus;
+import co.ke.proaktivio.qwanguapi.repositories.EmailNotificationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.MpesaPaymentRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationTransactionRepository;
 import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
 import co.ke.proaktivio.qwanguapi.repositories.ReceiptRepository;
 import co.ke.proaktivio.qwanguapi.repositories.SmsNotificationRepository;
+import co.ke.proaktivio.qwanguapi.repositories.TenantRepository;
 import co.ke.proaktivio.qwanguapi.services.SmsNotificationService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -60,6 +64,10 @@ class PaymentJobManagerIntegrationTest {
 	private OccupationTransactionRepository occupationTransactionRepository;
 	@Autowired
 	private SmsNotificationRepository smsNotificationRepository;
+	@Autowired
+	private TenantRepository tenantRepository;
+	@Autowired
+	private EmailNotificationRepository emailNotificationRepository;
 	
 	@MockBean
 	private BootstrapConfig bootstrapConfig;
@@ -123,6 +131,10 @@ class PaymentJobManagerIntegrationTest {
 	@Test
 	void processMobilePayments_updatesPaymentToClaimed_whenUnClaimedPaymentsExist() {
 		// given
+		var tenant = new Tenant.TenantBuilder().emailAddress("person@somecompany.com").firstName("Jane").middleName("Doe")
+				.mobileNumber("0720000000").surname("Day").build();
+		tenant.setId("1");
+		
 		var occupation = new Occupation.OccupationBuilder().unitId("1").tenantId("1").status(Status.CURRENT)
 				.startDate(LocalDate.now()).build();
 		occupation.setId("1");
@@ -142,6 +154,8 @@ class PaymentJobManagerIntegrationTest {
 		
 		// when
 		Flux<Payment> create = reset()
+				.then(tenantRepository.save(tenant))
+				.doOnSuccess(t -> System.out.println("---- Created: " +t))
 				.then(occupationRepository.save(occupation))
 				.doOnSuccess(t -> System.out.println("---- Created: " +t))
 				.then(paymentRepository.save(payment))
@@ -200,6 +214,28 @@ class PaymentJobManagerIntegrationTest {
 			.create(smsNotifications)
 			.expectNextMatches(sn -> !sn.getId().isEmpty() && sn.getPhoneNumber().equals("0720000000")
 					&& !sn.getMessage().isEmpty() && sn.getStatus().equals(NotificationStatus.PENDING))
+			.verifyComplete();		
+	}
+
+	@Test
+	void processMobilePayments_createsEmailNotification_whenUnClaimedPaymentsExist() {
+		// when
+		processMobilePayments_updatesPaymentToClaimed_whenUnClaimedPaymentsExist();
+		Flux<EmailNotification> smsNotifications = emailNotificationRepository.findAll()
+				.doOnNext(t -> System.out.println("---- Found: " +t));
+		
+		// then
+		StepVerifier
+			.create(smsNotifications)
+			.expectNextMatches(en -> !en.getId().isEmpty() 
+					&& en.getStatus().equals(NotificationStatus.PENDING)
+					&& en.getTo().get(0).equals("person@somecompany.com")
+					&& en.getSubject().equals("Payment Confirmation")
+					&& en.getTemplate().equals("activate_account.ftlh")
+					&& en.getTemplateModel() != null
+					&& en.getResources() != null
+					&& en.getCreatedOn() != null 
+					&& en.getModifiedOn() != null)
 			.verifyComplete();		
 	}
 }

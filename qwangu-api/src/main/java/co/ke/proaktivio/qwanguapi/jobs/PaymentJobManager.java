@@ -15,9 +15,11 @@ import co.ke.proaktivio.qwanguapi.pojos.ReceiptDto;
 import co.ke.proaktivio.qwanguapi.pojos.SmsNotificationDto;
 import co.ke.proaktivio.qwanguapi.services.MpesaPaymentService;
 import co.ke.proaktivio.qwanguapi.services.OccupationService;
+import co.ke.proaktivio.qwanguapi.services.PaymentConfirmationEmailNotificationService;
 import co.ke.proaktivio.qwanguapi.services.PaymentService;
 import co.ke.proaktivio.qwanguapi.services.ReceiptService;
 import co.ke.proaktivio.qwanguapi.services.SmsNotificationService;
+import co.ke.proaktivio.qwanguapi.services.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Flux;
@@ -34,6 +36,8 @@ public class PaymentJobManager {
 	private final OccupationService occupationService;
 	private final ReceiptService receiptService;
 	private final SmsMessageSourceConfig messagesConfig;
+	private final TenantService tenantService;
+	private final PaymentConfirmationEmailNotificationService pcenService;
 
 	@Scheduled(cron = "0 0/10 * * * ?")
 	void process() {
@@ -43,8 +47,7 @@ public class PaymentJobManager {
 	@Transactional
 	public Flux<Payment> processMobilePayments() {
 		return paymentService.findAll(PaymentStatus.UNCLAIMED, PaymentType.MOBILE, null, null)
-				.doOnNext(n -> log.info("Found " + n))
-				.flatMap(payment -> {
+				.doOnNext(n -> log.info("Found " + n)).flatMap(payment -> {
 					var houseNumber = payment.getOccupationNumber();
 					return occupationService.findByNumber(houseNumber).doOnSuccess(n -> log.info("Found " + n))
 							.map(occupation -> {
@@ -56,8 +59,7 @@ public class PaymentJobManager {
 				}).map(payment -> {
 					payment.setStatus(PaymentStatus.CLAIMED);
 					return payment;
-				}).flatMap(paymentService::update)
-				.flatMap(payment -> {
+				}).flatMap(paymentService::update).flatMap(payment -> {
 					var referenceNumber = payment.getReferenceNumber();
 					var houseNumber = payment.getOccupationNumber();
 
@@ -75,9 +77,10 @@ public class PaymentJobManager {
 								dto.setMessage(message);
 								return dto;
 							}).flatMap(smsNotificationService::create).then(Mono.just(payment));
-				}).map(payment -> {
-					
-					return payment;
-				}).doOnError(e -> log.error("Error occurred: " + e));
+				})
+				.flatMap(payment -> occupationService.findByNumber(payment.getOccupationNumber())
+						.flatMap(occupation -> tenantService.findById(occupation.getId()))
+						.flatMap(tenant -> pcenService.create(tenant)).then(Mono.just(payment)))
+				.doOnError(e -> log.error("Error occurred: " + e));
 	}
 }
