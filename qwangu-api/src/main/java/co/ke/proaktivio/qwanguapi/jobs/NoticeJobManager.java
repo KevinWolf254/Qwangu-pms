@@ -12,7 +12,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,12 +32,9 @@ public class NoticeJobManager {
     private final ReactiveMongoTemplate template;
     private final NoticePropertiesConfig npc;
 
-    // TODO - UNCOMMENT
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0 7 * * ?")
     void processNotices() {
-        vacate()
-                .subscribeOn(Schedulers.parallel())
-                .subscribe();
+        vacate().subscribe();
     }
 
     /**
