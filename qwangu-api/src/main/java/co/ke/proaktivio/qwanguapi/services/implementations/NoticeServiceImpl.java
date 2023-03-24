@@ -12,17 +12,21 @@ import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.services.NoticeService;
 import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class NoticeServiceImpl implements NoticeService {
@@ -47,7 +51,8 @@ public class NoticeServiceImpl implements NoticeService {
                                 .occupationId(dto.getOccupationId())
                                 .build()
                 ))
-                .flatMap(noticeRepository::save);
+                .flatMap(noticeRepository::save)
+                .doOnSuccess(a -> log.debug("Created: {}", a));
     }
 
     @Override
@@ -74,7 +79,8 @@ public class NoticeServiceImpl implements NoticeService {
                     notice.setModifiedOn(LocalDateTime.now());
                     return notice;
                 })
-                .flatMap(noticeRepository::save);
+                .flatMap(noticeRepository::save)
+                .doOnSuccess(a -> log.info("Updated: {}", a));
     }
 
     @Override
@@ -86,15 +92,17 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public Flux<Notice> findPaginated(Optional<String> id, Optional<Notice.Status> status, Optional<String> occupationId,
-                                      OrderType order) {
-        Sort sort = order.equals(OrderType.ASC) ?
-                Sort.by(Sort.Order.asc("id")) :
-                Sort.by(Sort.Order.desc("id"));
+    public Flux<Notice> findAll(Notice.Status status, String occupationId, OrderType order) {
         Query query = new Query();
-        id.ifPresent(i -> query.addCriteria(Criteria.where("id").is(i)));
-        status.ifPresent(s -> query.addCriteria(Criteria.where("status").is(s)));
-        occupationId.ifPresent(i -> query.addCriteria(Criteria.where("occupationId").is(i)));
+        if(status != null)
+        	query.addCriteria(Criteria.where("status").is(status));
+        if(StringUtils.hasText(occupationId))
+        	query.addCriteria(Criteria.where("occupationId").is(occupationId));
+
+        Sort sort = order != null ? order.equals(OrderType.ASC) ?
+                Sort.by(Sort.Order.asc("id")) :
+                Sort.by(Sort.Order.desc("id")) :
+                    Sort.by(Sort.Order.desc("id"));
         query.with(sort);
         return template
                 .find(query, Notice.class);
@@ -109,4 +117,9 @@ public class NoticeServiceImpl implements NoticeService {
                 .flatMap(template::remove)
                 .map(DeleteResult::wasAcknowledged);
     }
+
+	@Override
+	public Mono<Notice> findById(String noticeId) {
+		return noticeRepository.findById(noticeId);
+	}
 }

@@ -6,6 +6,7 @@ import co.ke.proaktivio.qwanguapi.configs.properties.MpesaPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.handlers.NoticeHandler;
 import co.ke.proaktivio.qwanguapi.models.Notice;
+import co.ke.proaktivio.qwanguapi.models.Notice.Status;
 import co.ke.proaktivio.qwanguapi.pojos.*;
 import co.ke.proaktivio.qwanguapi.services.NoticeService;
 import org.junit.Before;
@@ -29,13 +30,10 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-
-// TODO REDO NOTICECONFIG & NOTICESERVICE
 
 @WebFluxTest
 @EnableConfigurationProperties(value = {MpesaPropertiesConfig.class})
@@ -194,6 +192,82 @@ class NoticeConfigsTest {
                 .consumeWith(System.out::println);
     }
 
+
+    @Test
+    void findById_returnsUnauthorized_status401() {
+        // given
+        var noticeId = "1";
+        // when
+        when(contextRepository.load(any())).thenReturn(Mono.empty());
+        // then
+        client
+                .get()
+                .uri("/v1/notices/{noticeId}", noticeId)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+    
+	@Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+	void findById_returnsNotFound_whenInvoiceDoesNotExist() {
+		// given
+		var noticeId = "1";
+
+		// when
+        when(noticeService.findById(noticeId)).thenReturn(Mono.empty());
+        
+        // then
+        client
+	        .get()
+	        .uri("/v1/notices/{noticeId}", noticeId)
+	        .exchange()
+	        .expectStatus().isNotFound()
+	        .expectHeader().contentType("application/json")
+	        .expectBody()
+	        .jsonPath("$").isNotEmpty()
+	        .jsonPath("$.success").isEqualTo(false)
+	        .jsonPath("$.message").isEqualTo("Notice with id %s does not exist!".formatted(noticeId))
+	        .jsonPath("$.data").isEmpty()
+	        .consumeWith(System.out::println);
+	}
+
+    @Test
+    @WithMockUser(roles = {"SUPER_ADMIN"})
+    void findById_returnsInvoice_status200_whenSuccessful() {
+        // given
+        var noticeId = "1";
+        var occupationId = "1";
+        Status status = Notice.Status.ACTIVE;
+		var notice = new Notice(noticeId, status, now, today.plusDays(40), occupationId,
+                LocalDateTime.now(), "SYSTEM", LocalDateTime.now(), "SYSTEM");
+		
+        //when
+        when(noticeService.findById(noticeId)).thenReturn(Mono.just(notice));
+
+        // then
+        client
+                .get()
+                .uri("/v1/notices/{noticeId}", noticeId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType("application/json")
+                .expectBody()
+    	        .jsonPath("$").isNotEmpty()
+    	        .jsonPath("$.success").isEqualTo(true)
+    	        .jsonPath("$.message").isEqualTo("Notice found successfully.")
+    	        .jsonPath("$.data").isNotEmpty()
+    	        .jsonPath("$.data.id").isEqualTo(noticeId)
+    	        .jsonPath("$.data.status").isEqualTo(status.getState())
+    	        .jsonPath("$.data.notificationDate").isNotEmpty()
+    	        .jsonPath("$.data.vacatingDate").isNotEmpty()
+    	        .jsonPath("$.data.occupationId").isEqualTo(occupationId)
+    	        .jsonPath("$.data.createdOn").isNotEmpty()
+    	        .jsonPath("$.data.createdBy").isEqualTo("SYSTEM")
+    	        .jsonPath("$.data.modifiedOn").isNotEmpty()
+    	        .jsonPath("$.data.modifiedBy").isEqualTo("SYSTEM")
+    	        .consumeWith(System.out::println);
+    }
     @Test
     @DisplayName("find returns unauthorised when user is not authenticated status 401")
     void find_returnsUnauthorized_status401() {
@@ -238,12 +312,7 @@ class NoticeConfigsTest {
                         .build();
 
         // when
-        when(noticeService.findPaginated(
-                Optional.of(id),
-                Optional.of(active),
-                Optional.of(occupationId),
-                order
-        )).thenReturn(Flux.empty());
+        when(noticeService.findAll(active, occupationId, order)).thenReturn(Flux.empty());
         // then
         client
                 .get()
@@ -284,12 +353,7 @@ class NoticeConfigsTest {
                         .queryParam("status", "NOT_VALID")
                         .build();
         // when
-        when(noticeService.findPaginated(
-                Optional.of(id),
-                Optional.of(Notice.Status.ACTIVE),
-                Optional.of(occupationId),
-                order
-        )).thenReturn(Flux.just(notice));
+        when(noticeService.findAll(Notice.Status.ACTIVE, occupationId, order)).thenReturn(Flux.just(notice));
         // then
         client
                 .get()
@@ -322,43 +386,6 @@ class NoticeConfigsTest {
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.message").isEqualTo("Status should be ACTIVE or FULFILLED or CANCELLED!")
                 .jsonPath("$.data").isEmpty()
-                .consumeWith(System.out::println);
-    }
-
-    @Test
-    @DisplayName("delete returns unauthorised when user is not authenticated status 401")
-    void delete_returnsUnauthorized_status401() {
-        // given
-        var id = "1";
-        // when
-        when(contextRepository.load(any())).thenReturn(Mono.empty());
-        // then
-        client
-                .delete()
-                .uri("/v1/notices/{noticeId}", id)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isUnauthorized();
-    }
-
-    @Test
-    @WithMockUser(roles = {"SUPER_ADMIN"})
-    void deleteById_returnTrue_whenSuccessful() {
-        // given
-        String id = "1";
-        // when
-        when(noticeService.deleteById(id)).thenReturn(Mono.just(true));
-        // then
-        client
-                .delete()
-                .uri("/v1/notices/{noticeId}", id)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType("application/json")
-                .expectBody()
-                .jsonPath("$").isNotEmpty()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.message").isEqualTo("Notice with id %s deleted successfully.".formatted(id))
                 .consumeWith(System.out::println);
     }
 }

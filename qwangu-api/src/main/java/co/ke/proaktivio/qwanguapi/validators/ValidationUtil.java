@@ -1,6 +1,7 @@
 package co.ke.proaktivio.qwanguapi.validators;
 
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
+import co.ke.proaktivio.qwanguapi.pojos.CreateNoticeDto;
 import co.ke.proaktivio.qwanguapi.pojos.EmailDto;
 import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationDto;
@@ -13,6 +14,7 @@ import co.ke.proaktivio.qwanguapi.pojos.ResetPasswordDto;
 import co.ke.proaktivio.qwanguapi.pojos.SignInDto;
 import co.ke.proaktivio.qwanguapi.pojos.TenantDto;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
+import co.ke.proaktivio.qwanguapi.pojos.UpdateNoticeDto;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateUserDto;
 import co.ke.proaktivio.qwanguapi.pojos.UserAuthorityDto;
 import co.ke.proaktivio.qwanguapi.pojos.UserDto;
@@ -264,6 +266,34 @@ public class ValidationUtil {
                 throw new CustomBadRequestException(errorMessage);
             }
             return apartmentDto;
+        };
+    }
+
+    public static Function<CreateNoticeDto, CreateNoticeDto> validateCreateNoticeDto(Validator validator) {
+        return createNoticeDto -> {
+            Errors errors = new BeanPropertyBindingResult(createNoticeDto, CreateNoticeDto.class.getName());
+            validator.validate(createNoticeDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return createNoticeDto;
+        };
+    }
+
+    public static Function<UpdateNoticeDto, UpdateNoticeDto> validateUpdateNoticeDto(Validator validator) {
+        return updateNoticeDto -> {
+            Errors errors = new BeanPropertyBindingResult(updateNoticeDto, UpdateNoticeDto.class.getName());
+            validator.validate(updateNoticeDto, errors);
+            if (!errors.getAllErrors().isEmpty()) {
+                String errorMessage = errors.getAllErrors().stream()
+                        .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                        .collect(Collectors.joining(" "));
+                throw new CustomBadRequestException(errorMessage);
+            }
+            return updateNoticeDto;
         };
     }
 }

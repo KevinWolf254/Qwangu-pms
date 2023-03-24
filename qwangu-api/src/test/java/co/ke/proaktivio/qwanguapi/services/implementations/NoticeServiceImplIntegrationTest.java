@@ -26,7 +26,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -186,7 +185,7 @@ class NoticeServiceImplIntegrationTest {
     }
 
     @Test
-    void findPaginated() {
+    void findAll() {
         // given
         var occupation = new Occupation.OccupationBuilder()
                 .tenantId("1")
@@ -214,8 +213,8 @@ class NoticeServiceImplIntegrationTest {
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
                 .then(noticeRepository.save(notice))
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(noticeService.findPaginated(Optional.of("1"), Optional.empty(),
-                        Optional.empty(), OrderType.ASC));
+                .thenMany(noticeService.findAll(null, null, OrderType.ASC))
+                .doOnNext(a -> System.out.println("---- Found " + a));
         // then
         StepVerifier
                 .create(find)
@@ -225,8 +224,8 @@ class NoticeServiceImplIntegrationTest {
         // when
         Flux<Notice> findAll = noticeRepository.save(noticeWithOccupationMoved)
                 .doOnSuccess(a -> System.out.println("---- Saved " + a))
-                .thenMany(noticeService.findPaginated(Optional.empty(), Optional.empty(), Optional.empty(),
-                        OrderType.DESC));
+                .thenMany(noticeService.findAll(null, null, OrderType.DESC))
+                .doOnNext(a -> System.out.println("---- Found " + a));
         // then
         StepVerifier
                 .create(findAll)
@@ -235,11 +234,10 @@ class NoticeServiceImplIntegrationTest {
                 .verifyComplete();
 
         // when
-        Flux<Notice> findThrowsCustomNotFoundException = noticeService.findPaginated(Optional.of("3000"),
-                Optional.empty(), Optional.of("1"), OrderType.ASC);
+        Flux<Notice> findAllReturnsEmptyWhenNonExist = noticeService.findAll(null, "293393849", OrderType.ASC);
         // then
         StepVerifier
-                .create(findThrowsCustomNotFoundException)
+                .create(findAllReturnsEmptyWhenNonExist)
                 .expectComplete()
                 .verify();
     }

@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
+import co.ke.proaktivio.qwanguapi.handlers.InvoiceHandler;
 import co.ke.proaktivio.qwanguapi.handlers.NoticeHandler;
 import co.ke.proaktivio.qwanguapi.pojos.CreateNoticeDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
@@ -29,12 +30,28 @@ public class NoticeConfigs {
     @Bean
     @RouterOperations(
             {
+                @RouterOperation(
+                        path = "/v1/notices/{noticeId}",
+                        produces = MediaType.APPLICATION_JSON_VALUE,
+                        method = RequestMethod.GET, beanClass = InvoiceHandler.class, beanMethod = "findById",
+                        operation = @Operation(
+                                operationId = "findById",
+                                responses = {
+                                        @ApiResponse(responseCode = "200", description = "Notice found successfully.",
+                                                content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                        @ApiResponse(responseCode = "404", description = "Notice was not found!",
+                                        content = @Content(schema = @Schema(implementation = Response.class)))
+                                },
+                                parameters = {@Parameter(in = ParameterIn.PATH, name = "noticeId")},
+                                security = @SecurityRequirement(name = "Bearer authentication")
+                        )
+                ),
                     @RouterOperation(
                             path = "/v1/notices",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = NoticeHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = NoticeHandler.class, beanMethod = "findAll",
                             operation = @Operation(
-                                    operationId = "find",
+                                    operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Notices found successfully.",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
@@ -88,34 +105,16 @@ public class NoticeConfigs {
                                     parameters = {@Parameter(in = ParameterIn.PATH, name = "noticeId")},
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/notices/{noticeId}",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.DELETE, beanClass = NoticeHandler.class, beanMethod = "delete",
-                            operation = @Operation(
-                                    operationId = "delete",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Notice deleted successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
-                                            @ApiResponse(responseCode = "400", description = "Notice does not exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Notice were not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "noticeId")},
-                                    security = @SecurityRequirement(name = "Bearer authentication")
-                            )
                     )
             }
     )
     RouterFunction<ServerResponse> noticeRoute(NoticeHandler handler) {
         return route()
                 .path("v1/notices", builder -> builder
-                        .GET(handler::find)
+                		.GET("/{noticeId}", handler::findById)
+                        .GET(handler::findAll)
                         .POST(handler::create)
                         .PUT("/{noticeId}", handler::update)
-                        .DELETE("/{noticeId}", handler::delete)
                 ).build();
     }
 }
