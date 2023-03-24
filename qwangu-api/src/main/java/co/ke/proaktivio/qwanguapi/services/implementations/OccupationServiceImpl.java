@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -58,21 +59,20 @@ public class OccupationServiceImpl implements OccupationService {
      * // change payment status to processed
      **/
     @Override
-//    @Transactional(rollbackFor = {CustomBadRequestException.class, CustomAlreadyExistsException.class})
+    @Transactional(rollbackFor = {RuntimeException.class, CustomBadRequestException.class, CustomNotFoundException.class})
     public Mono<Occupation> create(OccupationForNewTenantDto dto) {
         String tenantId = dto.getTenantId();
         OccupationDto occupation = dto.getOccupation();
         if (StringUtils.hasText(tenantId)) {
-            return create(tenantId, occupation)
-                    .doOnSuccess(result -> log.info("Successfully created: {}", result));
+            return create(tenantId, occupation);
         }
         return tenantService
                 .create(dto.getTenant())
-                .flatMap(tenant -> create(tenant.getId(), occupation))
-                .doOnSuccess(result -> log.info("Successfully created: {}", result));
+                .flatMap(tenant -> create(tenant.getId(), occupation));
     }
 
     @Override
+    @Transactional(rollbackFor = {RuntimeException.class, CustomBadRequestException.class, CustomNotFoundException.class})
     public Mono<Occupation> create(String tenantId, OccupationDto occupation) {
         String unitId = occupation.getUnitId();
         String paymentId = occupation.getPaymentId();
@@ -111,7 +111,7 @@ public class OccupationServiceImpl implements OccupationService {
                 .flatMap(tenant -> paymentService
                         .findById(paymentId)
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment with id %s does not exist!".formatted(paymentId))))
-                        .filter(payment -> payment.getStatus().equals(PaymentStatus.UNCLAIMED))
+                        .filter(payment -> payment.getStatus().equals(PaymentStatus.UNCLAIMED) && StringUtils.hasText(payment.getOccupationNumber()))
                         .switchIfEmpty(Mono.error(new CustomBadRequestException("Payment with id %s has already been processed!".formatted(paymentId)))))
                 .flatMap(payment -> {
                     return unitService
@@ -139,8 +139,8 @@ public class OccupationServiceImpl implements OccupationService {
                                 var paidAmount = payment.getAmount();
 
                                 if (paidAmount.compareTo(total) < 0) {
-                                    throw new CustomBadRequestException("Amount to be paid should be %s %s but was %s %s"
-                                            .formatted(unit.getCurrency(), total, unit.getCurrency(), paidAmount));
+                                    return Mono.error(new CustomBadRequestException("Amount to be paid should be %s %s but was %s %s"
+                                            .formatted(unit.getCurrency(), total, unit.getCurrency(), paidAmount)));
                                 }
                                 return Mono.just(payment);
                             });
@@ -152,7 +152,7 @@ public class OccupationServiceImpl implements OccupationService {
                                 .tenantId(tenantId)
                                 .startDate(occupation.getStartDate())
                                 .build())
-                        .doOnSuccess(a -> System.out.println("---- Saved " + a))
+                        .doOnSuccess(a -> log.info("Created: {}", a))
                         .flatMap(occupationPending -> {
                             var startDate = occupationPending.getStartDate();
                             return unitService
@@ -160,18 +160,16 @@ public class OccupationServiceImpl implements OccupationService {
                                     .flatMap(unit -> {
                                         return invoiceService
                                                 .create(new InvoiceDto(Invoice.Type.RENT_ADVANCE,null, null, null, null, occupationPending.getId()))
-                                                .doOnSuccess(a -> System.out.println("---- Created " + a))
                                                 .flatMap(invoice -> invoiceService
                                                         .create(new InvoiceDto(Invoice.Type.RENT, startDate, startDate.with(lastDayOfMonth()),null, null,
                                                                 occupationPending.getId())))
-                                                .doOnSuccess(a -> System.out.println("---- Created " + a))
                                                 .flatMap(invoice -> receiptService.create(new ReceiptDto(occupationPending.getId(), paymentId)))
-                                                .doOnSuccess(a -> System.out.println("---- Created " + a))
-                                                .flatMap(receipt -> {
+                                                .map($ -> {
                                                     payment.setStatus(PaymentStatus.CLAIMED);
-                                                    return paymentRepository.save(payment);
+                                                    return payment;
                                                 })
-                                                .doOnSuccess(a -> System.out.println("---- Updated " + a));
+                                                .flatMap(paymentRepository::save)
+                                                .doOnSuccess(a -> log.info("Updated {}", a));
                                     })
                                     .flatMap(p -> Mono.just(occupationPending));
                         })

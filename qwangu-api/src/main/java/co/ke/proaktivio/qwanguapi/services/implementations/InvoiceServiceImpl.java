@@ -23,6 +23,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import reactor.core.publisher.Flux;
@@ -45,17 +46,17 @@ public class InvoiceServiceImpl implements InvoiceService {
 	private final RentPropertiesConfig rentPropertiesConfig;
 	
 	@Override
-//    @Transactional
+    @Transactional
 	public Mono<Invoice> create(InvoiceDto dto) {
 		Type type = dto.getType();
 		var occupationId = dto.getOccupationId();
 		return findOccupationById(occupationId)
 				.flatMap(occupation -> findLatestInvoiceByOccupationId(occupation.getId())
 						.switchIfEmpty(Mono.just(new Invoice()))
-						.doOnSuccess(result -> log.debug("Successfully found: {}", result)).flatMap(previousInvoice -> {
+						.doOnSuccess(result -> log.debug("Found: {}", result)).flatMap(previousInvoice -> {
 							var unitId = occupation.getUnitId();
 							return findUnitById(unitId)
-									.doOnSuccess(result -> log.debug("Successfully found: {}", result)).map(unit -> {
+									.doOnSuccess(result -> log.debug("Found: {}", result)).map(unit -> {
 										Currency currency = unit.getCurrency();
 										var invoice = new Invoice();
 										invoice.setType(type);
@@ -102,12 +103,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 											invoice.setOtherAmounts(dto.getOtherAmounts());
 										}
 										return invoice;
-									}).flatMap(invoiceRepository::save);
+									}).flatMap(invoiceRepository::save)
+									.doOnSuccess(invoice -> log.info("Created: {}", invoice));
 						}))
 				.flatMap(invoice -> occupationTransactionService
 						.createDebitTransaction(new DebitTransactionDto(occupationId, invoice.getId()))
-						.then(Mono.just(invoice)))
-				.doOnSuccess(result -> log.info("Successfully created: {}", result));
+						.then(Mono.just(invoice)));
 	}
 
 	@Override
