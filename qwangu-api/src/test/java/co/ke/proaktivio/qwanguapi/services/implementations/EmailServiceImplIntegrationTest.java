@@ -6,6 +6,8 @@ import co.ke.proaktivio.qwanguapi.configs.properties.ApiPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.CompanyPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.configs.properties.FreeMarkerTemplatesPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.models.EmailNotification;
+import co.ke.proaktivio.qwanguapi.services.EmailService;
+
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
@@ -43,7 +45,7 @@ class EmailServiceImplIntegrationTest {
     @Autowired
     private ApiPropertiesConfig apc;
     @Autowired
-    private EmailServiceImpl underTest;
+    private EmailService underTest;
     
     @MockBean
     private BootstrapConfig bootstrapConfig;

@@ -1,13 +1,13 @@
 package co.ke.proaktivio.qwanguapi.services;
 
-import co.ke.proaktivio.qwanguapi.models.SmsNotification;
+import co.ke.proaktivio.qwanguapi.models.EmailNotification;
+import co.ke.proaktivio.qwanguapi.pojos.NotificationStatus;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
-import co.ke.proaktivio.qwanguapi.pojos.SmsNotificationDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface EmailNotificationService {
-	Mono<SmsNotification> create(SmsNotificationDto dto);
+	Mono<EmailNotification> update(String emailNotificationId, EmailNotification emailNotification);
 	
-	Flux<SmsNotification> findAll(String phoneNumber, OrderType order);
+	Flux<EmailNotification> findAll(NotificationStatus status, String phoneNumber, OrderType order);
 }

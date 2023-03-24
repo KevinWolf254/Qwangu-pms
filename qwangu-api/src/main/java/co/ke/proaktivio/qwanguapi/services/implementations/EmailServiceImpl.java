@@ -4,6 +4,8 @@ import co.ke.proaktivio.qwanguapi.configs.properties.CompanyPropertiesConfig;
 import co.ke.proaktivio.qwanguapi.models.EmailNotification;
 import co.ke.proaktivio.qwanguapi.services.EmailService;
 import freemarker.template.Template;
+import lombok.extern.log4j.Log4j2;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,6 +19,7 @@ import reactor.core.scheduler.Schedulers;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+@Log4j2
 @Service
 public class EmailServiceImpl implements EmailService {
     private final JavaMailSender sender;
@@ -57,7 +60,9 @@ public class EmailServiceImpl implements EmailService {
                 helper.setText(htmlBody, true);
                 sender.send(message);
             return true;
-        });
+        })
+        		.doOnSuccess(sent -> log.info("Sent: " + email))
+        		.doOnError(e -> log.error("Error occurred while sending " + email + " with error: " +e.getMessage()));
         blockingWrapper = blockingWrapper.subscribeOn(Schedulers.boundedElastic());
         return blockingWrapper;
     }

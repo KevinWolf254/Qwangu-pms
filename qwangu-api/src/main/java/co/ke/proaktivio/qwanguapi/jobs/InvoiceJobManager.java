@@ -22,12 +22,9 @@ public class InvoiceJobManager {
 	private final InvoiceService invoiceService;
 	// TODO - CREATE JOB TO PROCESS OVERDUE PAYMENTS (PENALTIES - PERCENTAGE OF RENT E.G. 0.08) AND CREATE NOTIFICATION
 
-	// TODO - ADD CREATE NOTIFICATION
 	@Scheduled(cron = "${rent.cronToCreateInvoice}")
 	void createRentInvoice() {
-		createRentInvoices()
-//			.subscribeOn(Schedulers.parallel())
-			.subscribe();
+		createRentInvoices().subscribe();
 	}
 
 	public Flux<Invoice> createRentInvoices() {

@@ -34,7 +34,6 @@ public class RequestPasswordResetEmailNotificationServiceImpl implements Request
         email.setSubject("Password Reset");
         email.setTemplate(fmpc.getTemplates().get(2).getName());
         
-        // TODO - SET URL FOR FRONTEND
         var resetPasswordUrl = apc.getEndPoints().get(1) + token;
 
         Map<String, Object> models = new HashMap<>();

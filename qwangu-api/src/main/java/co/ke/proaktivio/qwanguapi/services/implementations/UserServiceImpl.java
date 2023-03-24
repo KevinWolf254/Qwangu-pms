@@ -2,6 +2,7 @@ package co.ke.proaktivio.qwanguapi.services.implementations;
 
 import co.ke.proaktivio.qwanguapi.exceptions.*;
 import co.ke.proaktivio.qwanguapi.models.UserRole;
+import co.ke.proaktivio.qwanguapi.models.EmailNotification;
 import co.ke.proaktivio.qwanguapi.models.User;
 import co.ke.proaktivio.qwanguapi.models.UserToken;
 import co.ke.proaktivio.qwanguapi.pojos.*;
@@ -32,7 +33,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final EmailService emailService;
     private final OneTimeTokenService oneTimeTokenService;
     private final PasswordEncoder encoder;
     private final UserRoleRepository roleRepository;
@@ -72,12 +72,9 @@ public class UserServiceImpl implements UserService {
 		return create(dto).flatMap(user -> notify(user).flatMap($ -> Mono.just(user)));
 	}
 	
-	private Mono<Boolean> notify(User user) {
+	private Mono<EmailNotification> notify(User user) {
 		return oneTimeTokenService.create(user.getId())
-		.flatMap(ott -> {
-			return accountActivationEmailNotificationService.create(user, ott.getToken())
-				.flatMap(email -> emailService.send(email));
-		});
+		.flatMap(ott -> accountActivationEmailNotificationService.create(user, ott.getToken()));
 	}
 	
     @Override
@@ -227,11 +224,8 @@ public class UserServiceImpl implements UserService {
 				.flatMap(user -> notifyForRequestPasswordReset(user)).flatMap($ -> Mono.empty());
 	}
 
-	private Mono<Boolean> notifyForRequestPasswordReset(User user) {
+	private Mono<EmailNotification> notifyForRequestPasswordReset(User user) {
 		return oneTimeTokenService.create(user.getId())
-		.flatMap(ott -> {
-			return requestPasswordResetEmailNotificationService.create(user, ott.getToken())
-					.flatMap(email -> emailService.send(email));
-		});
+		.flatMap(ott -> requestPasswordResetEmailNotificationService.create(user, ott.getToken()));
 	}
 }
