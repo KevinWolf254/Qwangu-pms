@@ -101,7 +101,7 @@ class InvoiceJobManagerIntegrationTest {
         bookedUnit.setId("2");
 
         var occupationTransaction = new OccupationTransaction.OccupationTransactionBuilder()
-                .type(OccupationTransaction.Type.DEBIT)
+                .type(OccupationTransaction.OccupationTransactionType.DEBIT)
                 .occupationId("1")
                 .invoiceId("1")
                 .receiptId("1")
@@ -147,11 +147,11 @@ class InvoiceJobManagerIntegrationTest {
         StepVerifier
                 .create(allOccupationTransactions)
                 .expectNextMatches(ot -> !ot.getId().isEmpty() && ot.getOccupationId().equals("1") &&
-                        !ot.getInvoiceId().isEmpty() && ot.getType().equals(OccupationTransaction.Type.DEBIT) &&
+                        !ot.getInvoiceId().isEmpty() && ot.getType().equals(OccupationTransaction.OccupationTransactionType.DEBIT) &&
                         ot.getTotalAmountOwed().equals(BigDecimal.valueOf(27800)) &&
                         ot.getTotalAmountPaid().equals(BigDecimal.ZERO) &&
                         ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(32800)))
-                .expectNextMatches(ot -> ot.getType().equals(OccupationTransaction.Type.DEBIT) &&
+                .expectNextMatches(ot -> ot.getType().equals(OccupationTransaction.OccupationTransactionType.DEBIT) &&
                         ot.getTotalAmountOwed().equals(BigDecimal.valueOf(5000)) &&
                         ot.getTotalAmountPaid().equals(BigDecimal.ZERO) &&
                         ot.getTotalAmountCarriedForward().equals(BigDecimal.valueOf(5000)))

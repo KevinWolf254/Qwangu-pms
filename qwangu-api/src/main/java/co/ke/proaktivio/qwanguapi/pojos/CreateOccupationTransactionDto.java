@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 public class CreateOccupationTransactionDto {
     private String occupationId;
-    private OccupationTransaction.Type type;
+    private OccupationTransaction.OccupationTransactionType type;
     private InvoiceDto invoice;
     private String receiptId;
 

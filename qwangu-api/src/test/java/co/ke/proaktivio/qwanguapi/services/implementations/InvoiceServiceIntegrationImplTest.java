@@ -174,7 +174,7 @@ class InvoiceServiceIntegrationImplTest {
 		// when
 		Flux<OccupationTransaction> findOccupationTransactions = occupationTransactionRepository.findAll();
 		// then
-		var type = co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type.DEBIT;
+		var type = co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType.DEBIT;
 		StepVerifier.create(findOccupationTransactions)
 				.expectNextMatches(ot -> ot.getType().equals(type) && ot.getOccupationId() != null
 						&& ot.getInvoiceId() != null && ot.getTotalAmountOwed().equals(BigDecimal.valueOf(54500l))
@@ -230,7 +230,7 @@ class InvoiceServiceIntegrationImplTest {
 					.with(Sort.by(Sort.Direction.DESC, "id")), OccupationTransaction.class)
 					.doOnNext(a -> System.out.println("---- Found " + a));
 		// then
-		var type = co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type.DEBIT;
+		var type = co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType.DEBIT;
 		StepVerifier.create(findOccupationTransactions)
 				.expectNextMatches(ot -> 
 								ot.getType().equals(type) && 
@@ -264,7 +264,7 @@ class InvoiceServiceIntegrationImplTest {
 						.with(Sort.by(Sort.Direction.DESC, "id")), OccupationTransaction.class))
 				.doOnNext(a -> System.out.println("---- Found " + a));
 		// then
-		var type = co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type.DEBIT;
+		var type = co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType.DEBIT;
 		StepVerifier.create(createPenalty)
 				.expectNextMatches(ot -> 
 								ot.getType().equals(type) && 
@@ -311,7 +311,7 @@ class InvoiceServiceIntegrationImplTest {
 						.with(Sort.by(Sort.Direction.DESC, "id")), OccupationTransaction.class))
 				.doOnNext(a -> System.out.println("---- Found " + a));
 		// then
-		var type = co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type.DEBIT;
+		var type = co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType.DEBIT;
 		StepVerifier.create(createPenalty)
 				.expectNextMatches(ot -> 
 								ot.getType().equals(type) && 

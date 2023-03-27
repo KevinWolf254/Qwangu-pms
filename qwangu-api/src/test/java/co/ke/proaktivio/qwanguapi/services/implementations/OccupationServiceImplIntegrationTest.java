@@ -551,19 +551,19 @@ class OccupationServiceImplIntegrationTest {
 
 		// then
 		StepVerifier.create(occupationTransactions)
-				.expectNextMatches(ot -> !ot.getId().isEmpty() && ot.getType().equals(OccupationTransaction.Type.CREDIT)
+				.expectNextMatches(ot -> !ot.getId().isEmpty() && ot.getType().equals(OccupationTransaction.OccupationTransactionType.CREDIT)
 						&& !ot.getOccupationId().isEmpty() && ot.getInvoiceId() == null && !ot.getReceiptId().isEmpty()
 						&& ot.getTotalAmountOwed().intValue() == 0
 						&& ot.getTotalAmountPaid().intValue() == 81810
 						&& ot.getCreatedOn() != null
 						&& ot.getCreatedBy().equals("SYSTEM") && ot.getModifiedOn() != null
 						&& ot.getModifiedBy().equals("SYSTEM"))
-				.expectNextMatches(ot -> !ot.getId().isEmpty() && ot.getType().equals(OccupationTransaction.Type.DEBIT)
+				.expectNextMatches(ot -> !ot.getId().isEmpty() && ot.getType().equals(OccupationTransaction.OccupationTransactionType.DEBIT)
 						&& !ot.getOccupationId().isEmpty() && !ot.getInvoiceId().isEmpty() && ot.getReceiptId() == null
 						&& ot.getTotalAmountPaid().equals(BigDecimal.ZERO) && ot.getCreatedOn() != null
 						&& ot.getCreatedBy().equals("SYSTEM") && ot.getModifiedOn() != null
 						&& ot.getModifiedBy().equals("SYSTEM"))
-				.expectNextMatches(ot -> !ot.getId().isEmpty() && ot.getType().equals(OccupationTransaction.Type.DEBIT)
+				.expectNextMatches(ot -> !ot.getId().isEmpty() && ot.getType().equals(OccupationTransaction.OccupationTransactionType.DEBIT)
 						&& !ot.getOccupationId().isEmpty() && !ot.getInvoiceId().isEmpty() && ot.getReceiptId() == null
 						&& ot.getTotalAmountPaid().equals(BigDecimal.ZERO) && ot.getCreatedOn() != null
 						&& ot.getCreatedBy().equals("SYSTEM") && ot.getModifiedOn() != null

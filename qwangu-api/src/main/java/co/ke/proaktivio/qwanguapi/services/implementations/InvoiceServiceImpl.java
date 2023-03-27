@@ -6,11 +6,12 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.models.Invoice.Type;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
+import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
-import co.ke.proaktivio.qwanguapi.pojos.DebitTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.InvoiceDto;
+import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
 import co.ke.proaktivio.qwanguapi.repositories.InvoiceRepository;
 import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
@@ -107,7 +108,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 									.doOnSuccess(invoice -> log.info("Created: {}", invoice));
 						}))
 				.flatMap(invoice -> occupationTransactionService
-						.createDebitTransaction(new DebitTransactionDto(occupationId, invoice.getId()))
+						.create(new OccupationTransactionDto.OccupationTransactionDtoBuilder()
+								.type(OccupationTransactionType.DEBIT)
+								.occupationId(occupationId)
+								.invoiceId(invoice.getId()).build())
 						.then(Mono.just(invoice)));
 	}
 

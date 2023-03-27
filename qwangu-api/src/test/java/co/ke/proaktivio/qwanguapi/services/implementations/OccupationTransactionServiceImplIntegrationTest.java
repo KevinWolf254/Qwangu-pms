@@ -22,12 +22,11 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
-import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type;
+import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType;
 import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
 import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
-import co.ke.proaktivio.qwanguapi.pojos.CreditTransactionDto;
-import co.ke.proaktivio.qwanguapi.pojos.DebitTransactionDto;
+import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.InvoiceRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
@@ -86,13 +85,16 @@ class OccupationTransactionServiceImplIntegrationTest {
 	@Test
 	void createDebitTransaction_returnsCustomNotFoundException_whenOccupationIdDoesNotExist() {
 		// given
-		var dto = new DebitTransactionDto();
 		String occupationId = "2000";
-		dto.setOccupationId(occupationId);
-		dto.setInvoiceId("1000");
+		var invoiceId = "1000";
+		var dto = new OccupationTransactionDto.OccupationTransactionDtoBuilder()
+				.type(OccupationTransactionType.DEBIT)
+				.occupationId(occupationId)
+				.invoiceId(invoiceId)
+				.build();
 		// when
 		Mono<OccupationTransaction> createOccupationIdDoesNotExist = reset()
-				.then(occupationTransactionService.createDebitTransaction(dto));
+				.then(occupationTransactionService.create(dto));
 		// then
 		StepVerifier
 			.create(createOccupationIdDoesNotExist)
@@ -105,17 +107,20 @@ class OccupationTransactionServiceImplIntegrationTest {
 	void createDebitTransaction_returnsCustomNotFoundException_whenInvoiceIdDoesNotExist() {
 		// given
 		String occupationId = "2000";
+		String invoiceId = "1000";
 		var occupation = new Occupation();
 		occupation.setId(occupationId);
-		var dto = new DebitTransactionDto();
-		dto.setOccupationId(occupationId);
-		String invoiceId = "1000";
-		dto.setInvoiceId(invoiceId);
+		
+		var dto = new OccupationTransactionDto.OccupationTransactionDtoBuilder()
+				.type(OccupationTransactionType.DEBIT)
+				.occupationId(occupationId)
+				.invoiceId(invoiceId)
+				.build();
 		// when
 		Mono<OccupationTransaction> createInvoiceIdDoesNotExist = reset()
 				.then(occupationRepository.save(occupation))
 				.doOnSuccess(o -> System.out.println("--- Created: "+o))
-				.then(occupationTransactionService.createDebitTransaction(dto));
+				.then(occupationTransactionService.create(dto));
 		// then
 		StepVerifier
 			.create(createInvoiceIdDoesNotExist)
@@ -141,20 +146,23 @@ class OccupationTransactionServiceImplIntegrationTest {
 		invoice.setOtherAmounts(new HashMap<>() {{
 			put("GYM", BigDecimal.valueOf(500l));
 		}});
-		var dto = new DebitTransactionDto();
-		dto.setOccupationId(occupationId);
-		dto.setInvoiceId(invoiceId);
+
+		var dto = new OccupationTransactionDto.OccupationTransactionDtoBuilder()
+				.type(OccupationTransactionType.DEBIT)
+				.occupationId(occupationId)
+				.invoiceId(invoiceId)
+				.build();
 		// when
 		Mono<OccupationTransaction> createInvoiceIdDoesNotExist = reset()
 				.then(occupationRepository.save(occupation))
 				.doOnSuccess(o -> System.out.println("--- Created: "+o))
 				.then(invoiceRepository.save(invoice))
 				.doOnSuccess(i -> System.out.println("--- Created: "+i))
-				.then(occupationTransactionService.createDebitTransaction(dto));
+				.then(occupationTransactionService.create(dto));
 		// then
 		StepVerifier
 			.create(createInvoiceIdDoesNotExist)
-			.expectNextMatches(ot -> ot.getType().equals(Type.DEBIT) &&
+			.expectNextMatches(ot -> ot.getType().equals(OccupationTransactionType.DEBIT) &&
 					ot.getOccupationId().equals(occupationId) && ot.getInvoiceId().equals(invoiceId) &&
 					ot.getReceiptId() == null && ot.getTotalAmountOwed().intValue() == 26600 &&
 					ot.getTotalAmountPaid().intValue() == 0 && 
@@ -167,13 +175,17 @@ class OccupationTransactionServiceImplIntegrationTest {
 	@Test
 	void createCreditTransaction_returnsCustomNotFoundException_whenOccupationIdDoesNotExist() {
 		// given
-		var dto = new CreditTransactionDto();
 		String occupationId = "2000";
-		dto.setOccupationId(occupationId);
-		dto.setReceiptId("1000");
+		String receiptId = "1000";
+
+		var dto = new OccupationTransactionDto.OccupationTransactionDtoBuilder()
+				.type(OccupationTransactionType.CREDIT)
+				.occupationId(occupationId)
+				.receiptId(receiptId)
+				.build();
 		// when
 		Mono<OccupationTransaction> createOccupationIdDoesNotExist = reset()
-				.then(occupationTransactionService.createCreditTransaction(dto));
+				.then(occupationTransactionService.create(dto));
 		// then
 		StepVerifier
 			.create(createOccupationIdDoesNotExist)
@@ -186,17 +198,20 @@ class OccupationTransactionServiceImplIntegrationTest {
 	void createCreditTransaction_returnsCustomNotFoundException_whenReceiptIdDoesNotExist() {
 		// given
 		String occupationId = "2000";
+		String receiptId = "1000";
 		var occupation = new Occupation();
 		occupation.setId(occupationId);
-		var dto = new CreditTransactionDto();
-		dto.setOccupationId(occupationId);
-		String receiptId = "1000";
-		dto.setReceiptId(receiptId);
+
+		var dto = new OccupationTransactionDto.OccupationTransactionDtoBuilder()
+				.type(OccupationTransactionType.CREDIT)
+				.occupationId(occupationId)
+				.receiptId(receiptId)
+				.build();
 		// when
 		Mono<OccupationTransaction> createReceiptIdDoesNotExist = reset()
 				.then(occupationRepository.save(occupation))
 				.doOnSuccess(o -> System.out.println("--- Created: "+o))
-				.then(occupationTransactionService.createCreditTransaction(dto));
+				.then(occupationTransactionService.create(dto));
 		// then
 		StepVerifier
 			.create(createReceiptIdDoesNotExist)
@@ -220,17 +235,19 @@ class OccupationTransactionServiceImplIntegrationTest {
 		receipt.setId(receiptId);
 		receipt.setNumber("12345");
 		receipt.setPaymentId(paymentId);
-		
-		var dto = new CreditTransactionDto();
-		dto.setOccupationId(occupationId);
-		dto.setReceiptId(receiptId);
+
+		var dto = new OccupationTransactionDto.OccupationTransactionDtoBuilder()
+				.type(OccupationTransactionType.CREDIT)
+				.occupationId(occupationId)
+				.receiptId(receiptId)
+				.build();
 		// when
 		Mono<OccupationTransaction> createReceiptIdDoesNotExist = reset()
 				.then(occupationRepository.save(occupation))
 				.doOnSuccess(o -> System.out.println("--- Created: "+o))
 				.then(receiptRepository.save(receipt))
 				.doOnSuccess(o -> System.out.println("--- Created: "+o))
-				.then(occupationTransactionService.createCreditTransaction(dto));
+				.then(occupationTransactionService.create(dto));
 		// then
 		StepVerifier
 			.create(createReceiptIdDoesNotExist)
@@ -261,10 +278,12 @@ class OccupationTransactionServiceImplIntegrationTest {
 		receipt.setId(receiptId);
 		receipt.setNumber("12345");
 		receipt.setPaymentId(paymentId);
-		
-		var dto = new CreditTransactionDto();
-		dto.setOccupationId(occupationId);
-		dto.setReceiptId(receiptId);
+
+		var dto = new OccupationTransactionDto.OccupationTransactionDtoBuilder()
+				.type(OccupationTransactionType.CREDIT)
+				.occupationId(occupationId)
+				.receiptId(receiptId)
+				.build();
 		// when
 		Mono<OccupationTransaction> createSuccessfully = reset()
 				.then(occupationRepository.save(occupation))
@@ -273,12 +292,12 @@ class OccupationTransactionServiceImplIntegrationTest {
 				.doOnSuccess(o -> System.out.println("--- Created: "+o))
 				.then(receiptRepository.save(receipt))
 				.doOnSuccess(o -> System.out.println("--- Created: "+o))
-				.then(occupationTransactionService.createCreditTransaction(dto));
+				.then(occupationTransactionService.create(dto));
 		// then
 		StepVerifier
 			.create(createSuccessfully)
 			.expectNextMatches(o -> o.getId() != null &&
-			o.getType().equals(Type.CREDIT) && o.getOccupationId().equals(occupationId) &&
+			o.getType().equals(OccupationTransactionType.CREDIT) && o.getOccupationId().equals(occupationId) &&
 			o.getInvoiceId() == null && o.getReceiptId().equals(receiptId) && o.getTotalAmountOwed().intValue() == 0 &&
 			o.getTotalAmountPaid().intValue() == 20000 && o.getTotalAmountCarriedForward().intValue() == 20000 &&
 			o.getCreatedOn() != null && o.getCreatedBy().equals("SYSTEM") && o.getModifiedOn() != null &&
@@ -292,7 +311,7 @@ class OccupationTransactionServiceImplIntegrationTest {
 		// given
 		String occupationId = "1";
 		var receiptId = "25";
-		Type typeCredit = Type.CREDIT;
+		OccupationTransactionType typeCredit = OccupationTransactionType.CREDIT;
 		var occupationTransactionId = "10";
 		var occupationTransaction = new OccupationTransaction.OccupationTransactionBuilder().type(typeCredit)
 				.occupationId(occupationId).receiptId(receiptId).totalAmountOwed(BigDecimal.ZERO)
@@ -326,7 +345,7 @@ class OccupationTransactionServiceImplIntegrationTest {
 	@Test
 	void findAll_returnsSuccessfuly_whenOccupationTransactionExists() {
 		// given
-		Type typeCredit = Type.CREDIT;
+		OccupationTransactionType typeCredit = OccupationTransactionType.CREDIT;
 		String occupationId = "1";
 		var occupationTransactionId = "10";
 		var receiptId = "25";
@@ -360,7 +379,7 @@ class OccupationTransactionServiceImplIntegrationTest {
 	@Test
 	void findAll_returnsCustomBadRequestException_whenInvoiceIdUsedToFindCreditType() {
 		// when
-		Flux<OccupationTransaction> invoiceIdUsedToFindCreditType = occupationTransactionService.findAll(Type.CREDIT, null, "1", null, null);
+		Flux<OccupationTransaction> invoiceIdUsedToFindCreditType = occupationTransactionService.findAll(OccupationTransactionType.CREDIT, null, "1", null, null);
 		// then
 		StepVerifier.create(invoiceIdUsedToFindCreditType)
 					.expectErrorMatches(e -> e instanceof CustomBadRequestException &&
@@ -371,7 +390,7 @@ class OccupationTransactionServiceImplIntegrationTest {
 	@Test
 	void findAll_returnsCustomBadRequestException_whenReceiptIdUsedToFindDebitType() {
 		// when
-		Flux<OccupationTransaction> receiptIdUsedToFindCreditType = occupationTransactionService.findAll(Type.DEBIT, null, null, "1", null);
+		Flux<OccupationTransaction> receiptIdUsedToFindCreditType = occupationTransactionService.findAll(OccupationTransactionType.DEBIT, null, null, "1", null);
 		// then
 		StepVerifier.create(receiptIdUsedToFindCreditType)
 					.expectErrorMatches(e -> e instanceof CustomBadRequestException &&

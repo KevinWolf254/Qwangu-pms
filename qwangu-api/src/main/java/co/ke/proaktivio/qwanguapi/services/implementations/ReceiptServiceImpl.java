@@ -4,7 +4,8 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
-import co.ke.proaktivio.qwanguapi.pojos.CreditTransactionDto;
+import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType;
+import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.ReceiptDto;
 import co.ke.proaktivio.qwanguapi.repositories.ReceiptRepository;
@@ -18,6 +19,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import reactor.core.publisher.Flux;
@@ -32,9 +34,8 @@ public class ReceiptServiceImpl implements ReceiptService {
     private final ReceiptRepository receiptRepository;
     private final ReactiveMongoTemplate template;
 
-    // TODO ENABLE TRANSACTIONAL
     @Override
-    //@Transactional
+    @Transactional
     public Mono<Receipt> create(ReceiptDto dto) {
         String occupationId = dto.getOccupationId();
 		String paymentId = dto.getPaymentId();
@@ -59,7 +60,10 @@ public class ReceiptServiceImpl implements ReceiptService {
 				})
                 .doOnSuccess(t -> log.info("Created: {}", t))
                 .flatMap(receipt -> occupationTransactionService
-                        .createCreditTransaction(new CreditTransactionDto(occupationId, receipt.getId()))
+                        .create(new OccupationTransactionDto.OccupationTransactionDtoBuilder()
+								.type(OccupationTransactionType.CREDIT)
+								.occupationId(occupationId)
+								.receiptId(receipt.getId()).build())
                         .then(Mono.just(receipt)));
     }
 

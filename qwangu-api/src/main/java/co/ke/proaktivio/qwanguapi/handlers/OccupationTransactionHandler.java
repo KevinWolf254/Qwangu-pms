@@ -47,8 +47,8 @@ public class OccupationTransactionHandler {
         Optional<String> invoiceIdOptional = request.queryParam("invoiceId");
         Optional<String> receiptIdOptional = request.queryParam("receiptId");
         Optional<String> orderOptional = request.queryParam("order");
-        if (type.isPresent() &&  !EnumUtils.isValidEnum(OccupationTransaction.Type.class, type.get())) {
-            String[] arrayOfState = Stream.of(OccupationTransaction.Type.values()).map(OccupationTransaction.Type::getType).toArray(String[]::new);
+        if (type.isPresent() &&  !EnumUtils.isValidEnum(OccupationTransaction.OccupationTransactionType.class, type.get())) {
+            String[] arrayOfState = Stream.of(OccupationTransaction.OccupationTransactionType.values()).map(OccupationTransaction.OccupationTransactionType::getType).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Type should be " + states + "!");
         }
@@ -56,7 +56,7 @@ public class OccupationTransactionHandler {
         ValidationUtil.vaidateOrderType(orderOptional);
         log.debug(" Received request for querying occupations");
         return occupationTransactionService.findAll(
-                        type.map(OccupationTransaction.Type::valueOf).orElse(null),
+                        type.map(OccupationTransaction.OccupationTransactionType::valueOf).orElse(null),
                         occupationIdOptional.map(occupationId -> occupationId).orElse(null),
                         invoiceIdOptional.map(invoiceId -> invoiceId).orElse(null),
                         receiptIdOptional.map(receiptId -> receiptId).orElse(null),

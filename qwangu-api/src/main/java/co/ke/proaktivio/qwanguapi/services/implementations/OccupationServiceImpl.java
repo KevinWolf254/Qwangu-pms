@@ -59,7 +59,7 @@ public class OccupationServiceImpl implements OccupationService {
      * // change payment status to processed
      **/
     @Override
-    @Transactional(rollbackFor = {RuntimeException.class, CustomBadRequestException.class, CustomNotFoundException.class})
+    @Transactional
     public Mono<Occupation> create(OccupationForNewTenantDto dto) {
         String tenantId = dto.getTenantId();
         OccupationDto occupation = dto.getOccupation();
@@ -72,7 +72,7 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     @Override
-    @Transactional(rollbackFor = {RuntimeException.class, CustomBadRequestException.class, CustomNotFoundException.class})
+    @Transactional
     public Mono<Occupation> create(String tenantId, OccupationDto occupation) {
         String unitId = occupation.getUnitId();
         String paymentId = occupation.getPaymentId();

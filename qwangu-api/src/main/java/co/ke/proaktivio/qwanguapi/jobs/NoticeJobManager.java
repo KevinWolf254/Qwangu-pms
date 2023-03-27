@@ -106,26 +106,26 @@ public class NoticeJobManager {
                                             return refund;
                                         })
                                         .flatMap(refundRepository::save)
-                                        .doOnNext(n -> log.info(" Created " + n))
+                                        .doOnNext(n -> log.info("Created " + n))
                                 .map(refund -> {
                                             unit.setStatus(Unit.Status.VACANT);
                                             return unit;
                                         }))
                                 .flatMap(unitRepository::save)
-                                .doOnNext(n -> log.info(" Updated " + n))
+                                .doOnNext(n -> log.info("Updated " + n))
                                 .map(unit -> {
                                     occupation.setStatus(Occupation.Status.VACATED);
                                     occupation.setEndDate(notice.getVacatingDate());
                                     return occupation;
                                 }))
                         .flatMap(occupationRepository::save)
-                        .doOnNext(n -> log.info(" Updated " + n))
+                        .doOnNext(n -> log.info("Updated " + n))
                         .map(occupation -> {
                             notice.setStatus(Notice.Status.FULFILLED);
                             return notice;
                         }))
                 .flatMap(noticeRepository::save)
-                .doOnNext(n -> log.info(" Updated " + n));
+                .doOnNext(n -> log.info("Updated " + n));
     }
 
 

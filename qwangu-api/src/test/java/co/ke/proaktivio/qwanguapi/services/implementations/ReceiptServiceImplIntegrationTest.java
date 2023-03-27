@@ -18,7 +18,7 @@ import co.ke.proaktivio.qwanguapi.configs.GlobalErrorWebExceptionHandler;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
-import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type;
+import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType;
 import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
@@ -181,7 +181,7 @@ class ReceiptServiceImplIntegrationTest {
 		.doOnNext(ot -> System.out.println("--- Found: "+ot));
 		// then
 		StepVerifier.create(findOccupationTransaction)
-				.expectNextMatches(ot -> ot.getId() != null && ot.getType().equals(Type.CREDIT)
+				.expectNextMatches(ot -> ot.getId() != null && ot.getType().equals(OccupationTransactionType.CREDIT)
 						&& ot.getOccupationId().equals("1") && ot.getInvoiceId() == null && ot.getReceiptId() != null
 						&& ot.getTotalAmountOwed().intValue() == 0 && ot.getTotalAmountPaid().intValue() == 25000
 						&& ot.getTotalAmountCarriedForward().intValue() == 25000 && ot.getCreatedOn() != null

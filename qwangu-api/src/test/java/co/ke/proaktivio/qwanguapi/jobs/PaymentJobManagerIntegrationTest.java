@@ -22,7 +22,7 @@ import co.ke.proaktivio.qwanguapi.models.MpesaPayment;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Occupation.Status;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
-import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type;
+import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType;
 import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.Payment.PaymentStatus;
 import co.ke.proaktivio.qwanguapi.models.Payment.PaymentType;
@@ -197,7 +197,7 @@ class PaymentJobManagerIntegrationTest {
 		// then
 		StepVerifier
 			.create(receipts)
-			.expectNextMatches(ot -> ot.getOccupationId().equals("1") && ot.getType().equals(Type.CREDIT)
+			.expectNextMatches(ot -> ot.getOccupationId().equals("1") && ot.getType().equals(OccupationTransactionType.CREDIT)
 					&& ot.getTotalAmountPaid().intValue() == 20000)
 			.verifyComplete();		
 	}

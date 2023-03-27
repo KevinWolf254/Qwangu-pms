@@ -5,11 +5,12 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomNotFoundException;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
-import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type;
+import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType;
 import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
 import co.ke.proaktivio.qwanguapi.pojos.CreditTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.DebitTransactionDto;
+import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationTransactionRepository;
 import co.ke.proaktivio.qwanguapi.services.*;
@@ -33,78 +34,96 @@ import java.math.BigDecimal;
 public class OccupationTransactionServiceImpl implements OccupationTransactionService {
     private final OccupationTransactionRepository occupationTransactionRepository;
     private final ReactiveMongoTemplate template;
-
+	private final InvoiceEmailNotificationService invoiceEmailNotificationService;
+	private final ReceiptEmailNotificationService receiptEmailNotificationService;
+	
     @Override
-    public Mono<OccupationTransaction> createDebitTransaction(DebitTransactionDto dto) {
-        return findOccupationById(dto.getOccupationId())
-                .flatMap(occupation -> findInvoiceById(dto.getInvoiceId())
-                        .flatMap(invoice -> findLatestByOccupationId(occupation.getId())
-                                .switchIfEmpty(Mono.just(
-                                        new OccupationTransaction.OccupationTransactionBuilder()
-                                                .totalAmountCarriedForward(BigDecimal.ZERO)
-                                                .occupationId(occupation.getId())
-                                                .build()))
-                                .flatMap(previousOccupationTransaction -> {
-                                    OccupationTransaction ot = new OccupationTransaction();
-
-                                    BigDecimal rentSecurityGarbage = BigDecimal.ZERO
-                                            .add(invoice.getRentAmount() != null ? invoice.getRentAmount() : BigDecimal.ZERO)
-                                            .add(invoice.getSecurityAmount() != null ? invoice.getSecurityAmount() : BigDecimal.ZERO)
-                                            .add(invoice.getGarbageAmount() != null ? invoice.getGarbageAmount() : BigDecimal.ZERO);
-                                    BigDecimal otherAmounts = invoice.getOtherAmounts() != null ?
-                                            invoice.getOtherAmounts().values().stream().reduce(BigDecimal.ZERO, BigDecimal::add) :
-                                            BigDecimal.ZERO;
-                                    BigDecimal totalAmountOwed = BigDecimal.ZERO.add(rentSecurityGarbage).add(otherAmounts);
-
-                                    BigDecimal amountBroughtForward = previousOccupationTransaction.getTotalAmountCarriedForward();
-                                    BigDecimal totalCarriedForward = BigDecimal.ZERO.add(rentSecurityGarbage).add(otherAmounts).add(amountBroughtForward);
-
-                                    ot.setType(OccupationTransaction.Type.DEBIT);
-                                    ot.setOccupationId(occupation.getId());
-                                    ot.setInvoiceId(invoice.getId());
-                                    ot.setTotalAmountOwed(totalAmountOwed);
-                                    ot.setTotalAmountCarriedForward(totalCarriedForward);
-                                    ot.setTotalAmountPaid(BigDecimal.ZERO);
-
-                                    return occupationTransactionRepository.save(ot);
-                                })
-                                .doOnSuccess(t -> log.info(" Created: {}", t))
-                        )
-                );
+    public Mono<OccupationTransaction> create(OccupationTransactionDto dto) {
+    	if(dto.getType().equals(OccupationTransactionType.CREDIT)) 
+    		return createCreditTransaction(new CreditTransactionDto(dto.getOccupationId(), dto.getReceiptId()));
+    	return createDebitTransaction(new DebitTransactionDto(dto.getOccupationId(), dto.getInvoiceId()));
     }
+
+	private Mono<OccupationTransaction> createDebitTransaction(DebitTransactionDto dto) {
+		return findOccupationById(dto.getOccupationId()).flatMap(occupation -> findInvoiceById(dto.getInvoiceId())
+				.flatMap(invoice -> findLatestByOccupationId(occupation.getId())
+						.switchIfEmpty(Mono.just(new OccupationTransaction.OccupationTransactionBuilder()
+								.totalAmountCarriedForward(BigDecimal.ZERO).occupationId(occupation.getId()).build()))
+						.flatMap(previousOccupationTransaction -> Mono
+								.just(debit(occupation, invoice, previousOccupationTransaction))
+								.flatMap(occupationTransactionRepository::save)
+								.doOnSuccess(t -> log.info("Created: {}", t))
+								.flatMap(ot -> invoiceEmailNotificationService.create(occupation, invoice, previousOccupationTransaction)
+										.map($ -> ot))
+								)));
+	}
     
-    @Override
-	public Mono<OccupationTransaction> createCreditTransaction(CreditTransactionDto dto) {
-		return findOccupationById(dto.getOccupationId())
-				.flatMap(occupation -> findReceiptById(dto.getReceiptId())
-						.flatMap(receipt -> findPaymentById(receipt.getPaymentId())
-								.flatMap(payment -> findLatestByOccupationId(occupation.getId())
-										.switchIfEmpty(
-												Mono.just(new OccupationTransaction.OccupationTransactionBuilder()
-														.totalAmountCarriedForward(BigDecimal.ZERO)
-														.occupationId(occupation.getId()).build()))
-										.flatMap(previousOccupationTransaction -> {
-											OccupationTransaction ot = new OccupationTransaction();
+	private OccupationTransaction debit(Occupation occupation, Invoice invoice,
+			OccupationTransaction previousOccupationTransaction) {
+		OccupationTransaction ot = new OccupationTransaction();
 
-											BigDecimal amount = payment.getAmount();
-											BigDecimal totalPayment = BigDecimal.ZERO.add(amount);
-											BigDecimal amountBroughtForward = previousOccupationTransaction
-													.getTotalAmountCarriedForward();
+		BigDecimal rentSecurityGarbage = BigDecimal.ZERO
+		        .add(invoice.getRentAmount() != null ? invoice.getRentAmount() : BigDecimal.ZERO)
+		        .add(invoice.getSecurityAmount() != null ? invoice.getSecurityAmount() : BigDecimal.ZERO)
+		        .add(invoice.getGarbageAmount() != null ? invoice.getGarbageAmount() : BigDecimal.ZERO);
+		BigDecimal otherAmounts = invoice.getOtherAmounts() != null ?
+		        invoice.getOtherAmounts().values().stream().reduce(BigDecimal.ZERO, BigDecimal::add) :
+		        BigDecimal.ZERO;
+		BigDecimal totalAmountOwed = BigDecimal.ZERO.add(rentSecurityGarbage).add(otherAmounts);
 
-											BigDecimal totalCarriedForward = totalPayment
-													.subtract(amountBroughtForward);
-
-											ot.setType(OccupationTransaction.Type.CREDIT);
-											ot.setOccupationId(occupation.getId());
-											ot.setReceiptId(receipt.getId());
-											ot.setTotalAmountPaid(amount);
-											ot.setTotalAmountCarriedForward(totalCarriedForward);
-											ot.setTotalAmountOwed(BigDecimal.ZERO);
-											return occupationTransactionRepository.save(ot);
-										}).doOnSuccess(t -> log.info("Created: {}", t)))));
-
+		BigDecimal amountBroughtForward = previousOccupationTransaction.getTotalAmountCarriedForward();
+		BigDecimal totalCarriedForward = BigDecimal.ZERO.add(rentSecurityGarbage).add(otherAmounts).add(amountBroughtForward);
+		
+		var previousOTId = previousOccupationTransaction.getId();
+		
+		ot.setType(OccupationTransaction.OccupationTransactionType.DEBIT);
+		ot.setOccupationId(occupation.getId());
+		ot.setInvoiceId(invoice.getId());
+		ot.setTotalAmountOwed(totalAmountOwed);
+		ot.setPreviousOccupationTransactionId(StringUtils.hasText(previousOTId) ? previousOTId: null);
+		ot.setTotalAmountCarriedForward(totalCarriedForward);
+		ot.setTotalAmountPaid(BigDecimal.ZERO);
+		return ot;
+	}
+    
+	private Mono<OccupationTransaction> createCreditTransaction(CreditTransactionDto dto) {
+		return findOccupationById(dto.getOccupationId()).flatMap(occupation -> findReceiptById(dto.getReceiptId())
+				.flatMap(receipt -> findPaymentById(receipt.getPaymentId())
+						.flatMap(payment -> findLatestByOccupationId(occupation.getId())
+								.switchIfEmpty(Mono.just(new OccupationTransaction.OccupationTransactionBuilder()
+										.totalAmountCarriedForward(BigDecimal.ZERO).occupationId(occupation.getId())
+										.build()))
+								.flatMap(previousOccupationTransaction -> Mono
+										.just(credit(occupation, receipt, payment, previousOccupationTransaction))
+										.flatMap(occupationTransactionRepository::save)
+										.doOnSuccess(t -> log.info("Created: {}", t))
+										.flatMap(ot -> receiptEmailNotificationService.create(occupation, payment, previousOccupationTransaction)
+												.map($ -> ot))))));
 	}
 
+	private OccupationTransaction credit(Occupation occupation, Receipt receipt, Payment payment,
+			OccupationTransaction previousOccupationTransaction) {
+		OccupationTransaction ot = new OccupationTransaction();
+
+		BigDecimal amount = payment.getAmount();
+		BigDecimal totalPayment = BigDecimal.ZERO.add(amount);
+		BigDecimal amountBroughtForward = previousOccupationTransaction
+				.getTotalAmountCarriedForward();
+
+		BigDecimal totalCarriedForward = totalPayment.subtract(amountBroughtForward);
+		
+        var previousOTId = previousOccupationTransaction.getId();
+
+		ot.setType(OccupationTransaction.OccupationTransactionType.CREDIT);
+		ot.setOccupationId(occupation.getId());
+		ot.setReceiptId(receipt.getId());
+		ot.setTotalAmountPaid(amount);
+        ot.setPreviousOccupationTransactionId(StringUtils.hasText(previousOTId) ? previousOTId: null);
+		ot.setTotalAmountCarriedForward(totalCarriedForward);
+		ot.setTotalAmountOwed(BigDecimal.ZERO);
+		return ot;
+	}
+    
     @Override
     public Mono<OccupationTransaction> findLatestByOccupationId(String occupationId) {
         return template
@@ -119,7 +138,7 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
     }
 
 	@Override
-	public Flux<OccupationTransaction> findAll(OccupationTransaction.Type type, String occupationId,
+	public Flux<OccupationTransaction> findAll(OccupationTransaction.OccupationTransactionType type, String occupationId,
 			String invoiceId, String receiptId, OrderType order) {
 		boolean hasReceiptId = StringUtils.hasText(receiptId);
 		boolean hasInvoiceId = StringUtils.hasText(invoiceId);
@@ -129,9 +148,9 @@ public class OccupationTransactionServiceImpl implements OccupationTransactionSe
 
 		Query query = new Query();
 		if (type != null) {
-			if(type.equals(Type.CREDIT) && hasInvoiceId)
+			if(type.equals(OccupationTransactionType.CREDIT) && hasInvoiceId)
 				return Flux.error(new CustomBadRequestException("CREDIT will not have an invoice id!"));
-			if(type.equals(Type.DEBIT) && hasReceiptId)
+			if(type.equals(OccupationTransactionType.DEBIT) && hasReceiptId)
 				return Flux.error(new CustomBadRequestException("DEBIT will not have an receipt id!"));
 			
 			query.addCriteria(Criteria.where("type").is(type));

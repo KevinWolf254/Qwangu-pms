@@ -15,13 +15,17 @@ import java.time.LocalDateTime;
 public class OccupationTransaction {
     @Id
     private String id;
-    private Type type;
+    private OccupationTransactionType type;
     @Indexed
     private String occupationId;
     private String invoiceId;
-    private String receiptId;
+    
     private BigDecimal totalAmountOwed;
+    private String receiptId;
     private BigDecimal totalAmountPaid;
+    
+    private String previousOccupationTransactionId;
+    
     private BigDecimal totalAmountCarriedForward;
     @CreatedDate
     private LocalDateTime createdOn;
@@ -34,7 +38,7 @@ public class OccupationTransaction {
 
     @Getter
     @RequiredArgsConstructor
-    public enum Type {
+    public enum OccupationTransactionType {
         CREDIT("CREDIT"),
         DEBIT("DEBIT");
 
@@ -42,7 +46,7 @@ public class OccupationTransaction {
     }
 
     public static class OccupationTransactionBuilder {
-        private Type type;
+        private OccupationTransactionType type;
         private String occupationId;
         private String invoiceId;
         private String receiptId;
@@ -50,7 +54,7 @@ public class OccupationTransaction {
         private BigDecimal totalAmountPaid;
         private BigDecimal totalAmountCarriedForward;
 
-        public OccupationTransactionBuilder type(Type type) {
+        public OccupationTransactionBuilder type(OccupationTransactionType type) {
             this.type = type;
             return this;
         }

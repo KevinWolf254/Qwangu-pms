@@ -31,7 +31,7 @@ import co.ke.proaktivio.qwanguapi.configs.security.SecurityConfig;
 import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.handlers.OccupationTransactionHandler;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
-import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.Type;
+import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
@@ -107,7 +107,7 @@ class OccupationTransactionConfigTest {
         var occupationTransactionId = "1";
         var occupationTransaction = new OccupationTransaction();
         occupationTransaction.setId(occupationTransactionId);
-        occupationTransaction.setType(Type.DEBIT);
+        occupationTransaction.setType(OccupationTransactionType.DEBIT);
         occupationTransaction.setCreatedBy("SYSTEM");
         occupationTransaction.setCreatedOn(LocalDateTime.now());
         occupationTransaction.setInvoiceId("1");
@@ -133,7 +133,7 @@ class OccupationTransactionConfigTest {
                 .jsonPath("$.message").isEqualTo("Occupation Transaction found successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.id").isEqualTo("1")
-                .jsonPath("$.data.type").isEqualTo(Type.DEBIT.getType())
+                .jsonPath("$.data.type").isEqualTo(OccupationTransactionType.DEBIT.getType())
                 .jsonPath("$.data.occupationId").isEqualTo("1")
                 .jsonPath("$.data.invoiceId").isEqualTo("1")
                 .jsonPath("$.data.receiptId").isEmpty()
@@ -264,7 +264,7 @@ class OccupationTransactionConfigTest {
         var occupationTransactionId = "1";
         var occupationTransaction = new OccupationTransaction();
         occupationTransaction.setId(occupationTransactionId);
-        occupationTransaction.setType(Type.DEBIT);
+        occupationTransaction.setType(OccupationTransactionType.DEBIT);
         occupationTransaction.setCreatedBy("SYSTEM");
         occupationTransaction.setCreatedOn(LocalDateTime.now());
         occupationTransaction.setInvoiceId("1");
@@ -295,7 +295,7 @@ class OccupationTransactionConfigTest {
                 .jsonPath("$.message").isEqualTo("Occupation Transactions found successfully.")
                 .jsonPath("$.data").isNotEmpty()
                 .jsonPath("$.data.[0].id").isEqualTo("1")
-                .jsonPath("$.data.[0].type").isEqualTo(Type.DEBIT.getType())
+                .jsonPath("$.data.[0].type").isEqualTo(OccupationTransactionType.DEBIT.getType())
                 .jsonPath("$.data.[0].occupationId").isEqualTo("1")
                 .jsonPath("$.data.[0].invoiceId").isEqualTo("1")
                 .jsonPath("$.data.[0].receiptId").isEmpty()
