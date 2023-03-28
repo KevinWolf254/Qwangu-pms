@@ -114,7 +114,7 @@ class NoticeJobManagerIntegrationTest {
     }
     private Occupation getOccupation() {
         var occupation = new Occupation.OccupationBuilder()
-                .status(Occupation.Status.CURRENT)
+                .status(Occupation.Status.PENDING_VACATING)
                 .startDate(today.minusDays(61))
                 .tenantId("1")
                 .unitId("1")
@@ -126,7 +126,7 @@ class NoticeJobManagerIntegrationTest {
         var notice = new Notice.NoticeBuilder()
                 .status(Notice.Status.ACTIVE)
                 .notificationDate(today.minusDays(31))
-                .vacatingDate(today.minusDays(1))
+                .vacatingDate(today)//.minusDays(1))
                 .occupationId("1")
                 .build();
         notice.setId("1");
