@@ -19,14 +19,17 @@ import co.ke.proaktivio.qwanguapi.exceptions.CustomBadRequestException;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType;
+import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
 import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
+import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.pojos.ReceiptDto;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationTransactionRepository;
 import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
 import co.ke.proaktivio.qwanguapi.repositories.ReceiptRepository;
+import co.ke.proaktivio.qwanguapi.repositories.TenantRepository;
 import co.ke.proaktivio.qwanguapi.services.ReceiptService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -45,6 +48,8 @@ class ReceiptServiceImplIntegrationTest {
 	private OccupationRepository occupationRepository;
 	@Autowired
 	private OccupationTransactionRepository occupationTransactionRepository;
+	@Autowired
+	private TenantRepository tenantRepository;
     @MockBean
     private BootstrapConfig bootstrapConfig;
     @MockBean
@@ -131,14 +136,21 @@ class ReceiptServiceImplIntegrationTest {
 		var paymentId = "1";
 		var payment = new Payment();
 		payment.setId(paymentId);
+		payment.setCurrency(Currency.KES);
 		payment.setAmount(BigDecimal.valueOf(25000l));
 		
 		var dto = new ReceiptDto();
 		dto.setOccupationId(occupationId);
 		dto.setPaymentId(paymentId);
 
+		var tenant = new Tenant.TenantBuilder().emailAddress("johnDoe@someplace.com")
+				.firstName("John").middleName("Doe").surname("Doe").mobileNumber("0720000000")
+				.build();
+		tenant.setId(occupation.getTenantId());
 		// when
 		Mono<Receipt> createReceipt = reset()
+				.then(tenantRepository.save(tenant))
+				.doOnSuccess(o -> System.out.println("--- Created: " + o))
 				.then(occupationRepository.save(occupation))
 				.doOnSuccess(o -> System.out.println("--- Created: " + o))
 				.then(paymentRepository.save(payment))
