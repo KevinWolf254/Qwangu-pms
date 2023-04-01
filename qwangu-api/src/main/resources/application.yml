@@ -79,6 +79,7 @@ ftl:
         - templates/images/instagram.png
         - templates/images/invoice.jpg
         - templates/images/payment.jpg
+        - templates/images/welcome.jpg
     -
       name: activate_account.ftlh
       path: src/main/resources/templates
@@ -92,6 +93,8 @@ ftl:
 #       TODO - ADD TEMPLATE FOR PAYMENT CONFIRMATION
     -
       name: receipt.ftlh
+    -
+      name: welcome.ftlh
 safaricom:
   whiteListedUrls:
     - '127.0.0.1'
