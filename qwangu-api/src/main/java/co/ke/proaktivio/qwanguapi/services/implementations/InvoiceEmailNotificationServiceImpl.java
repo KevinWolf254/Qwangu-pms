@@ -46,8 +46,8 @@ public class InvoiceEmailNotificationServiceImpl implements InvoiceEmailNotifica
     		.map(tenant -> {
     			var firstName = tenant.getFirstName();
     			var surname = tenant.getSurname();
-    			var startDate = invoice.getStartDate();
-    			var endDate = invoice.getEndDate();// startDate.withDayOfMonth(startDate.lengthOfMonth());
+    			var startDate = invoice.getStartDate() != null ? invoice.getStartDate() : LocalDate.now();
+    			var endDate = invoice.getEndDate() != null ? invoice.getEndDate() : startDate.withDayOfMonth(startDate.lengthOfMonth());
     	    	var currency = invoice.getCurrency().name();
 
     			var currentMonth = startDate.getMonth();
@@ -73,9 +73,10 @@ public class InvoiceEmailNotificationServiceImpl implements InvoiceEmailNotifica
     			amountsEntry.add(1, new ChargeDto.ChargeBuilder().name("RENT").amount(rentAmount.doubleValue()).build());
     			amountsEntry.add(2, new ChargeDto.ChargeBuilder().name("SECURITY").amount(securityAmount.doubleValue()).build());
     			amountsEntry.add(3, new ChargeDto.ChargeBuilder().name("GARBAGE").amount(garbageAmount.doubleValue()).build());
-    			invoice.getOtherAmounts().forEach((name, otherAmount) -> {
-        			amountsEntry.add(new ChargeDto.ChargeBuilder().name(name.toUpperCase()).amount(otherAmount.doubleValue()).build());
-    			});
+    			if(invoice.getOtherAmounts() != null)
+	    			invoice.getOtherAmounts().forEach((name, otherAmount) -> {
+	        			amountsEntry.add(new ChargeDto.ChargeBuilder().name(name.toUpperCase()).amount(otherAmount.doubleValue()).build());
+	    			});
     			
     	        var signInUrl = uiEndPoints.getEndPoints().get(2);
     	        

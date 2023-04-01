@@ -30,6 +30,7 @@ import co.ke.proaktivio.qwanguapi.models.Invoice.Type;
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.Occupation.Status;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
+import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
 import co.ke.proaktivio.qwanguapi.models.Unit.Identifier;
@@ -39,6 +40,7 @@ import co.ke.proaktivio.qwanguapi.pojos.OrderType;
 import co.ke.proaktivio.qwanguapi.repositories.InvoiceRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationTransactionRepository;
+import co.ke.proaktivio.qwanguapi.repositories.TenantRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import co.ke.proaktivio.qwanguapi.services.InvoiceService;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
@@ -65,7 +67,9 @@ class InvoiceServiceIntegrationImplTest {
 	private OccupationTransactionService occupationTransactionService;
 	@Autowired
 	private ReactiveMongoTemplate template;
-
+	@Autowired
+	private TenantRepository tenantRepository;
+	
 	@MockBean
 	private BootstrapConfig bootstrapConfig;
 	@MockBean
@@ -148,8 +152,13 @@ class InvoiceServiceIntegrationImplTest {
 		unit.setOtherAmountsAdvance(otherAmountsAdvance);
 		unit.setPropertyId("1");
 
+		var tenant = new Tenant.TenantBuilder().emailAddress("johnDoe@someplace.com")
+				.firstName("John").middleName("Doe").surname("Doe").mobileNumber("0720000000")
+				.build();
+		tenant.setId(occupation.getTenantId());
 		// when
-		Mono<Invoice> createInvoice = reset().then(unitRepository.save(unit))
+		Mono<Invoice> createInvoice = reset().then(tenantRepository.save(tenant))
+				.doOnSuccess(t -> System.out.println("---- Created: " + t)).then(unitRepository.save(unit))
 				.doOnSuccess(t -> System.out.println("---- Created: " + t)).then(occupationRepository.save(occupation))
 				.doOnSuccess(t -> System.out.println("---- Created: " + t)).then(invoiceService.create(dto));
 
@@ -203,7 +212,6 @@ class InvoiceServiceIntegrationImplTest {
 		unit.setSecurityPerMonth(BigDecimal.valueOf(500l));
 		unit.setGarbagePerMonth(BigDecimal.valueOf(500l));
 		unit.setPropertyId("1");
-
 		// when
 		create_returnsInvoiceSuccessfully_forRentAdvance();
 		Mono<Invoice> createInvoice = invoiceService.create(dto);
