@@ -68,8 +68,8 @@ public class PaymentConfigs {
     )
 	RouterFunction<ServerResponse> paymentRoute(PaymentHandler handler) {
 		return route().path("v1/payments", builder -> builder
+				.GET("/{paymentId}", handler::findById)
 					.GET(handler::findAll)
-					.GET("/{paymentId}", handler::findById)
 				)
 				.build();
 	}

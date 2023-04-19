@@ -69,7 +69,7 @@ public class PaymentHandler {
 						.flatMap(payments -> {
 							boolean isEmpty = payments.isEmpty();
 							var message = !isEmpty ? "Payments found successfully."
-									: "Payments with those parameters do  not exist!";
+									: "Payments with those parameters do not exist!";
 
 							return Mono.just(new Response<>(LocalDateTime.now().toString(), request.uri().getPath(),
 									HttpStatus.OK.value(), !isEmpty, message, payments));

@@ -71,10 +71,10 @@ class EmailServiceImplIntegrationTest {
         assertThat(this.cpc.getName()).isEqualTo("proaktivio");
         assertThat(this.cpc.getUrl()).isEqualTo("https://proaktivio.co.ke");
         assertThat(this.cpc.getNoReplyEmail()).isEqualTo("noreply@proaktivio.co.ke");
-        assertThat(this.cpc.getSocialMedia().getLinkedInUrl()).isEqualTo("https://linked-in.com");
-        assertThat(this.cpc.getSocialMedia().getTwitterUrl()).isEqualTo("https://twitter.com");
-        assertThat(this.cpc.getSocialMedia().getFacebookUrl()).isEqualTo("https://facebook.com");
-        assertThat(this.cpc.getSocialMedia().getInstagramUrl()).isEqualTo("https://instagram.com");
+        assertThat(this.cpc.getSocialMedia().getLinkedInUrl()).isEqualTo("https://linked-in.com/proaktivio");
+        assertThat(this.cpc.getSocialMedia().getTwitterUrl()).isEqualTo("https://twitter.com/proaktivio");
+        assertThat(this.cpc.getSocialMedia().getFacebookUrl()).isEqualTo("https://facebook.com/proaktivio");
+        assertThat(this.cpc.getSocialMedia().getInstagramUrl()).isEqualTo("https://instagram.com/proaktivio");
     }
 
     @Test

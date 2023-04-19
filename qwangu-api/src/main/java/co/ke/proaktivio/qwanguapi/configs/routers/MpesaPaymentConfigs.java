@@ -46,7 +46,7 @@ public class MpesaPaymentConfigs {
                     @RouterOperation(
                             path = "/v1/payments/mpesa",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.POST, beanClass = MpesaPaymentHandler.class, beanMethod = "confirm",
+                            method = RequestMethod.POST, beanClass = MpesaPaymentHandler.class, beanMethod = "create",
                             operation = @Operation(
                                     operationId = "confirm",
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = MpesaPaymentDto.class))),
@@ -96,11 +96,13 @@ public class MpesaPaymentConfigs {
             }
     )
 	RouterFunction<ServerResponse> mpesaPaymentRoute(MpesaPaymentHandler handler) {
-		return route().path("v1/payments/mpesa", builder -> builder
-				.POST("/validate", handler::validate)
-				.POST(handler::create))
-				.GET("/{mpesaPaymentId}",handler::findById)
-				.GET(handler::findAll)
+		return route()
+				.path("v1/payments/mpesa", builder -> builder
+					.GET("/{mpesaPaymentId}",handler::findById)
+					.GET(handler::findAll)
+					.POST("/validate", handler::validate)
+					.POST(handler::create)
+				)
 				.build();
 	}
 }

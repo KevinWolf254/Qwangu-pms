@@ -2,10 +2,12 @@ package co.ke.proaktivio.qwanguapi.jobs;
 
 import co.ke.proaktivio.qwanguapi.models.Occupation;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
+import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.models.Invoice;
 import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationTransactionRepository;
+import co.ke.proaktivio.qwanguapi.repositories.TenantRepository;
 import co.ke.proaktivio.qwanguapi.repositories.InvoiceRepository;
 import co.ke.proaktivio.qwanguapi.repositories.UnitRepository;
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,8 @@ class InvoiceJobManagerIntegrationTest {
     @Autowired
     private UnitRepository unitRepository;
     @Autowired
+    private TenantRepository tenantRepository;
+    @Autowired
     private OccupationTransactionRepository occupationTransactionRepository;
     @Autowired
     private InvoiceRepository invoiceRepository;
@@ -53,13 +57,20 @@ class InvoiceJobManagerIntegrationTest {
     void create() {
         // given
         LocalDate now = LocalDate.now();
+        var tenantId = "1";
+        var unitId = "1";
+        var occupationId = "1";
         var currentOccupation = new Occupation.OccupationBuilder()
-                .tenantId("1")
+                .tenantId(tenantId)
                 .startDate(now.minusDays(30))
-                .unitId("1")
+                .unitId(unitId)
                 .build();
-        currentOccupation.setId("1");
+        currentOccupation.setId(occupationId);
         currentOccupation.setStatus(Occupation.Status.CURRENT);
+		var tenant = new Tenant.TenantBuilder().emailAddress("johnDoe@someplace.com")
+				.firstName("John").middleName("Doe").surname("Doe").mobileNumber("0720000000")
+				.build();
+		tenant.setId(tenantId);
         var currentUnit = new Unit.UnitBuilder()
                 .status(Unit.Status.OCCUPIED)
 //                .booked(false)
@@ -120,6 +131,8 @@ class InvoiceJobManagerIntegrationTest {
                 .doOnSuccess(t -> System.out.println("---- Deleted all OccupationTransactions!"))
                 .then(invoiceRepository.deleteAll())
                 .doOnSuccess(t -> System.out.println("---- Deleted all Invoices!"))
+                .then(tenantRepository.save(tenant))
+                .doOnNext(t -> System.out.println("---- Created: " + t))
                 .thenMany(unitRepository.saveAll(List.of(currentUnit, bookedUnit)))
                 .doOnNext(t -> System.out.println("---- Created: " + t))
                 .thenMany(occupationRepository.saveAll(List.of(currentOccupation, bookedOccupation)))

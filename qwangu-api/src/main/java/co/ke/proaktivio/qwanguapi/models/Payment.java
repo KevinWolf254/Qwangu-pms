@@ -52,7 +52,7 @@ public class Payment {
         private Unit.Currency currency;
         private BigDecimal amount;
         
-		public PaymentBuilder setType(PaymentType type) {
+		public PaymentBuilder type(PaymentType type) {
 			this.type = type;
 			return this;
 		}

@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .authenticationManager(authenticationManager)
                 .securityContextRepository(contextRepository)
                 .authorizeExchange()
+                .pathMatchers(HttpMethod.POST, "/v1/payments/mpesa").permitAll()
                 .pathMatchers(
                         "/v3/api-docs/**",
                         "/configuration/ui",
@@ -51,9 +52,9 @@ public class SecurityConfig {
                         "/v1/forgot-password",
                         "/v1/set-password",
                         "/v1/activate",
-                        "/v1/payments/mpesa/v2/confirm",
-                        "/v1/payments/mpesa/v2/validate"
+                        "/v1/payments/mpesa/validate"
                 ).permitAll()
+                // TODO ASSIGN ROLES TO ACCESS SPECIFIC APIs
                 .pathMatchers( "/v1/apartments/**").hasAnyRole("SUPER_ADMIN")
                 .pathMatchers( "/v1/units/**").hasAnyRole("SUPER_ADMIN")
                 .pathMatchers( "/v1/occupations/**").hasAnyRole("SUPER_ADMIN")

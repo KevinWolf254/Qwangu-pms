@@ -64,7 +64,7 @@ public class MpesaPaymentHandler {
                                         request.uri().getPath(),
                                         HttpStatus.OK.value(),true,"Payment found successfully.",
                                         results)), Response.class))
-                .doOnSuccess(a -> log.info(" Sent response with status code {} for querying payment by id", a.rawStatusCode()));
+                .doOnSuccess(a -> log.info("Sent response with status code {} for querying payment by id", a.rawStatusCode()));
     }
 
 	public Mono<ServerResponse> findAll(ServerRequest request) {
@@ -81,7 +81,7 @@ public class MpesaPaymentHandler {
 						.flatMap(payments -> {
 							boolean isEmpty = payments.isEmpty();
 							var message = !isEmpty ? "Payments found successfully."
-									: "Payments with those parameters do  not exist!";
+									: "Payments with those parameters do not exist!";
 
 							return Mono.just(new Response<>(LocalDateTime.now().toString(), request.uri().getPath(),
 									HttpStatus.OK.value(), !isEmpty, message, payments));

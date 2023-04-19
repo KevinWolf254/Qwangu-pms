@@ -553,7 +553,7 @@ class UserConfigsTest {
         PasswordDto passwordsNotValid = new PasswordDto("pass!123", "pass@1234");
         client
                 .put()
-                .uri("/v1/users/{id}/password", id)
+                .uri("/v1/users/{id}/change-password", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(passwordsNotValid), PasswordDto.class)
                 .exchange()
@@ -585,7 +585,7 @@ class UserConfigsTest {
 //        String uri = "/v1/users/%s/password".formatted(id);
         client
                 .put()
-                .uri("/v1/users/{id}/password", id)
+                .uri("/v1/users/{id}/change-password", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(dto), PasswordDto.class)
                 .exchange()

@@ -1,5 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.security;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,9 +27,10 @@ public class MpesaIPAddressWhiteListFilter implements WebFilter {
 		return Mono.defer(() -> {
 			var targetsMpesaAPi = targetedResourcePath.contains("mpesa");
 
-			if (!targetsMpesaAPi)
+			if (!targetsMpesaAPi || (targetsMpesaAPi && !exchange.getRequest().getMethod().equals(HttpMethod.POST))) {
 				return chain.filter(exchange);
-
+			}
+			
 			var remoteHost = exchange.getRequest().getRemoteAddress().getHostName();
 			return Mono.just(remoteHost);
 		})

@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
@@ -95,7 +97,9 @@ class PaymentJobManagerIntegrationTest {
 				.then(occupationTransactionRepository.deleteAll())
 				.doOnSuccess(t -> System.out.println("---- Deleted all OccupationTransactions!"))
 				.then(smsNotificationRepository.deleteAll())
-				.doOnSuccess(t -> System.out.println("---- Deleted all SmsNotifications!"));
+				.doOnSuccess(t -> System.out.println("---- Deleted all SmsNotifications!"))
+				.then(emailNotificationRepository.deleteAll())
+				.doOnSuccess(t -> System.out.println("---- Deleted all EmailNotifications!"));
 	}
     
 	@Test
@@ -114,7 +118,7 @@ class PaymentJobManagerIntegrationTest {
 	void processMobilePayments_returnsEmpty_whenClaimedPaymentsExist() {
 		// given
 		var payment = new Payment.PaymentBuilder().currency(Currency.KES).amount(BigDecimal.valueOf(20000l)).occupationNumber("12345")
-				.referenceNumber("234567").setType(PaymentType.MOBILE).build();
+				.referenceNumber("234567").type(PaymentType.MOBILE).build();
 		
 		// when
 		Flux<SmsNotification> create = reset()
@@ -141,7 +145,7 @@ class PaymentJobManagerIntegrationTest {
 		occupation.setNumber("1");
 		
 		var payment = new Payment.PaymentBuilder().currency(Currency.KES).amount(BigDecimal.valueOf(20000l))
-				.occupationNumber("1").referenceNumber("234567").setType(PaymentType.MOBILE).build();
+				.occupationNumber("1").referenceNumber("234567").type(PaymentType.MOBILE).build();
 		payment.setStatus(PaymentStatus.UNCLAIMED);
 		payment.setId("1");
 		
@@ -221,7 +225,7 @@ class PaymentJobManagerIntegrationTest {
 	void processMobilePayments_createsEmailNotification_whenUnClaimedPaymentsExist() {
 		// when
 		processMobilePayments_updatesPaymentToClaimed_whenUnClaimedPaymentsExist();
-		Flux<EmailNotification> smsNotifications = emailNotificationRepository.findAll()
+		Flux<EmailNotification> smsNotifications = emailNotificationRepository.findAll(Sort.by(Order.desc("id")))
 				.doOnNext(t -> System.out.println("---- Found: " +t));
 		
 		// then
@@ -231,7 +235,16 @@ class PaymentJobManagerIntegrationTest {
 					&& en.getStatus().equals(NotificationStatus.PENDING)
 					&& en.getTo().get(0).equals("person@somecompany.com")
 					&& en.getSubject().equals("Payment Confirmation")
-					&& en.getTemplate().equals("activate_account.ftlh")
+					&& en.getTemplate().equals("invoice.ftlh")
+					&& en.getTemplateModel() != null
+					&& en.getResources() != null
+					&& en.getCreatedOn() != null 
+					&& en.getModifiedOn() != null)
+			.expectNextMatches(en -> !en.getId().isEmpty() 
+					&& en.getStatus().equals(NotificationStatus.PENDING)
+					&& en.getTo().get(0).equals("person@somecompany.com")
+					&& en.getSubject().equals("Rent Receipt")
+					&& en.getTemplate().equals("receipt.ftlh")
 					&& en.getTemplateModel() != null
 					&& en.getResources() != null
 					&& en.getCreatedOn() != null 

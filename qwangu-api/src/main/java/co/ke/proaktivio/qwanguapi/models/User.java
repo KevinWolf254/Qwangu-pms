@@ -44,7 +44,6 @@ public class User {
         private Person person;
         private String emailAddress;
         private String roleId;
-        private String password;
 
         public UserBuilder person(Person person) {
             this.person = person;
@@ -66,7 +65,6 @@ public class User {
             user.setPerson(this.person);
             user.setEmailAddress(this.emailAddress);
             user.setRoleId(this.roleId);
-            user.setPassword(this.password);
             user.setIsAccountExpired(false);
             user.setIsCredentialsExpired(false);
             user.setIsAccountLocked(false);

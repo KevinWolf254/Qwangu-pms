@@ -110,11 +110,13 @@ class UserAuthorityServiceImplIntegrationTest {
 	@Test
 	void findAll_returnsUserAuthorityList_whenSuccessful() {
 		// when
-		Flux<UserAuthority> saved = Flux
+		Flux<UserAuthority> saved = userAuthorityRepository.deleteAll()
+				.thenMany(
+				Flux
 				.just(new UserAuthority.UserAuthorityBuilder().name("USERS").create(true).read(true).update(true)
 						.delete(true).authorize(true).roleId("1").build(),
 						new UserAuthority.UserAuthorityBuilder().name("PROPERTIES").create(true).read(true).update(true)
-								.delete(true).authorize(true).roleId("1").build())
+								.delete(true).authorize(true).roleId("1").build()))
 				.flatMap(a -> userAuthorityRepository.save(a))
 				.thenMany(userAuthorityService.findAll(null, null, OrderType.ASC));
 		// then

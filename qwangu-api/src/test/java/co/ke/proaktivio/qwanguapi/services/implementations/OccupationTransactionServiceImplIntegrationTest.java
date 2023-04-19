@@ -25,6 +25,7 @@ import co.ke.proaktivio.qwanguapi.models.OccupationTransaction;
 import co.ke.proaktivio.qwanguapi.models.OccupationTransaction.OccupationTransactionType;
 import co.ke.proaktivio.qwanguapi.models.Payment;
 import co.ke.proaktivio.qwanguapi.models.Receipt;
+import co.ke.proaktivio.qwanguapi.models.Tenant;
 import co.ke.proaktivio.qwanguapi.models.Unit.Currency;
 import co.ke.proaktivio.qwanguapi.pojos.OccupationTransactionDto;
 import co.ke.proaktivio.qwanguapi.pojos.OrderType;
@@ -33,6 +34,7 @@ import co.ke.proaktivio.qwanguapi.repositories.OccupationRepository;
 import co.ke.proaktivio.qwanguapi.repositories.OccupationTransactionRepository;
 import co.ke.proaktivio.qwanguapi.repositories.PaymentRepository;
 import co.ke.proaktivio.qwanguapi.repositories.ReceiptRepository;
+import co.ke.proaktivio.qwanguapi.repositories.TenantRepository;
 import co.ke.proaktivio.qwanguapi.services.OccupationTransactionService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -53,6 +55,8 @@ class OccupationTransactionServiceImplIntegrationTest {
 	private ReceiptRepository receiptRepository;
 	@Autowired
 	private PaymentRepository paymentRepository;
+	@Autowired
+	private TenantRepository tenantRepository;
 	
 	@MockBean
 	private BootstrapConfig bootstrapConfig;
@@ -79,7 +83,9 @@ class OccupationTransactionServiceImplIntegrationTest {
 				.then(receiptRepository.deleteAll())
 				.doOnSuccess(t -> System.out.println("---- Deleted all Receipts!"))
 				.then(paymentRepository.deleteAll())
-				.doOnSuccess(t -> System.out.println("---- Deleted all Payments!"));
+				.doOnSuccess(t -> System.out.println("---- Deleted all Payments!"))
+				.then(tenantRepository.deleteAll())
+				.doOnSuccess(t -> System.out.println("---- Deleted all Tenants!"));
 	}
 	
 	@Test
@@ -133,13 +139,26 @@ class OccupationTransactionServiceImplIntegrationTest {
 	@Test
 	void createDebitTransaction_returnsSuccessfully() {
 		// given
+		// given
+		var tenantId = "1";
+        var tenant = new Tenant.TenantBuilder()
+                .firstName("John")
+                .middleName("Doe")
+                .surname("Jane")
+                .mobileNumber("0720000001")
+                .emailAddress("jJane@mail.co.ke")
+                .build();
+        tenant.setId(tenantId);
+        
 		String occupationId = "2000";
 		var occupation = new Occupation();
 		occupation.setId(occupationId);
+		occupation.setTenantId(tenantId);
 		
 		String invoiceId = "1000";
 		var invoice = new Invoice();
 		invoice.setId(invoiceId);
+		invoice.setCurrency(Currency.KES);
 		invoice.setRentAmount(BigDecimal.valueOf(25000l));
 		invoice.setSecurityAmount(BigDecimal.valueOf(100l));
 		invoice.setGarbageAmount(BigDecimal.valueOf(1000l));
@@ -154,6 +173,8 @@ class OccupationTransactionServiceImplIntegrationTest {
 				.build();
 		// when
 		Mono<OccupationTransaction> createInvoiceIdDoesNotExist = reset()
+				.then(tenantRepository.save(tenant))
+				.doOnSuccess(o -> System.out.println("--- Created: "+o))
 				.then(occupationRepository.save(occupation))
 				.doOnSuccess(o -> System.out.println("--- Created: "+o))
 				.then(invoiceRepository.save(invoice))
@@ -259,10 +280,21 @@ class OccupationTransactionServiceImplIntegrationTest {
 	@Test
 	void createCreditTransaction_returnsSuccessfully() {
 		// given
+		var tenantId = "1";
+        var tenant = new Tenant.TenantBuilder()
+                .firstName("John")
+                .middleName("Doe")
+                .surname("Jane")
+                .mobileNumber("0720000001")
+                .emailAddress("jJane@mail.co.ke")
+                .build();
+        tenant.setId(tenantId);
+        
 		String occupationId = "2000";
 		var occupation = new Occupation();
 		occupation.setNumber("12345");
 		occupation.setId(occupationId);
+		occupation.setTenantId(tenantId);
 
 		String paymentId = "5001";
 		var payment = new Payment();
@@ -278,7 +310,7 @@ class OccupationTransactionServiceImplIntegrationTest {
 		receipt.setId(receiptId);
 		receipt.setNumber("12345");
 		receipt.setPaymentId(paymentId);
-
+        
 		var dto = new OccupationTransactionDto.OccupationTransactionDtoBuilder()
 				.type(OccupationTransactionType.CREDIT)
 				.occupationId(occupationId)
@@ -286,6 +318,8 @@ class OccupationTransactionServiceImplIntegrationTest {
 				.build();
 		// when
 		Mono<OccupationTransaction> createSuccessfully = reset()
+				.then(tenantRepository.save(tenant))
+				.doOnSuccess(o -> System.out.println("--- Created: "+o))
 				.then(occupationRepository.save(occupation))
 				.doOnSuccess(o -> System.out.println("--- Created: "+o))
 				.then(paymentRepository.save(payment))

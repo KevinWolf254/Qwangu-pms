@@ -105,6 +105,8 @@ class UserRoleServiceImplIntegrationTest {
 		Mono<UserRole> createSuccessfully = userRoleRepository
 				.deleteAll()
 				.doOnSuccess($ -> System.out.println("--- Deleted all user roles!"))
+				.then(userAuthorityRepository.deleteAll())
+				.doOnSuccess($ -> System.out.println("--- Deleted all user authorities!"))
 				.then(userRoleService.create(userRoleAdmin));
 		// then
 		StepVerifier
@@ -149,7 +151,8 @@ class UserRoleServiceImplIntegrationTest {
 				.name(userRoleSupervisor)
 				.build();
 		
-		Flux<UserRole> saved = Flux.just(admin, supervisor)
+		Flux<UserRole> saved = userRoleRepository.deleteAll()
+				.thenMany(Flux.just(admin, supervisor))
 				.flatMap(a -> userRoleRepository.save(a))
 				.thenMany(userRoleService.findAll(null, OrderType.DESC))
 				.doOnNext(ur -> System.out.println("Found: " +ur));

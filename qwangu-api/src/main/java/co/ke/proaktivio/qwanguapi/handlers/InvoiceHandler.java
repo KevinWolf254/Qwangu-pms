@@ -33,9 +33,9 @@ public class InvoiceHandler {
 	public Mono<ServerResponse> create(ServerRequest request) {
         return request
                 .bodyToMono(InvoiceDto.class)
-                .doOnSuccess(a -> log.debug("Received request to create {}", a))
+                .doOnSuccess(i -> log.debug("Received request to create {}", i))
                 .map(ValidationUtil.validateInvoiceDto(new InvoiceDtoValidator()))
-                .doOnSuccess(a -> log.debug("Validation of request to create invoice was successful"))
+                .doOnSuccess(i -> log.debug("Validation of request to create invoice was successful {}", i))
                 .flatMap(invoiceService::create)
                 .doOnError(e -> log.error("Failed to create invoice. Error ", e))
                 .flatMap(created -> ServerResponse

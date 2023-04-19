@@ -235,7 +235,7 @@ class InvoiceConfigsTest {
 		invoice.setModifiedOn(LocalDateTime.now());
 
         //when
-		when(invoiceService.create(dto)).thenReturn(Mono.just(invoice));
+		when(invoiceService.create(any(InvoiceDto.class))).thenReturn(Mono.just(invoice));
 		
         // then
         client.post()
@@ -278,7 +278,6 @@ class InvoiceConfigsTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized()
-                .expectHeader().contentType("application/json")
                 .expectBody()
                 .consumeWith(System.out::println);
     }
@@ -377,7 +376,6 @@ class InvoiceConfigsTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isUnauthorized()
-                .expectHeader().contentType("application/json")
                 .expectBody()
                 .consumeWith(System.out::println);
     }

@@ -95,7 +95,7 @@ class ReceiptEmailNotificationServiceImplIntegrationTest {
 				.emailAddress(emailAddress).mobileNumber("0720000000").build();
 		tenant.setId(tenantId);
 		var payment = new Payment.PaymentBuilder().amount(BigDecimal.valueOf(20000)).currency(Currency.KES)
-				.setType(PaymentType.MOBILE).referenceNumber("123456").occupationNumber("23456").build();
+				.type(PaymentType.MOBILE).referenceNumber("123456").occupationNumber("23456").build();
 		var previousOT = new OccupationTransaction.OccupationTransactionBuilder()
 				.totalAmountCarriedForward(BigDecimal.valueOf(5000l)).occupationId(occupationId).invoiceId(invoiceId)
 				.totalAmountOwed(BigDecimal.valueOf(5000l)).build();

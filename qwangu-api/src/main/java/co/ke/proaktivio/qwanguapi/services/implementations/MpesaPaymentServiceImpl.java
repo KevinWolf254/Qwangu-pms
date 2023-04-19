@@ -46,8 +46,14 @@ public class MpesaPaymentServiceImpl implements MpesaPaymentService {
 	@Override
 	public Mono<MpesaPaymentResponse> create(MpesaPaymentDto dto) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ENGLISH);
-		LocalDateTime transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter)
-				.atZone(ZoneId.of("Africa/Nairobi")).toLocalDateTime();
+		LocalDateTime transactionTime;
+		try {
+			transactionTime = LocalDateTime.parse(dto.getTransactionTime(), formatter)
+					.atZone(ZoneId.of("Africa/Nairobi")).toLocalDateTime();
+		} catch (Exception e) {
+			transactionTime = LocalDateTime.now();
+			log.error(e.getMessage());
+		}
 
 		var mpesaPayment = new MpesaPayment();
 		mpesaPayment.setIsProcessed(false);
@@ -68,10 +74,11 @@ public class MpesaPaymentServiceImpl implements MpesaPaymentService {
 		mpesaPayment.setMiddleName(dto.getMiddleName());
 		mpesaPayment.setLastName(dto.getLastName());
 
-		return mpesaPaymentRepository.save(mpesaPayment).doOnSuccess(payment -> log.info("Created " + payment))
+		return mpesaPaymentRepository.save(mpesaPayment)
+				.doOnSuccess(payment -> log.info("Created " + payment))
 				.flatMap(mPayment -> {
 					var payment = new Payment.PaymentBuilder()
-					.setType(PaymentType.MOBILE)
+					.type(PaymentType.MOBILE)
 					.occupationNumber(mPayment.getReferenceNumber()).referenceNumber(mPayment.getTransactionId())
 					.currency(Currency.KES).amount(mPayment.getAmount()).build();
 					
@@ -102,7 +109,7 @@ public class MpesaPaymentServiceImpl implements MpesaPaymentService {
 			query.addCriteria(Criteria.where("referenceNumber").regex(".*" + referenceNumber.trim() + ".*", "i"));
 
 		if (StringUtils.hasText(shortCode))
-			query.addCriteria(Criteria.where("type").is(shortCode));
+			query.addCriteria(Criteria.where("shortCode").is(shortCode));
 
 		Sort sort = order != null
 				? order.equals(OrderType.ASC) ? Sort.by(Sort.Order.asc("id")) : Sort.by(Sort.Order.desc("id"))
