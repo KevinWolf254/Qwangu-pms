@@ -33,37 +33,48 @@
 </template>
   
 <script lang="ts">
-export default {
-    // Component logic here
-    data() {
-        return {
-            newPassword: '',
-            confirmPassword: '',
-            // token: null
+import { defineComponent, Ref, ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+
+export default defineComponent({
+    setup() {
+        const newPassword: Ref<string> = ref('');
+        const confirmPassword: Ref<string> = ref('');
+        const router = useRouter();
+        const route = useRoute();
+
+        const checkTokenValidity = (token: string) => {
+            console.log(token);
         }
-    },
-    async mounted() {
-        const token = this.$route.query.token as string;
-        if (!token) {
-            this.$router.push({ path: '/sign-in' });
-        } else {
-            // continue to load the page
-            // perform validation checks on the token here
-            await this.checkTokenValidity(token);
-        }
-    },
-    methods: {
-        async checkTokenValidity(token: string) {
-            console.log(token)
-        },
-        async setPassword() {
+
+        const setPassword = () => {
             console.log({
-                password: this.newPassword,
-                confirmPassword: this.confirmPassword
-            })
+                password: newPassword,
+                confirmPassword: confirmPassword
+            });
         }
+
+        onMounted(() => {
+            const token = route.query.token as string;
+            if (!token) {
+                router.push({ path: '/sign-in' });
+            } else {
+                // continue to load the page
+                // perform validation checks on the token here
+                checkTokenValidity(token);
+            }
+
+        })
+
+        return {
+            newPassword,
+            confirmPassword,
+            checkTokenValidity,
+            setPassword
+
+        };
     }
-};
+});
 </script>
   
 <style>

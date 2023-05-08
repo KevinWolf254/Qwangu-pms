@@ -51,26 +51,33 @@ body {
 </style>
   
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, Ref, ref } from "vue";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
-    name: "SignIn",
-    data() {
-        return {
-            username: "",
-            password: "",
-            rememberMe: false,
-        };
-    },
-    methods: {
-        signIn() {
-            // TODO: Implement login logic
+    name: "SignIn",    
+    setup() {
+        const username: Ref<string> = ref('');
+        const password: Ref<string> = ref('');
+        const rememberMe: Ref<boolean> = ref(false);
+        const router = useRouter();
+
+        const signIn = () => {
             console.log({
-                username: this.username,
-                password: this.password,
-                rememberMe: this.rememberMe,
+                username: username.value,
+                password: password.value,
+                rememberMe: rememberMe.value,
             });
-        },
-    },
+            router?.push(`/users`);
+        }
+
+        return {
+            username,
+            password,
+            rememberMe,
+            signIn
+
+        };
+    }
 });
 </script>

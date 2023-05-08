@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import SignIn from '../views/SignInView.vue'
-import ForgotPassword from '../views/ForgotPasswordView.vue'
-import SetPassword from '../views/SetPasswordView.vue'
-import Home from '../views/HomeView.vue'
+import SignIn from '../views/SignIn.vue'
+import ForgotPassword from '../views/ForgotPassword.vue'
+import SetPassword from '../views/SetPassword.vue'
+import Home from '../views/Home.vue'
+import Users from "../views/users/Users.vue";
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -24,6 +25,13 @@ const routes: Array<RouteRecordRaw> = [
       path: '/',
       name: 'Home',
       component: Home,
+      children: [
+        {
+          path: '/users',
+          name: 'Users',
+          component: Users,
+        }        
+      ]
     },
     // catch-all route for unknown paths
     {
@@ -35,6 +43,7 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
     history: createWebHistory(),
     routes,
+    linkActiveClass: 'active'
   });
   
   export default router;
