@@ -144,10 +144,10 @@ export default defineComponent({
     margin-left: 200px;
 }
 
-.my-container input {
+/* .my-container input {
     border-radius: 2rem;
     padding: 2px 20px;
-}
+} */
 .custom-nav-link, .nav-link {
     color: white;
     text-decoration: none;

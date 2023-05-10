@@ -4,7 +4,11 @@
             <div class="row">
                 <div class="col-12 d-flex justify-content-between">
                     <h3>Users</h3>
-                    <button type="button" class="btn btn-primary">
+                    <!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        <i class="bi bi-person-fill-add me-1" style="font-size: 1.1rem;"></i>
+                        Create
+                    </button> -->
+                    <button type="button" class="btn btn-primary" @click="openModal">
                         <i class="bi bi-person-fill-add me-1" style="font-size: 1.1rem;"></i>
                         Create
                     </button>
@@ -12,7 +16,16 @@
                 <hr class="my-4">
                 <div class="col-12">
                     <div class="container mt-4">
-                        <table class="table">
+                        <div class="d-flex flex-row-reverse mt-4">
+                            <div class="col-auto ms-2">
+                                <button type="submit" class="btn btn-primary mb-3">Search</button>
+                            </div>
+                            <div class="mb-2">
+                                <input type="email" class="form-control" id="exampleFormControlInput1"
+                                    placeholder="email address" style="width: 25rem;">
+                            </div>
+                        </div>
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
@@ -33,7 +46,8 @@
                                     </td>
                                     <td><span class="badge bg-success">Yes</span></td>
                                     <td>
-                                        <button type="button" class="btn btn-outline-secondary me-1" style="font-size: .75rem;">
+                                        <button type="button" class="btn btn-outline-secondary me-1"
+                                            style="font-size: .75rem;">
                                             <i class="bi bi-pencil-square"></i>
                                             Edit
                                         </button>
@@ -52,7 +66,8 @@
                                     </td>
                                     <td><span class="badge bg-danger">No</span></td>
                                     <td>
-                                        <button type="button" class="btn btn-outline-secondary me-1" style="font-size: .75rem;">
+                                        <button type="button" class="btn btn-outline-secondary me-1"
+                                            style="font-size: .75rem;">
                                             <i class="bi bi-pencil-square"></i>
                                             Edit
                                         </button>
@@ -73,7 +88,8 @@
                                     <td>
                                         <span class="badge bg-secondary me-1"></span>
                                         <span class="badge bg-danger"></span>
-                                        <button type="button" class="btn btn-outline-secondary me-1" style="font-size: .75rem;">
+                                        <button type="button" class="btn btn-outline-secondary me-1"
+                                            style="font-size: .75rem;">
                                             <i class="bi bi-pencil-square"></i>
                                             Edit
                                         </button>
@@ -104,16 +120,51 @@
 
         </div>
     </div>
+    
+    <div class="modal fade" ref="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+            <button type="button" class="btn-close" @click="closeModal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            ...
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="closeModal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, Ref, ref } from 'vue';
+import bootstrap from 'bootstrap';
 
 export default defineComponent({
     name: 'Users',
     setup() {
+    const exampleModal: Ref<HTMLDivElement | null> = ref(null);
 
-    }
+    const openModal = () => {
+      const modal = new bootstrap.Modal(exampleModal.value!);
+      modal.show();
+    };
+
+    const closeModal = () => {
+      const modal = new bootstrap.Modal(exampleModal.value!);
+      modal.hide();
+    };
+
+    return {
+      exampleModal,
+      openModal,
+      closeModal,
+    };
+  },
 });
 </script>
 <style lang="">
