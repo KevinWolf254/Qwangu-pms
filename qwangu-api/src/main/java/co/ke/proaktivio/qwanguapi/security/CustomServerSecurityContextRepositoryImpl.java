@@ -26,14 +26,16 @@ public class CustomServerSecurityContextRepositoryImpl implements CustomServerSe
     public Mono<SecurityContext> load(ServerWebExchange exchange) {
         return Mono
                 .justOrEmpty(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
-                .filter(authHeader -> authHeader.startsWith("Bearer "))
-                .switchIfEmpty(Mono.error(new JwtException("Bearer required!")))
-                .filter(authHeader -> StringUtils.hasText(authHeader.substring(7)))
-                .switchIfEmpty(Mono.error(new JwtException("Token required!")))
-                .map(header -> header.substring(7))
-                .filter(StringUtils::hasText)
-                .map(token -> new UsernamePasswordAuthenticationToken(token, token))
-                .flatMap(this.authenticationManager::authenticate)
-                .map(SecurityContextImpl::new);
+                .flatMap(authHeader -> {                	
+                	if(authHeader.startsWith("Bearer ")) {
+                		var token = authHeader.substring(7);
+                		if(StringUtils.hasText(token)) {
+                			return this.authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(token, token))
+                	                .map(SecurityContextImpl::new);
+                		}
+                		return Mono.error(new JwtException("Token required!"));
+                	}
+                	return Mono.empty();
+                });
     }
 }

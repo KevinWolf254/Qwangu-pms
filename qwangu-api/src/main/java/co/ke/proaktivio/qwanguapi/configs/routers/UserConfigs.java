@@ -133,7 +133,6 @@ public class UserConfigs {
                     )
             }
     )
-    //
     RouterFunction<ServerResponse> routeUser(UserHandler handler) {
         return route()
                 .path("v1", builder -> builder

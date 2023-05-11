@@ -1,7 +1,6 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.AuthenticationHandler;
-import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
 import co.ke.proaktivio.qwanguapi.pojos.EmailDto;
 import co.ke.proaktivio.qwanguapi.pojos.ResetPasswordDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
@@ -35,7 +34,7 @@ public class AuthenticationConfig {
                 @RouterOperation(
                         path = "/v1/sign-in",
                         produces = MediaType.APPLICATION_JSON_VALUE,
-                        method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "signIn",
+                        method = RequestMethod.POST, beanClass = AuthenticationHandler.class, beanMethod = "signIn",
                         operation = @Operation(
                                 operationId = "signIn",
                                 requestBody = @RequestBody(content = @Content(
@@ -52,7 +51,7 @@ public class AuthenticationConfig {
                 @RouterOperation(
                         path = "/v1/forgot-password",
                         produces = MediaType.APPLICATION_JSON_VALUE,
-                        method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "sendForgotPasswordEmail",
+                        method = RequestMethod.POST, beanClass = AuthenticationHandler.class, beanMethod = "sendForgotPasswordEmail",
                         operation = @Operation(
                                 operationId = "sendForgotPasswordEmail",
                                 requestBody = @RequestBody(content = @Content(
@@ -67,7 +66,7 @@ public class AuthenticationConfig {
                 @RouterOperation(
                         path = "/v1/set-password",
                         produces = MediaType.APPLICATION_JSON_VALUE,
-                        method = RequestMethod.POST, beanClass = UserHandler.class, beanMethod = "setPassword",
+                        method = RequestMethod.POST, beanClass = AuthenticationHandler.class, beanMethod = "setPassword",
                         operation = @Operation(
                                 operationId = "setPassword",
                                 requestBody = @RequestBody(content = @Content(
@@ -87,7 +86,7 @@ public class AuthenticationConfig {
                 @RouterOperation(
                         path = "/v1/activate",
                         produces = MediaType.APPLICATION_JSON_VALUE,
-                        method = RequestMethod.GET, beanClass = UserHandler.class, beanMethod = "activate",
+                        method = RequestMethod.GET, beanClass = AuthenticationHandler.class, beanMethod = "activate",
                         operation = @Operation(
                                 operationId = "activate",
                                 responses = {

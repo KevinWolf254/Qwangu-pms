@@ -31,11 +31,7 @@ class CustomServerSecurityContextRepositoryImplTest {
     private final static String TOKEN = "eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJwZXJzb25AZ21haWwuY29tIiwiaWF0IjoxNjU1MjAwODM1LCJleHAiOjE2NTUyMDQ0MzV9.S1AG9Tgxhufl2Ffd5VeeEBuThvVhlzDneDbiZwl2_kwHI2AS8MVLWeMLMsp7CAs6";
 
     @Test
-    void save() {
-    }
-
-    @Test
-    void load_returnsMonoOfSecurityContext() {
+    void load_returnsMonoOfSecurityContext_whenSuccessful() {
         // given
         MockServerHttpRequest.BaseBuilder<?> requestBuilder = MockServerHttpRequest
                 .get("/");
@@ -58,7 +54,7 @@ class CustomServerSecurityContextRepositoryImplTest {
     }
 
     @Test
-    void load_returnsJwtException_whenAuthorizationHeaderDoesNotExist() {
+    void load_returnsEmpty_whenAuthorizationHeaderDoesNotExist() {
         // given
         MockServerHttpRequest.BaseBuilder<?> requestBuilder = MockServerHttpRequest
                 .get("/");
@@ -69,13 +65,11 @@ class CustomServerSecurityContextRepositoryImplTest {
         // then
         StepVerifier
                 .create(sscr.load(exchange))
-                .expectErrorMatches(e -> e instanceof JwtException &&
-                        e.getMessage().equals("Bearer required!"))
-                .verify();
+                .verifyComplete();
     }
 
     @Test
-    void load_returnsJwtException_whenAuthorizationHeaderHasNoValue() {
+    void load_returnsEmpty_whenAuthorizationHeaderHasNoBearer() {
         // given
         MockServerHttpRequest.BaseBuilder<?> requestBuilder = MockServerHttpRequest
                 .get("/");
@@ -87,9 +81,7 @@ class CustomServerSecurityContextRepositoryImplTest {
         // then
         StepVerifier
                 .create(sscr.load(exchange))
-                .expectErrorMatches(e -> e instanceof JwtException &&
-                        e.getMessage().equals("Bearer required!"))
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -105,8 +97,7 @@ class CustomServerSecurityContextRepositoryImplTest {
         // then
         StepVerifier
                 .create(sscr.load(exchange))
-                .expectErrorMatches(e -> e instanceof JwtException &&
-                        e.getMessage().equals("Bearer required!") || e.getMessage().equals("Token required!"))
+                .expectErrorMatches(e -> e instanceof JwtException && e.getMessage().equals("Token required!"))
                 .verify();
     }
 }

@@ -1,6 +1,10 @@
 server:
   port: 3001
 
+spring:
+  webflux:
+    base-path: /api
+    
 jwt:
   secret: alksossowmdkdofnonoffkbffjwpnwjluopkhgyipkjhtrgfhipokhgrr
   expiration: 3600

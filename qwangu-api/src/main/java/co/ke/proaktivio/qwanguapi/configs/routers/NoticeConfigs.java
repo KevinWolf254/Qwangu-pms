@@ -1,6 +1,5 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
-import co.ke.proaktivio.qwanguapi.handlers.InvoiceHandler;
 import co.ke.proaktivio.qwanguapi.handlers.NoticeHandler;
 import co.ke.proaktivio.qwanguapi.pojos.CreateNoticeDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
@@ -33,7 +32,7 @@ public class NoticeConfigs {
                 @RouterOperation(
                         path = "/v1/notices/{noticeId}",
                         produces = MediaType.APPLICATION_JSON_VALUE,
-                        method = RequestMethod.GET, beanClass = InvoiceHandler.class, beanMethod = "findById",
+                        method = RequestMethod.GET, beanClass = NoticeHandler.class, beanMethod = "findById",
                         operation = @Operation(
                                 operationId = "findById",
                                 responses = {

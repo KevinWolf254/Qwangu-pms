@@ -18,6 +18,8 @@ springdoc:
     enabled: true
 
 spring:
+  webflux:
+    base-path: /api
   profiles:
     active: dev
   data:
@@ -29,7 +31,7 @@ spring:
       password: pass123
       auto-index-creation: true
       authentication-database: admin
-
+    
 jwt:
   secret: "ahasjofnwowuwoeneoeneowbnkamalspsiwnwpsndifnfpoe"
   expiration: 3600
