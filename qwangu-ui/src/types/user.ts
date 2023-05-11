@@ -12,7 +12,6 @@ export class User {
         public modifiedOn?: Date,
     ) {
         this.person = this.person ? this.person : new Person();
-        console.log(this);
     };
 }
 

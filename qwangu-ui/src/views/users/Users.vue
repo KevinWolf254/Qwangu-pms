@@ -166,12 +166,6 @@ export default defineComponent({
 
         let label:  Ref<string> = ref('');
 
-        // const surname: Ref<string> = ref('');
-        // const firstName: Ref<string> = ref('');
-        // const otherNames: Ref<string> = ref('');
-        // const emailAddress: Ref<string> = ref('');
-        // const role: Ref<string> = ref('');
-
         const users: Ref<User[]> = ref([]);
         const selectedUser: Ref<User> = ref(new User());
 
