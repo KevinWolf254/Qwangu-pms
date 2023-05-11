@@ -1,6 +1,6 @@
 import http from './http';
-import { User } from '../types/user';
-import { Response } from '../types/response';
+import { User } from '../types/User';
+import { Response } from '../types/Response';
 import { SignInRequest, SignInResponse } from '../types/SignIn';
 import { AxiosError } from 'axios';
 

@@ -14,11 +14,12 @@
                     <div class="container mt-4">
                         <div class="d-flex flex-row-reverse mt-4">
                             <div class="col-auto ms-2">
-                                <button type="submit" class="btn btn-primary mb-3" @click="search(searchEmailAddress)">Search</button>
+                                <button type="submit" class="btn btn-primary mb-3"
+                                    @click="search(searchEmailAddress)">Search</button>
                             </div>
                             <div class="mb-2">
-                                <input type="email" class="form-control" id="searchEmailAddress"
-                                    placeholder="email address" style="width: 25rem;" v-model="searchEmailAddress">
+                                <input type="email" class="form-control" id="searchEmailAddress" placeholder="email address"
+                                    style="width: 25rem;" v-model="searchEmailAddress">
                             </div>
                         </div>
                         <table class="table table-striped">
@@ -35,21 +36,22 @@
                             <tbody>
                                 <tr v-for="(user, index) in users" :key="user.id">
                                     <th scope="row">{{ index + 1 }}</th>
-                                    <td>{{ user!.person!.firstName }} {{ user!.person!.otherNames }} {{ user!.person!.surname }}</td>
+                                    <td>{{ user!.person!.firstName }} {{ user!.person!.otherNames }} {{
+                                        user!.person!.surname }}</td>
                                     <td>{{ user.emailAddress }}</td>
                                     <td>
-                                        <span class="badge bg-info">{{ user.roleId }}</span>
+                                        <span class="badge bg-info">{{ getUserRoleName(user.roleId!) }}</span>
                                     </td>
-                                    <td><span class="badge bg-success">{{ user.isEnabled }}</span></td>
+                                    <td><span class="badge bg-success">{{ user.isEnabled ? 'YES' : 'NO' }}</span></td>
                                     <td>
                                         <span class="badge bg-secondary me-1"></span>
                                         <span class="badge bg-danger"></span>
                                         <button type="button" class="btn btn-outline-secondary me-1"
-                                            style="font-size: .75rem;">
+                                            style="font-size: .75rem;" @click="openModal('EDIT', userModal, user)">
                                             <i class="bi bi-pencil-square"></i>
                                             Edit
                                         </button>
-                                        <button type="button" class="btn btn-outline-danger" style="font-size: .75rem;" 
+                                        <button type="button" class="btn btn-outline-danger" style="font-size: .75rem;"
                                             @click="openModal('DELETE', deleteUserModal, user)">
                                             <i class="bi bi-trash-fill"></i>
                                             Delete
@@ -80,55 +82,74 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="userModalLabel">{{ label }} User</h5>
-                    <button type="button" class="btn-close" @click="closeModal(label.toUpperCase())" aria-label="Close"></button>
+                    <button type="button" class="btn-close" @click="closeModal(label.toUpperCase())"
+                        aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <div class="form-group mb-3">
-                                <label for="surname">Surname</label>
-                                <input type="text" class="form-control" id="surname" v-model="selectedUser!.person!.surname"
-                                    placeholder="Enter surname" />
+                <form @submit.prevent="createOrUpdateUser(label.toUpperCase())" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <label for="surname">Surname</label>
+                                    <input type="text" class="form-control" id="surname"
+                                        v-model="selectedUser!.person!.surname" placeholder="Enter surname"
+                                        :class="{ 'is-invalid': !isSurnameValid && submitted }" required />
+                                        <div class="invalid-feedback">
+                                            Please enter a surname with a minimum of 2 characters.
+                                        </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group mb-3">
-                                <label for="firstName">First Name</label>
-                                <input type="text" class="form-control" id="firstName" v-model="selectedUser!.person!.firstName"
-                                    placeholder="Enter first name" />
+                            <div class="col">
+                                <div class="form-group mb-3">
+                                    <label for="firstName">First Name</label>
+                                    <input type="text" class="form-control" id="firstName"
+                                        v-model="selectedUser!.person!.firstName" placeholder="Enter first name"
+                                        :class="{ 'is-invalid': !isFirstValid && submitted }" required />
+                                        <div class="invalid-feedback">
+                                            Please enter a first name with a minimum of 2 characters.
+                                        </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group mb-3">
-                                <label for="otherNames">Other Names</label>
-                                <input type="text" class="form-control" id="otherNames" v-model="selectedUser!.person!.otherNames"
-                                    placeholder="Enter other names" />
+                            <div class="col">
+                                <div class="form-group mb-3">
+                                    <label for="otherNames">Other Names</label>
+                                    <input type="text" class="form-control" id="otherNames"
+                                        v-model="selectedUser!.person!.otherNames" placeholder="Enter other names" />
+                                </div>
                             </div>
-                        </div>                        
-                        <div class="col-12">
-                            <div class="form-group mb-3">
-                                <label for="emailAddress">Email Address</label>
-                                <input type="email" class="form-control" id="emailAddress" v-model="selectedUser!.emailAddress"
-                                    placeholder="Enter email address" />
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <label for="emailAddress">Email Address</label>
+                                    <input type="email" class="form-control" id="emailAddress"
+                                        v-model="selectedUser!.emailAddress" placeholder="Enter email address"
+                                        :class="{ 'is-invalid': !isEmailValid && submitted }" required />
+                                        <div class="invalid-feedback">
+                                            Please enter a valid email address.
+                                        </div>
+                                </div>
                             </div>
-                        </div>                      
-                        <div class="col-12">
-                            <div class="form-group mb-3">
-                                <label for="role">Role</label>
-                                <select class="form-select" aria-label="role select" id="role" v-model="selectedUser!.roleId">
-                                    <option selected value="">Select role</option>
-                                    <option value="1">ACCOUNTANT</option>
-                                    <option value="2">ADMIN</option>
-                                    <option value="3">SUPERVISOR</option>
-                                </select>
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <label for="role">Role</label>
+                                    <select class="form-select" aria-label="role select" id="role"
+                                        v-model="selectedUser!.roleId" :class="{ 'is-invalid': !isRoleValid && submitted }"
+                                        required>
+                                        <option disabled value="">Select role</option>
+                                        <option v-for="userRole in userRoles" :key="userRole.id" :value="userRole.id"> {{ userRole.name?.toUpperCase() }}</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select role.
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @click="closeModal(label.toUpperCase())">Close</button>
-                    <button type="button" class="btn btn-primary" @click="saveOrUpdateUser(label.toUpperCase())">Save changes</button>
-                </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                            @click="closeModal(label.toUpperCase())">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -141,7 +162,8 @@
                     <button type="button" class="btn-close" @click="closeModal('DELETE')" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you would like to delete user {{ selectedUser?.person?.firstName }} {{ selectedUser?.person?.otherNames }} {{ selectedUser?.person?.surname }} ?
+                    Are you sure you would like to delete user {{ selectedUser?.person?.firstName }} {{
+                        selectedUser?.person?.otherNames }} {{ selectedUser?.person?.surname }} ?
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @click="closeModal('DELETE')">Close</button>
@@ -153,33 +175,38 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, Ref, ref } from 'vue';
+import { defineComponent, onMounted, Ref, ref, computed } from 'vue';
 import * as bootstrap from 'bootstrap';
 import { getUsers } from "../../api/user-api";
-import { User } from "../../types/user";
+import { User } from "../../types/User";
+import { UserRole } from "../../types/UserRole";
+import { getUserRoles } from '../../api/user-role-api';
 
 export default defineComponent({
     name: 'Users',
     setup() {
         const userModal: Ref<HTMLDivElement | null> = ref(null);
         const deleteUserModal: Ref<HTMLDivElement | null> = ref(null);
+        const submitted: Ref<boolean> = ref(false);
 
-        let label:  Ref<string> = ref('');
+        let label: Ref<string> = ref('');
 
         const users: Ref<User[]> = ref([]);
         const selectedUser: Ref<User> = ref(new User());
+        const userRoles: Ref<UserRole[]> = ref([]);
 
         const searchEmailAddress: Ref<string> = ref('');
-            
+
         let modal: bootstrap.Modal;
 
         const openModal = (action: string, refModal: HTMLDivElement | null, user?: User) => {
-            if(action === 'CREATE') {
+            if (action === 'CREATE') {
                 label.value = 'Create';
                 selectedUser.value = new User();
             } else if (action === 'EDIT') {
                 label.value = 'Edit';
                 selectedUser.value = user!;
+                console.log(selectedUser.value);
             } else if (action === 'DELETE') {
                 label.value = 'Delete';
                 selectedUser.value = user!;
@@ -191,27 +218,32 @@ export default defineComponent({
         };
 
         const closeModal = (action: string) => {
-            if(action === 'CREATE') {
-                
+            if (action === 'CREATE') {
+
             } else if (action === 'EDIT') {
-                
+
             } else if (action === 'DELETE') {
-                
+
             } else {
 
             }
+            submitted.value = false;
             modal?.hide();
         };
 
-        const saveOrUpdateUser = (action: string) => {
-            if(action === 'CREATE') {
-                
-            } else if (action === 'EDIT') {
-                
-            } else {
+        const createOrUpdateUser = (action: string) => {
+            submitted.value = true;
+            console.log(selectedUser.value);
+            if (isEmailValid.value && isFirstValid.value && isRoleValid.value && isSurnameValid.value) {
+                if (action === 'CREATE') {
 
+                } else if (action === 'EDIT') {
+
+                } else {
+
+                }
+                closeModal(action);
             }
-            closeModal(action);
         };
 
         const deleteUser = () => {
@@ -219,29 +251,67 @@ export default defineComponent({
         }
 
         const search = (emailAddress: string) => {
-            console.log("searching " +emailAddress);
+            console.log("searching " + emailAddress);
         };
+
+        const isEmailValid = computed(() => {
+            const pattern = /\S+@\S+\.\S+/;
+            const result = pattern.test(selectedUser.value.emailAddress!);
+            return result;
+        });
+
+        const isSurnameValid = computed((): boolean => {
+            const surname = selectedUser.value.person?.surname;
+            if (surname) {
+                if (surname.length < 2)
+                    return false
+                return true;
+            }
+            return false;
+        });
+
+        const isFirstValid = computed((): boolean => {
+            const firstName = selectedUser.value.person?.firstName;
+            if (firstName) {
+                if (firstName.length < 2)
+                    return false
+                return true;
+            }
+            return false;
+        });
+
+        const isRoleValid = computed((): boolean => {
+            const roleId = selectedUser.value.roleId;
+            return roleId ? true : false;
+        });
+
+        const getUserRoleName = (userRoleId: string): string => {
+            return userRoles.value.find(role => role.id === userRoleId)?.name!;
+        }
 
         onMounted(async () => {
             users.value = await getUsers();
+            userRoles.value = await getUserRoles();
         });
 
         return {
             userModal,
+            submitted,
             deleteUserModal,
             label,
-            // surname,
-            // firstName,
-            // otherNames,
-            // emailAddress,
-            // role,
             users,
+            userRoles,
             selectedUser,
             searchEmailAddress,
+            isEmailValid,
+            isSurnameValid,
+            isFirstValid,
+            isRoleValid,
+            getUserRoleName,
             openModal,
             closeModal,
             search,
-            saveOrUpdateUser,
+            createOrUpdateUser,
             deleteUser
         };
     },

@@ -12,6 +12,7 @@ export class User {
         public modifiedOn?: Date,
     ) {
         this.person = this.person ? this.person : new Person();
+        this.roleId = this.roleId ? this.roleId : '';
     };
 }
 
