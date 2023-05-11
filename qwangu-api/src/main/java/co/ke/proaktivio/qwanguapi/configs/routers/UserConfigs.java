@@ -40,7 +40,6 @@ public class UserConfigs {
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "userId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "emailAddress"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
                                     },

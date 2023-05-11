@@ -1,11 +1,13 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.UserRoleHandler;
+import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UserRoleDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -37,7 +39,7 @@ public class UserRoleConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Role found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserRole.class))),
                                             @ApiResponse(responseCode = "404", description = "Role were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -48,20 +50,17 @@ public class UserRoleConfigs {
                     @RouterOperation(
                             path = "/v1/roles",
                             produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.GET, beanClass = UserRoleHandler.class, beanMethod = "find",
+                            method = RequestMethod.GET, beanClass = UserRoleHandler.class, beanMethod = "findAll",
                             operation = @Operation(
-                                    operationId = "find",
+                                    operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Role found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserRole.class)))),
                                             @ApiResponse(responseCode = "404", description = "Role were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "roleId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "name"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "page"),
-                                            @Parameter(in = ParameterIn.QUERY, name = "pageSize"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")
                                     },
                                     security = @SecurityRequirement(name = "Bearer authentication")
@@ -82,43 +81,6 @@ public class UserRoleConfigs {
                                             @ApiResponse(responseCode = "404", description = "Role were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
-                                    security = @SecurityRequirement(name = "Bearer authentication")
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/roles/{roleId}",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.PUT, beanClass = UserRoleHandler.class, beanMethod = "update",
-                            operation = @Operation(
-                                    operationId = "update",
-                                    requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UserRoleDto.class))),
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Role updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "400", description = "Role already exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Role was not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "roleId")},
-                                    security = @SecurityRequirement(name = "Bearer authentication")
-                            )
-                    ),
-                    @RouterOperation(
-                            path = "/v1/roles/{roleId}",
-                            produces = MediaType.APPLICATION_JSON_VALUE,
-                            method = RequestMethod.DELETE, beanClass = UserRoleHandler  .class, beanMethod = "delete",
-                            operation = @Operation(
-                                    operationId = "delete",
-                                    responses = {
-                                            @ApiResponse(responseCode = "200", description = "Role deleted successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
-                                            @ApiResponse(responseCode = "400", description = "Role does not exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
-                                            @ApiResponse(responseCode = "404", description = "Role was not found!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
-                                    },
-                                    parameters = {@Parameter(in = ParameterIn.PATH, name = "roleId")},
                                     security = @SecurityRequirement(name = "Bearer authentication")
                             )
                     )
