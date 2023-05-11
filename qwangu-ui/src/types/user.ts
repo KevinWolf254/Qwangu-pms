@@ -10,7 +10,10 @@ export class User {
         public isEnabled?: boolean,
         public createdOn?: Date,
         public modifiedOn?: Date,
-    ) {};
+    ) {
+        this.person = this.person ? this.person : new Person();
+        console.log(this);
+    };
 }
 
 export class Person {

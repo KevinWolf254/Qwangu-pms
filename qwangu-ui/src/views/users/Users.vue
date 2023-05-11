@@ -45,7 +45,7 @@
                                         <span class="badge bg-secondary me-1"></span>
                                         <span class="badge bg-danger"></span>
                                         <button type="button" class="btn btn-outline-secondary me-1"
-                                            style="font-size: .75rem;" @click="openModal('EDIT', userModal, user)">
+                                            style="font-size: .75rem;">
                                             <i class="bi bi-pencil-square"></i>
                                             Edit
                                         </button>
@@ -163,7 +163,7 @@ export default defineComponent({
     setup() {
         const userModal: Ref<HTMLDivElement | null> = ref(null);
         const deleteUserModal: Ref<HTMLDivElement | null> = ref(null);
-        
+
         let label:  Ref<string> = ref('');
 
         // const surname: Ref<string> = ref('');
