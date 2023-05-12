@@ -73,7 +73,7 @@ public class UserConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UserDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "201", description = "User created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserWithoutPasswordDto.class))),
                                             @ApiResponse(responseCode = "400", description = "User already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

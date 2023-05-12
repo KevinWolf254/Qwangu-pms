@@ -24,7 +24,10 @@ import java.time.LocalDateTime;
 @Profile("dev")
 public class BootstrapConfig {
     Person person = new Person("John", "David", "Doe");
+    Person person2 = new Person("Jane", "Josephine", "Doe");
     Mono<User> user = Mono.just(new User(null, person, "johnDoe@email.com", null, "ABc1234!", false,
+            false, false, true, null, null, null, null));
+    Mono<User> user2 = Mono.just(new User(null, person2, "janeDoe@email.com", null, "ABc1234!", false,
             false, false, true, null, null, null, null));
 
     Mono<UserRole> superAdminRole = Mono.just(new UserRole.UserRoleBuilder().name("SUPER_ADMIN").build());
