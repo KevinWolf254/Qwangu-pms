@@ -23,3 +23,11 @@ export class Person {
         public surname?: string,
     ) { };
 }
+
+export class CreateUserRequest {
+    constructor(
+        public emailAddress?: string,
+        public roleId?: string,
+        public person?: Person
+    ){}
+  }

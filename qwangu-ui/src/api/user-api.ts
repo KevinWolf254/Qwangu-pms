@@ -1,5 +1,5 @@
 import http from './http';
-import { User } from '../types/User';
+import { CreateUserRequest, User } from '../types/User';
 import { Response } from '../types/Response';
 import { SignInRequest, SignInResponse } from '../types/SignIn';
 import { AxiosError } from 'axios';
@@ -27,5 +27,19 @@ export const getUsers = async (emailAddress?: any): Promise<User[]> => {
     } catch (error) {
         console.error(error);
         return [];
+    }
+}
+
+export const createUser = async (request: CreateUserRequest): Promise<User | null> => {
+    try {
+        const response = await http.post<Response<User>>(userUrl, request);
+        return response.data.data;
+    } catch (error) {
+        if(error instanceof AxiosError) {
+            console.log((error.response?.data as Response<any>).message)
+        } else {
+            console.error(error);
+        }
+        return null;
     }
 }

@@ -71,6 +71,7 @@
                                 </ul>
                             </nav>
                         </div>
+                        <Pagination :items="allUsers" @items-sliced="handleSlicedUsers"></Pagination>
                     </div>
                 </div>
             </div>
@@ -94,9 +95,9 @@
                                     <input type="text" class="form-control" id="surname"
                                         v-model="selectedUser!.person!.surname" placeholder="Enter surname"
                                         :class="{ 'is-invalid': !isSurnameValid && submitted }" required />
-                                        <div class="invalid-feedback">
-                                            Please enter a surname with a minimum of 2 characters.
-                                        </div>
+                                    <div class="invalid-feedback">
+                                        Please enter a surname with a minimum of 2 characters.
+                                    </div>
                                 </div>
                             </div>
                             <div class="col">
@@ -105,9 +106,9 @@
                                     <input type="text" class="form-control" id="firstName"
                                         v-model="selectedUser!.person!.firstName" placeholder="Enter first name"
                                         :class="{ 'is-invalid': !isFirstValid && submitted }" required />
-                                        <div class="invalid-feedback">
-                                            Please enter a first name with a minimum of 2 characters.
-                                        </div>
+                                    <div class="invalid-feedback">
+                                        Please enter a first name with a minimum of 2 characters.
+                                    </div>
                                 </div>
                             </div>
                             <div class="col">
@@ -123,9 +124,9 @@
                                     <input type="email" class="form-control" id="emailAddress"
                                         v-model="selectedUser!.emailAddress" placeholder="Enter email address"
                                         :class="{ 'is-invalid': !isEmailValid && submitted }" required />
-                                        <div class="invalid-feedback">
-                                            Please enter a valid email address.
-                                        </div>
+                                    <div class="invalid-feedback">
+                                        Please enter a valid email address.
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-12">
@@ -135,7 +136,8 @@
                                         v-model="selectedUser!.roleId" :class="{ 'is-invalid': !isRoleValid && submitted }"
                                         required>
                                         <option disabled value="">Select role</option>
-                                        <option v-for="userRole in userRoles" :key="userRole.id" :value="userRole.id"> {{ userRole.name?.toUpperCase() }}</option>
+                                        <option v-for="userRole in userRoles" :key="userRole.id" :value="userRole.id"> {{
+                                            userRole.name?.toUpperCase() }}</option>
                                     </select>
                                     <div class="invalid-feedback">
                                         Please select role.
@@ -177,78 +179,85 @@
 <script lang="ts">
 import { defineComponent, onMounted, Ref, ref, computed } from 'vue';
 import * as bootstrap from 'bootstrap';
-import { getUsers } from "../../api/user-api";
-import { User } from "../../types/User";
+import { getUsers, createUser } from "../../api/user-api";
+import { CreateUserRequest, Person, User } from "../../types/User";
 import { UserRole } from "../../types/UserRole";
 import { getUserRoles } from '../../api/user-role-api';
+import Pagination from '../../components/Pagination.vue';
 
 export default defineComponent({
-    name: 'Users',
+    name: "Users",
     setup() {
         const userModal: Ref<HTMLDivElement | null> = ref(null);
         const deleteUserModal: Ref<HTMLDivElement | null> = ref(null);
         const submitted: Ref<boolean> = ref(false);
-
-        let label: Ref<string> = ref('');
-
+        let label: Ref<string> = ref("");
         const users: Ref<User[]> = ref([]);
+        const allUsers: Ref<User[]> = ref([]);
         const selectedUser: Ref<User> = ref(new User());
         const userRoles: Ref<UserRole[]> = ref([]);
-
-        const searchEmailAddress: Ref<string> = ref('');
-
+        const searchEmailAddress: Ref<string> = ref("");
         let modal: bootstrap.Modal;
 
         const openModal = (action: string, refModal: HTMLDivElement | null, user?: User) => {
-            if (action === 'CREATE') {
-                label.value = 'Create';
+            if (action === "CREATE") {
+                label.value = "Create";
                 selectedUser.value = new User();
-            } else if (action === 'EDIT') {
-                label.value = 'Edit';
+            }
+            else if (action === "EDIT") {
+                label.value = "Edit";
                 selectedUser.value = user!;
                 console.log(selectedUser.value);
-            } else if (action === 'DELETE') {
-                label.value = 'Delete';
+            }
+            else if (action === "DELETE") {
+                label.value = "Delete";
                 selectedUser.value = user!;
-            } else {
-
+            }
+            else {
             }
             modal = new bootstrap.Modal(refModal!);
             modal?.show();
         };
 
         const closeModal = (action: string) => {
-            if (action === 'CREATE') {
+            if (action === "CREATE") {
 
-            } else if (action === 'EDIT') {
-
-            } else if (action === 'DELETE') {
-
-            } else {
-
+            }
+            else if (action === "EDIT") {
+            }
+            else if (action === "DELETE") {
+            }
+            else {
             }
             submitted.value = false;
             modal?.hide();
         };
 
-        const createOrUpdateUser = (action: string) => {
+        const createOrUpdateUser = async (action: string) => {
             submitted.value = true;
             console.log(selectedUser.value);
             if (isEmailValid.value && isFirstValid.value && isRoleValid.value && isSurnameValid.value) {
-                if (action === 'CREATE') {
-
-                } else if (action === 'EDIT') {
-
-                } else {
+                if (action === "CREATE") {
+                    await createUser(new CreateUserRequest(selectedUser.value.emailAddress, selectedUser.value.roleId,
+                        new Person(selectedUser.value.person?.firstName, selectedUser.value.person?.otherNames, selectedUser.value.person?.surname)));
+                    allUsers.value = await getUsers();
+                    userRoles.value = await getUserRoles();
 
                 }
+                else if (action === "EDIT") {
+                    
+                }
+                else {
+
+                }
+                selectedUser.value = new User();
                 closeModal(action);
             }
         };
 
         const deleteUser = () => {
             closeModal("DELETE");
-        }
+        };
 
         const search = (emailAddress: string) => {
             console.log("searching " + emailAddress);
@@ -264,7 +273,7 @@ export default defineComponent({
             const surname = selectedUser.value.person?.surname;
             if (surname) {
                 if (surname.length < 2)
-                    return false
+                    return false;
                 return true;
             }
             return false;
@@ -274,7 +283,7 @@ export default defineComponent({
             const firstName = selectedUser.value.person?.firstName;
             if (firstName) {
                 if (firstName.length < 2)
-                    return false
+                    return false;
                 return true;
             }
             return false;
@@ -287,11 +296,19 @@ export default defineComponent({
 
         const getUserRoleName = (userRoleId: string): string => {
             return userRoles.value.find(role => role.id === userRoleId)?.name!;
-        }
+        };
+
+        const handleSlicedUsers = (slicedUsers: User[]) => {
+            console.log('Sliced: ' + slicedUsers);
+            users.value = slicedUsers;
+        };
 
         onMounted(async () => {
-            users.value = await getUsers();
+            allUsers.value = await getUsers();
             userRoles.value = await getUserRoles();
+
+            const childComponent = document.querySelector('Pagination');
+            childComponent?.addEventListener('items', () => { console.log('here!!!') });
         });
 
         return {
@@ -300,6 +317,7 @@ export default defineComponent({
             deleteUserModal,
             label,
             users,
+            allUsers,
             userRoles,
             selectedUser,
             searchEmailAddress,
@@ -312,9 +330,11 @@ export default defineComponent({
             closeModal,
             search,
             createOrUpdateUser,
-            deleteUser
+            deleteUser,
+            handleSlicedUsers
         };
     },
+    components: { Pagination }
 });
 </script>
 
