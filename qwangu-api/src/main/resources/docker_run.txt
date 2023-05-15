@@ -4,9 +4,9 @@ docker network ls
 
 -- -e MONGO_INITDB_ROOT_USERNAME=kevin -e MONGO_INITDB_ROOT_PASSWORD=pass123
 
-docker run -d -p 27017:27017 --net qwangu_ntwk --name qwangu_db mongo:latest --replSet qwangu_set
-docker run -d -p 27018:27017 --net qwangu_ntwk --name qwangu_db_01 mongo:latest --replSet qwangu_set
-docker run -d -p 27019:27017 --net qwangu_ntwk --name qwangu_db_02 mongo:latest --replSet qwangu_set
+docker run -d -p 27017:27017 --net qwangu_ntwk --name qwangu_db mongo:latest mongod --replSet qwangu_set
+docker run -d -p 27018:27017 --net qwangu_ntwk --name qwangu_db_01 mongo:latest mongod --replSet qwangu_set
+docker run -d -p 27019:27017 --net qwangu_ntwk --name qwangu_db_02 mongo:latest mongod --replSet qwangu_set
 
 docker exec -it qwangu_db mongo
 
