@@ -1,6 +1,6 @@
 export class User {
     constructor(
-        public id?: number,
+        public id?: string,
         public person?: Person,
         public emailAddress?: string,
         public roleId?: string,
@@ -13,6 +13,7 @@ export class User {
     ) {
         this.person = this.person ? this.person : new Person();
         this.roleId = this.roleId ? this.roleId : '';
+        this.isEnabled = this.isEnabled != null && this.isEnabled != undefined ? this.isEnabled : false;
     };
 }
 
@@ -31,3 +32,13 @@ export class CreateUserRequest {
         public person?: Person
     ){}
   }
+
+export class UpdateUserRequest extends CreateUserRequest {
+    constructor(
+        public emailAddress?: string,
+        public roleId?: string,
+        public person?: Person,
+        public isEnabled?: boolean){
+        super();
+    }
+}

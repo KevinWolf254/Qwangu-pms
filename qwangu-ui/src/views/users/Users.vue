@@ -1,76 +1,63 @@
 <template>
-    <div>
-        <div class="container mt-3">
-            <div class="row">
-                <div class="col-12 d-flex justify-content-between">
-                    <h3>Users</h3>
-                    <button type="button" class="btn btn-primary" @click="openModal('CREATE', userModal)">
-                        <i class="bi bi-person-fill-add me-1" style="font-size: 1.1rem;"></i>
-                        Create
-                    </button>
-                </div>
-                <hr class="my-4">
-                <div class="col-12">
-                    <div class="container mt-4">
-                        <div class="d-flex flex-row-reverse mt-4">
-                            <div class="col-auto ms-2">
-                                <button type="submit" class="btn btn-primary mb-3"
-                                    @click="search(searchEmailAddress)">Search</button>
-                            </div>
-                            <div class="mb-2">
-                                <input type="email" class="form-control" id="searchEmailAddress" placeholder="email address"
-                                    style="width: 25rem;" v-model="searchEmailAddress">
-                            </div>
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-12 d-flex justify-content-between">
+                <h3>Users</h3>
+                <button type="button" class="btn btn-primary" @click="openModal('CREATE', userModal)">
+                    <i class="bi bi-person-fill-add me-1" style="font-size: 1.1rem;"></i>
+                    Create
+                </button>
+            </div>
+            <hr class="my-4">
+            <div class="col-12">
+                <div class="container mt-4">
+                    <div class="d-flex flex-row-reverse mt-4">
+                        <div class="col-auto ms-2">
+                            <button type="submit" class="btn btn-primary mb-3"
+                                @click="search(searchEmailAddress)">Search</button>
                         </div>
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Full Names</th>
-                                    <th scope="col">Email Address</th>
-                                    <th scope="col">Role</th>
-                                    <th scope="col">Enabled</th>
-                                    <th scope="col">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(user, index) in users" :key="user.id">
-                                    <th scope="row">{{ index + 1 }}</th>
-                                    <td>{{ user!.person!.firstName }} {{ user!.person!.otherNames }} {{
-                                        user!.person!.surname }}</td>
-                                    <td>{{ user.emailAddress }}</td>
-                                    <td>
-                                        <span class="badge bg-info">{{ getUserRoleName(user.roleId!) }}</span>
-                                    </td>
-                                    <td><span class="badge bg-success">{{ user.isEnabled ? 'YES' : 'NO' }}</span></td>
-                                    <td>
-                                        <span class="badge bg-secondary me-1"></span>
-                                        <span class="badge bg-danger"></span>
-                                        <button type="button" class="btn btn-outline-secondary me-1"
-                                            style="font-size: .75rem;" @click="openModal('EDIT', userModal, user)">
-                                            <i class="bi bi-pencil-square"></i>
-                                            Edit
-                                        </button>
-                                        <button type="button" class="btn btn-outline-danger" style="font-size: .75rem;"
-                                            @click="openModal('DELETE', deleteUserModal, user)">
-                                            <i class="bi bi-trash-fill"></i>
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div class="mt-4 d-flex flex-row-reverse">
-                            <nav aria-label="Page navigation example">
-                                <ul class="pagination">
-                                    <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
-                                </ul>
-                            </nav>
+                        <div class="mb-2">
+                            <input type="email" class="form-control" id="searchEmailAddress" placeholder="email address"
+                                style="width: 25rem;" v-model="searchEmailAddress">
                         </div>
+                    </div>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Full Names</th>
+                                <th scope="col">Email Address</th>
+                                <th scope="col">Role</th>
+                                <th scope="col">Enabled</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="user in users" :key="user.id">
+                                <td>{{ user!.person!.firstName }} {{ user!.person!.otherNames }} {{
+                                    user!.person!.surname }}</td>
+                                <td>{{ user.emailAddress }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ getUserRoleName(user.roleId!) }}</span>
+                                </td>
+                                <td><span class="badge bg-success">{{ user.isEnabled ? 'YES' : 'NO' }}</span></td>
+                                <td>
+                                    <span class="badge bg-secondary me-1"></span>
+                                    <span class="badge bg-danger"></span>
+                                    <button type="button" class="btn btn-outline-secondary me-1"
+                                        style="font-size: .75rem;" @click="openModal('EDIT', userModal, user)">
+                                        <i class="bi bi-pencil-square"></i>
+                                        Edit
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" style="font-size: .75rem;"
+                                        @click="openModal('DELETE', deleteUserModal, user)">
+                                        <i class="bi bi-trash-fill"></i>
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="mt-4 d-flex flex-row-reverse">
                         <Pagination :items="allUsers" @items-sliced="handleSlicedUsers"></Pagination>
                     </div>
                 </div>
@@ -83,8 +70,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="userModalLabel">{{ label }} User</h5>
-                    <button type="button" class="btn-close" @click="closeModal(label.toUpperCase())"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close" @click="closeModal()" aria-label="Close"></button>
                 </div>
                 <form @submit.prevent="createOrUpdateUser(label.toUpperCase())" class="needs-validation" novalidate>
                     <div class="modal-body">
@@ -129,6 +115,22 @@
                                     </div>
                                 </div>
                             </div>
+                            <div v-if="label == 'Edit'">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="isEnabled" value="true" id="enable"
+                                        v-model="selectedUser!.isEnabled">
+                                    <label class="form-check-label" for="enable">
+                                        Enable
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="isEnabled" value="false" id="disable"
+                                        v-model="selectedUser!.isEnabled">
+                                    <label class="form-check-label" for="disable">
+                                        Disable
+                                    </label>
+                                </div>
+                            </div>
                             <div class="col-12">
                                 <div class="form-group mb-3">
                                     <label for="role">Role</label>
@@ -147,8 +149,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary"
-                            @click="closeModal(label.toUpperCase())">Close</button>
+                        <button type="button" class="btn btn-secondary" @click="closeModal()">Close</button>
                         <button type="submit" class="btn btn-primary">Save changes</button>
                     </div>
                 </form>
@@ -161,15 +162,16 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="deleteUserModalLabel">{{ label }} User</h5>
-                    <button type="button" class="btn-close" @click="closeModal('DELETE')" aria-label="Close"></button>
+                    <button type="button" class="btn-close" @click="closeModal()" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     Are you sure you would like to delete user {{ selectedUser?.person?.firstName }} {{
-                        selectedUser?.person?.otherNames }} {{ selectedUser?.person?.surname }} ?
+                        selectedUser?.person?.otherNames }} {{ selectedUser?.person?.surname }} with email {{
+        selectedUser?.emailAddress }}?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @click="closeModal('DELETE')">Close</button>
-                    <button type="button" class="btn btn-danger" @click="deleteUser">Delete</button>
+                    <button type="button" class="btn btn-secondary" @click="closeModal()">Close</button>
+                    <button type="button" class="btn btn-danger" @click="deleteUser(selectedUser.id!)">Delete</button>
                 </div>
             </div>
         </div>
@@ -179,11 +181,13 @@
 <script lang="ts">
 import { defineComponent, onMounted, Ref, ref, computed } from 'vue';
 import * as bootstrap from 'bootstrap';
-import { getUsers, createUser } from "../../api/user-api";
-import { CreateUserRequest, Person, User } from "../../types/User";
+import { getUsers, createUser, updateUser, deleteUser as deleteUserRequest } from "../../api/user-api";
+import { CreateUserRequest, Person, User, UpdateUserRequest } from "../../types/User";
 import { UserRole } from "../../types/UserRole";
 import { getUserRoles } from '../../api/user-role-api';
 import Pagination from '../../components/Pagination.vue';
+import { AxiosError } from 'axios';
+import { Response } from '../../types/Response';
 
 export default defineComponent({
     name: "Users",
@@ -207,60 +211,68 @@ export default defineComponent({
             else if (action === "EDIT") {
                 label.value = "Edit";
                 selectedUser.value = user!;
-                console.log(selectedUser.value);
             }
             else if (action === "DELETE") {
                 label.value = "Delete";
                 selectedUser.value = user!;
             }
             else {
+                console.error("Unknownn command!");
             }
             modal = new bootstrap.Modal(refModal!);
             modal?.show();
         };
 
-        const closeModal = (action: string) => {
-            if (action === "CREATE") {
-
-            }
-            else if (action === "EDIT") {
-            }
-            else if (action === "DELETE") {
-            }
-            else {
-            }
+        const closeModal = () => {
             submitted.value = false;
             modal?.hide();
         };
 
         const createOrUpdateUser = async (action: string) => {
             submitted.value = true;
-            console.log(selectedUser.value);
             if (isEmailValid.value && isFirstValid.value && isRoleValid.value && isSurnameValid.value) {
-                if (action === "CREATE") {
-                    await createUser(new CreateUserRequest(selectedUser.value.emailAddress, selectedUser.value.roleId,
-                        new Person(selectedUser.value.person?.firstName, selectedUser.value.person?.otherNames, selectedUser.value.person?.surname)));
+                try {
+                    const user = selectedUser.value;
+                    if (action === "CREATE") {
+                        await createUser(new CreateUserRequest(user.emailAddress, user.roleId,
+                            new Person(user.person?.firstName, user.person?.otherNames, user.person?.surname)));
+                    } else if (action === "EDIT") {
+                        await updateUser(user.id!, new UpdateUserRequest(user.emailAddress, user.roleId,
+                            new Person(user.person?.firstName, user.person?.otherNames, user.person?.surname), selectedUser.value.isEnabled));
+                    } else {
+                        console.error("Unknown command!");
+                    }
                     allUsers.value = await getUsers();
                     userRoles.value = await getUserRoles();
-
+                    closeModal();
+                } catch (error) {
+                    if (error instanceof AxiosError) {
+                        console.log((error.response?.data as Response<any>).message)
+                    } else {
+                        console.error(error);
+                    }
                 }
-                else if (action === "EDIT") {
-                    
-                }
-                else {
-
-                }
-                selectedUser.value = new User();
-                closeModal(action);
             }
         };
 
-        const deleteUser = () => {
-            closeModal("DELETE");
+        const deleteUser = async (userId: string) => {
+            try {
+                await deleteUserRequest(userId);
+                allUsers.value = await getUsers();
+                userRoles.value = await getUserRoles();
+                closeModal();
+            } catch (error) {
+                if (error instanceof AxiosError) {
+                    console.log((error.response?.data as Response<any>).message)
+                } else {
+                    console.error(error);
+                }
+            }
         };
 
-        const search = (emailAddress: string) => {
-            console.log("searching " + emailAddress);
+        const search = async (emailAddress: string) => {
+            allUsers.value = await getUsers(emailAddress);
+            userRoles.value = await getUserRoles();
         };
 
         const isEmailValid = computed(() => {
@@ -299,7 +311,6 @@ export default defineComponent({
         };
 
         const handleSlicedUsers = (slicedUsers: User[]) => {
-            console.log('Sliced: ' + slicedUsers);
             users.value = slicedUsers;
         };
 

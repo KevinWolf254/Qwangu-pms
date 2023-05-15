@@ -57,6 +57,8 @@ import { defineComponent, Ref, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { SignInRequest } from "../types/SignIn";
 import { signInUser } from "../api/user-api";
+import { AxiosError } from 'axios';
+import { Response } from '../types/Response';
 
 export default defineComponent({
     name: "SignIn",
@@ -74,8 +76,12 @@ export default defineComponent({
                         localStorage.setItem('token', response.token);
                         router?.push(`/users`);
                     }
-                } catch (error) {
-                    console.log("something happend!");
+                } catch (error) {                    
+                    if(error instanceof AxiosError) {
+                        console.log((error.response?.data as Response<any>).message)
+                    } else {
+                        console.error(error);
+                    }
                 }
             }
         }
