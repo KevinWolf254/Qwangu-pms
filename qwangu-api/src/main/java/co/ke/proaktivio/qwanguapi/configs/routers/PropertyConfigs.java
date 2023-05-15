@@ -1,11 +1,13 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.PropertyHandler;
+import co.ke.proaktivio.qwanguapi.models.Property;
 import co.ke.proaktivio.qwanguapi.pojos.PropertyDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -39,7 +41,7 @@ public class PropertyConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PropertyDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Properties created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = Property.class))),
                                             @ApiResponse(responseCode = "400", description = "Property already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Properties were not found!",
@@ -57,7 +59,7 @@ public class PropertyConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PropertyDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Properties updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = Property.class))),
                                             @ApiResponse(responseCode = "400", description = "Property already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Property was not found!",
@@ -75,7 +77,7 @@ public class PropertyConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Property found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                                    content = @Content(schema = @Schema(implementation = Property.class))),
                                             @ApiResponse(responseCode = "400", description = "Property does not exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Property was not found!",
@@ -93,12 +95,11 @@ public class PropertyConfigs {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Properties found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                    				content = @Content(array = @ArraySchema(schema = @Schema(implementation = Property.class)))),
                                             @ApiResponse(responseCode = "404", description = "Properties were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
                                     parameters = {
-                                            @Parameter(in = ParameterIn.QUERY, name = "propertyId"),
                                             @Parameter(in = ParameterIn.QUERY, name = "type"),
                                             @Parameter(in = ParameterIn.QUERY, name = "name"),
                                             @Parameter(in = ParameterIn.QUERY, name = "order")

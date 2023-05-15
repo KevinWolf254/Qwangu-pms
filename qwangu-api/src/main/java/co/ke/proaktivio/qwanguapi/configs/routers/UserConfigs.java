@@ -5,6 +5,7 @@ import co.ke.proaktivio.qwanguapi.pojos.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -35,7 +36,7 @@ public class UserConfigs {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Users found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                            		content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserWithoutPasswordDto.class)))),
                                             @ApiResponse(responseCode = "404", description = "Users were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -53,10 +54,8 @@ public class UserConfigs {
                             operation = @Operation(
                                     operationId = "findById",
                                     responses = {
-                                            @ApiResponse(responseCode = "200", description = "User deleted successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
-                                            @ApiResponse(responseCode = "400", description = "User does not exists!",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                            @ApiResponse(responseCode = "200", description = "User found successfully.",
+                                                    content = @Content(schema = @Schema(implementation = UserWithoutPasswordDto.class))),
                                             @ApiResponse(responseCode = "404", description = "User was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -89,7 +88,7 @@ public class UserConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UpdateUserDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "User updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserWithoutPasswordDto.class))),
                                             @ApiResponse(responseCode = "400", description = "User already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

@@ -12,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -92,7 +93,7 @@ public class PropertyHandler {
         Optional<String> nameOptional = request.queryParam("name");
         Optional<String> orderOptional = request.queryParam("order");
 
-        if (typeOptional.isPresent() && !EnumUtils.isValidEnum(Property.PropertyType.class, typeOptional.get())) {
+        if (typeOptional.isPresent() && StringUtils.hasText(typeOptional.get()) && !EnumUtils.isValidEnum(Property.PropertyType.class, typeOptional.get())) {
             String[] arrayOfState = Stream.of(Property.PropertyType.values()).map(Property.PropertyType::getName)
                     .toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
@@ -100,14 +101,14 @@ public class PropertyHandler {
         }
         ValidationUtil.vaidateOrderType(orderOptional);
         
-        log.debug(" Validation of request param Unit.Type was successful");
-
         return ServerResponse
                 .ok()
                 .body(propertyService
                         .find(
                                 nameOptional.orElse(null),
-                                typeOptional.map(Property.PropertyType::valueOf).orElse(null),
+                                typeOptional.isPresent() && StringUtils.hasText(typeOptional.get()) ? 
+                                		typeOptional.map(Property.PropertyType::valueOf).orElse(null) : 
+                                			null,
                                 orderOptional.map(OrderType::valueOf).orElse(OrderType.DESC)
                         )
                         .collectList()

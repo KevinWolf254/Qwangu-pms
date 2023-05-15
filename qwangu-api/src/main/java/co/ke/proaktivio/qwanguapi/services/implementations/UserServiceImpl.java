@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
     public Flux<User> findAll(String emailAddress, OrderType order) {
         Query query = new Query();
         if(StringUtils.hasText(emailAddress))
-        	query.addCriteria(Criteria.where("emailAddress").is(emailAddress.trim()));
+        	query.addCriteria(Criteria.where("emailAddress").regex(".*" +emailAddress.trim()+ ".*", "i"));
 
         Sort sort = order != null ? order.equals(OrderType.ASC) ?
                 Sort.by(Sort.Order.asc("id")) :

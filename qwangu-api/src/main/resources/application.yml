@@ -24,10 +24,10 @@ spring:
     active: dev
   data:
     mongodb:
-      uri: mongodb://localhost:27017,localhost:27018/?replicaSet=rs0
+#      uri: mongodb://localhost:27017,localhost:27018/?replicaSet=rs0
       database: qwangu_db
-#      host: localhost
-#      port: 27017
+      host: localhost
+      port: 27017
       username: kevin
       password: pass123
       auto-index-creation: true

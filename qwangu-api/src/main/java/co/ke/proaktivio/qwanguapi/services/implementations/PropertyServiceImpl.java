@@ -48,20 +48,21 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     public Mono<Property> update(String id, PropertyDto dto) {
-        String apartmentName = dto.getName();
+//        String apartmentName = dto.getName();
         return propertyRepository
                 .findById(id)
                 .switchIfEmpty(Mono.error(new CustomNotFoundException("Property with id %s does not exists!"
                         .formatted(id))))
-                .flatMap(apartment -> exists(apartmentName)
-                        .filter(exists -> !exists)
-                        .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Property %s already exists!"
-                                .formatted(apartmentName))))
-                        .map($ -> {
+//                .flatMap(apartment -> exists(apartmentName)
+//                        .filter(exists -> !exists)
+//                        .switchIfEmpty(Mono.error(new CustomAlreadyExistsException("Property %s already exists!"
+//                                .formatted(apartmentName))))
+                        .map(apartment -> {
                             apartment.setName(dto.getName());
                             apartment.setDescription(dto.getDescription());
                             return apartment;
-                        }))
+                        })
+//                        )
                 .doOnSuccess(a -> log.debug("Checks for Property {} was successful", dto.getName()))
                 .flatMap(propertyRepository::save)
                 .doOnSuccess(a -> log.info("Property updated successfully: {}", a));

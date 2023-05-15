@@ -23,78 +23,68 @@ import java.time.LocalDateTime;
 @Configuration
 @Profile("dev")
 public class BootstrapConfig {
-    Person person = new Person("John", "David", "Doe");
-    Person person2 = new Person("Jane", "Josephine", "Doe");
-    Mono<User> user = Mono.just(new User(null, person, "johnDoe@email.com", null, "ABc1234!", false,
-            false, false, true, null, null, null, null));
-    Mono<User> user2 = Mono.just(new User(null, person2, "janeDoe@email.com", null, "ABc1234!", false,
-            false, false, true, null, null, null, null));
+	Person person = new Person("John", "David", "Doe");
+	Person person2 = new Person("Jane", "Josephine", "Doe");
+	Mono<User> user = Mono.just(new User(null, person, "johnDoe@email.com", null, "ABc1234!", false, false, false, true,
+			null, null, null, null));
+	Mono<User> user2 = Mono.just(new User(null, person2, "janeDoe@email.com", null, "ABc1234!", false, false, false,
+			true, null, null, null, null));
 
-    Mono<UserRole> superAdminRole = Mono.just(new UserRole.UserRoleBuilder().name("SUPER_ADMIN").build());
+	Mono<UserRole> superAdminRole = Mono.just(new UserRole.UserRoleBuilder().name("SUPER_ADMIN").build());
 
-    Flux<UserAuthority> superAdminAuthorities = Flux.just(
-            new UserAuthority(null, "APARTMENT", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "UNIT", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "OCCUPATION", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "TENANT", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "NOTICE", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "PAYMENT", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "OCCUPATION_TRANSACTION", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "ADVANCE", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "RECEIVABLE", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "REFUND", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "USER", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "USER_ROLE", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null),
-            new UserAuthority(null, "USER_AUTHORITY", true, true, true, true, true,
-                    null, LocalDateTime.now(), null, null, null)
-    );
+	Flux<UserAuthority> superAdminAuthorities = Flux.just(
+			new UserAuthority(null, "APARTMENT", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+					null),
+			new UserAuthority(null, "UNIT", true, true, true, true, true, null, LocalDateTime.now(), null, null, null),
+			new UserAuthority(null, "OCCUPATION", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+					null),
+			new UserAuthority(null, "TENANT", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+					null),
+			new UserAuthority(null, "NOTICE", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+					null),
+			new UserAuthority(null, "PAYMENT", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+					null),
+			new UserAuthority(null, "OCCUPATION_TRANSACTION", true, true, true, true, true, null, LocalDateTime.now(),
+					null, null, null),
+			new UserAuthority(null, "ADVANCE", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+					null),
+			new UserAuthority(null, "RECEIVABLE", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+					null),
+			new UserAuthority(null, "REFUND", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+					null),
+			new UserAuthority(null, "USER", true, true, true, true, true, null, LocalDateTime.now(), null, null, null),
+			new UserAuthority(null, "USER_ROLE", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+					null),
+			new UserAuthority(null, "USER_AUTHORITY", true, true, true, true, true, null, LocalDateTime.now(), null,
+					null, null));
 
-    private Mono<Void> deleteAll(UserRepository userRepository, UserRoleRepository roleRepository,
-                         UserAuthorityRepository userAuthorityRepository) {
-        return userAuthorityRepository.deleteAll()
-                .doOnSuccess($ -> log.info(" Deleted all authorities"))
-                .then(roleRepository.deleteAll())
-                .doOnSuccess($ -> log.info(" Deleted all roles"))
-                .then(userRepository.deleteAll())
-                .doOnSuccess($ -> log.info(" Deleted all users"));
-    }
+	private Mono<Void> deleteAll(UserRepository userRepository, UserRoleRepository roleRepository,
+			UserAuthorityRepository userAuthorityRepository) {
+		return userAuthorityRepository.deleteAll().doOnSuccess($ -> log.info(" Deleted all authorities"))
+				.then(roleRepository.deleteAll()).doOnSuccess($ -> log.info(" Deleted all roles"))
+				.then(userRepository.deleteAll()).doOnSuccess($ -> log.info(" Deleted all users"));
+	}
 
-    @Bean
-    public CommandLineRunner init(UserRepository userRepository, UserRoleRepository roleRepository,
-                                  UserAuthorityRepository userAuthorityRepository, PasswordEncoder encoder) {
-        return args -> {
-            deleteAll(userRepository, roleRepository, userAuthorityRepository)
-                    .then(superAdminRole)
-                    .flatMap(roleRepository::save)
-                    .doOnSuccess(r -> log.info(" Created {}", r))
-                    .flatMap(r -> superAdminAuthorities
-                                    .doOnNext(a -> a.setRoleId(r.getId()))
-                                    .collectList()
-                                    .flatMap(a -> userAuthorityRepository.saveAll(a)
-                                            .doOnNext(as -> log.info(" Created {}", as))
-                                            .collectList())
-                                    .flatMap($ -> user
-                                            .doOnSuccess(u -> u.setRoleId(r.getId())))
-                            )
-                    .doOnSuccess(u -> {
-                        u.setPassword(encoder.encode(u.getPassword()));
-                        log.info(" Encoded password {}", u.getPassword());
-                    }).subscribeOn(Schedulers.parallel())
-                    .flatMap(userRepository::save)
-                    .doOnSuccess(u -> log.info(" Created {}", u))
-                    .subscribe();
-        };
-    }
+	@Bean
+	public CommandLineRunner init(UserRepository userRepository, UserRoleRepository roleRepository,
+			UserAuthorityRepository userAuthorityRepository, PasswordEncoder encoder) {
+		return args -> {
+			deleteAll(userRepository, roleRepository, userAuthorityRepository).then(superAdminRole)
+					.flatMap(roleRepository::save).doOnSuccess(r -> log.info(" Created {}", r))
+					.flatMap(r -> superAdminAuthorities.doOnNext(a -> a.setRoleId(r.getId())).collectList()
+							.flatMap(a -> userAuthorityRepository.saveAll(a).doOnNext(as -> log.info(" Created {}", as))
+									.collectList())
+							.flatMap($ -> user.doOnSuccess(u -> u.setRoleId(r.getId()))).doOnSuccess(u -> {
+								u.setPassword(encoder.encode(u.getPassword()));
+								log.info(" Encoded password {}", u.getPassword());
+							}).subscribeOn(Schedulers.parallel()).flatMap(userRepository::save)
+							.doOnSuccess(u -> log.info(" Created {}", u))
+							.flatMap($ -> user2.doOnSuccess(u -> u.setRoleId(r.getId()))).doOnSuccess(u -> {
+								u.setPassword(encoder.encode(u.getPassword()));
+								log.info(" Encoded password {}", u.getPassword());
+							}).subscribeOn(Schedulers.parallel()).flatMap(userRepository::save)
+							.doOnSuccess(u -> log.info(" Created {}", u)))
+					.subscribe();
+		};
+	}
 }
