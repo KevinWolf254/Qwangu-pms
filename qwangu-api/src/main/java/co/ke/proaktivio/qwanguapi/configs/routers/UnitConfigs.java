@@ -110,10 +110,10 @@ public class UnitConfigs {
     RouterFunction<ServerResponse> unitRoute(UnitHandler handler) {
         return route()
                 .path("v1/units", builder -> builder
+                		.GET("/{unitId}", handler::findById)
                         .GET(handler::findAll)
                         .POST(handler::create)
                         .PUT("/{unitId}", handler::update)
-                        .GET("/{unitId}", handler::findById)
                 ).build();
     }
 }

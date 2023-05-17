@@ -42,7 +42,8 @@
                                 <td>{{ unit.noOfBedrooms }}</td>
                                 <td>{{ unit.currency }} {{ Number(unit.rentPerMonth).toLocaleString("en-US") }}</td>
                                 <td>
-                                    <button type="button" class="btn btn-outline-primary me-1" style="font-size: .75rem;">
+                                    <button type="button" class="btn btn-outline-primary me-1" style="font-size: .75rem;"
+                                        @click="goToUnit(unit.id!)">
                                         <i class="bi bi-eye-fill"></i>
                                         View
                                     </button>
@@ -249,6 +250,7 @@ import { Property } from '../../types/Property';
 import { getProperties } from "../../api/property-api";
 import { AxiosError } from 'axios';
 import { Response } from '../../types/Response';
+import { useRouter } from "vue-router";
 
 export default defineComponent({
     name: "Units",
@@ -260,6 +262,7 @@ export default defineComponent({
         const unitModal: Ref<HTMLDivElement | null> = ref(null);
         const submitted: Ref<boolean> = ref(false);
         const properties: Ref<Property[]> = ref([]);
+        const router = useRouter();
 
         let label: Ref<string> = ref("");
         let modal: bootstrap.Modal;
@@ -287,6 +290,10 @@ export default defineComponent({
         const closeModal = () => {
             submitted.value = false;
             modal?.hide();
+        };
+
+        const goToUnit = (unitId: string) => {
+            router?.push(`/units/${unitId}`);
         };
 
         const search = async (accountNo: string) => {
@@ -426,6 +433,7 @@ export default defineComponent({
             search,
             handleSlicedUnits,
             createOrUpdateUnit,
+            goToUnit,
             isPropertyIdValid,
             isUnitTypeValid,
             isFloorNoValid,

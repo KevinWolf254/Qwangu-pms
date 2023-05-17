@@ -19,3 +19,8 @@ export const updateUnit = async (unitId: string, request: Unit): Promise<Unit> =
         const response = await http.put<Response<Unit>>(`${unitUrl}/${unitId}`, request);
         return response.data.data;
 }
+
+export const getUnit = async (unitId: string): Promise<Unit> => {
+        const response = await http.get<Response<Unit>>(`${unitUrl}/${unitId}`);
+        return response.data.data;
+}
