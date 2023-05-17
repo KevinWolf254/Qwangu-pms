@@ -1,19 +1,25 @@
-docker network create qwangu_ntwk
+docker run -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=kevin -e MONGO_INITDB_ROOT_PASSWORD=pass123 --name qwangu_db mongo:5
 
-docker network ls
+#### replica set ####
+docker network create qwanguNtwk
 
--- -e MONGO_INITDB_ROOT_USERNAME=kevin -e MONGO_INITDB_ROOT_PASSWORD=pass123
-docker run -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=kevin -e MONGO_INITDB_ROOT_PASSWORD=pass123 --name qwangu_db mongo:latest
+docker run -d --rm -p 27017:27017 --name qwanguDb --network qwanguNtwk mongo:5 mongod --replSet qwanguSet --bind_ip localhost,qwanguDb
+docker run -d --rm -p 27018:27017 --name qwanguDb1 --network qwanguNtwk mongo:5 mongod --replSet qwanguSet --bind_ip localhost,qwanguDb1
+docker run -d --rm -p 27019:27017 --name qwanguDb2 --network qwanguNtwk mongo:5 mongod --replSet qwanguSet --bind_ip localhost,qwanguDb2
 
-docker run -d -p 27017:27017 --net qwangu_ntwk --name qwangu_db mongo:latest mongod --replSet qwangu_set
-docker run -d -p 27018:27017 --net qwangu_ntwk --name qwangu_db_01 mongo:latest mongod --replSet qwangu_set
-docker run -d -p 27019:27017 --net qwangu_ntwk --name qwangu_db_02 mongo:latest mongod --replSet qwangu_set
+docker exec -it qwanguDb mongosh --eval "rs.initiate({
+ _id: \"qwanguSet\",
+ members: [
+   {_id: 0, host: \"qwanguDb\"},
+   {_id: 1, host: \"qwanguDb1\"},
+   {_id: 2, host: \"qwanguDb2\"}
+ ]
+})"
 
-docker exec -it qwangu_db mongo
+docker exec -it qwanguDb mongosh --eval "rs.status()"
 
-config={_id: "qwangu_set",members:[{_id:0,host:"qwangu_db:27017"},{_id:1,host:"qwangu_db_01:27018"},{_id:2,host:"qwangu_db_02:27019"}]}
+docker exec -it qwanguDb mongosh
 
-rs.initiate(config)
+use qwangu_db
 
-rs.status()
-
+db.createUser({user: "kevin", pwd: "pass123", roles: ["readWrite"]})
