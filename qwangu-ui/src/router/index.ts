@@ -5,6 +5,7 @@ import SetPassword from '../views/SetPassword.vue'
 import Home from '../views/Home.vue'
 import Users from "../views/users/Users.vue";
 import Properties from '../views/properties/Properties.vue'
+import Units from "../views/units/Units.vue";
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -36,7 +37,12 @@ const routes: Array<RouteRecordRaw> = [
           path: '/properties',
           name: 'Properties',
           component: Properties,
-        }      
+        },
+        {
+          path: '/units',
+          name: 'Units',
+          component: Units,
+        }   
       ]
     },
     // catch-all route for unknown paths

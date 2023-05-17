@@ -41,8 +41,6 @@
                                 </td>
                                 <td><span class="badge bg-success">{{ user.isEnabled ? 'YES' : 'NO' }}</span></td>
                                 <td>
-                                    <span class="badge bg-secondary me-1"></span>
-                                    <span class="badge bg-danger"></span>
                                     <button type="button" class="btn btn-outline-secondary me-1"
                                         style="font-size: .75rem;" @click="openModal('EDIT', userModal, user)">
                                         <i class="bi bi-pencil-square"></i>

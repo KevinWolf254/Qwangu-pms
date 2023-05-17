@@ -13,8 +13,7 @@
                 <div class="container mt-4">
                     <div class="d-flex flex-row-reverse mt-4">
                         <div class="col-auto ms-2">
-                            <button type="submit" class="btn btn-primary mb-3"
-                                @click="search(searchName)">Search</button>
+                            <button type="submit" class="btn btn-primary mb-3" @click="search(searchName)">Search</button>
                         </div>
                         <div class="mb-2">
                             <input type="text" class="form-control" id="searchName" placeholder="property name"
@@ -34,10 +33,8 @@
                                 <td>{{ property.type }}</td>
                                 <td>{{ property.name }}</td>
                                 <td>
-                                    <span class="badge bg-secondary me-1"></span>
-                                    <span class="badge bg-danger"></span>
-                                    <button type="button" class="btn btn-outline-secondary me-1"
-                                        style="font-size: .75rem;" @click="openModal('EDIT', propertyModal, property)">
+                                    <button type="button" class="btn btn-outline-secondary me-1" style="font-size: .75rem;"
+                                        @click="openModal('EDIT', propertyModal, property)">
                                         <i class="bi bi-pencil-square"></i>
                                         Edit
                                     </button>
@@ -48,7 +45,7 @@
                     <div class="mt-4 d-flex flex-row-reverse">
                         <Pagination :items="allProperties" @items-sliced="handleSlicedProperties"></Pagination>
                     </div>
-                </div>                
+                </div>
             </div>
         </div>
     </div>
@@ -67,8 +64,9 @@
                                 <div class="form-group mb-3">
                                     <label for="type">Property Type</label>
                                     <select class="form-select" aria-label="type select" id="type"
-                                        v-model="selectedProperty!.type" :class="{ 'is-invalid': !isPropertyTypeValid && submitted }"
-                                        required :disabled="label == 'Edit'">
+                                        v-model="selectedProperty!.type"
+                                        :class="{ 'is-invalid': !isPropertyTypeValid && submitted }" required
+                                        :disabled="label == 'Edit'">
                                         <option disabled value="">Select type</option>
                                         <option value="APARTMENT">APARTMENT</option>
                                         <option value="HOUSE">HOUSE</option>
@@ -81,9 +79,10 @@
                             <div class="col-12">
                                 <div class="form-group mb-3">
                                     <label for="name">Property Name</label>
-                                    <input type="text" class="form-control" id="name"
-                                        v-model="selectedProperty!.name" placeholder="Enter property name"
-                                        :class="{ 'is-invalid': !isNameValid && submitted }" required :disabled="label == 'Edit'"/>
+                                    <input type="text" class="form-control" id="name" v-model="selectedProperty!.name"
+                                        placeholder="Enter property name"
+                                        :class="{ 'is-invalid': !isNameValid && submitted }" required
+                                        :disabled="label == 'Edit'" />
                                     <div class="invalid-feedback">
                                         Please enter a property name with a minimum of 2 characters.
                                     </div>
@@ -91,7 +90,8 @@
                             </div>
                             <div class="col-12 mb-3">
                                 <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" rows="5" v-model="selectedProperty!.description"></textarea>
+                                <textarea class="form-control" id="description" rows="5"
+                                    v-model="selectedProperty!.description"></textarea>
                             </div>
                         </div>
                     </div>
@@ -117,14 +117,15 @@ import Pagination from '../../components/Pagination.vue';
 export default defineComponent({
     name: "Properties",
     setup() {
-        let label: Ref<string> = ref("");
         const selectedProperty: Ref<Property> = ref(new Property());
         const submitted: Ref<boolean> = ref(false);
         const propertyModal: Ref<HTMLDivElement | null> = ref(null);
-        let modal: bootstrap.Modal;
         const allProperties: Ref<Property[]> = ref([]);
         const properties: Ref<Property[]> = ref([]);
         const searchName: Ref<string> = ref("");
+
+        let label: Ref<string> = ref("");
+        let modal: bootstrap.Modal;
 
         const openModal = (action: string, refModal: HTMLDivElement | null, property?: Property) => {
             if (action === "CREATE") {

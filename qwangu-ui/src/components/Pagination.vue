@@ -7,7 +7,7 @@
                 <li class="page-item" v-for="pageNumber in totalPages" :key="pageNumber"
                     :class="{ active: currentPage === pageNumber }"><a class="page-link" href="#"
                         @click.prevent="currentPage = pageNumber">{{ pageNumber }}</a></li>
-                <li class="page-item" :class="{ disabled: currentPage === totalPages }"><a class="page-link" href="#"
+                <li class="page-item" :class="{ disabled: currentPage === totalPages || items.length <= 0 }"><a class="page-link" href="#"
                         @click.prevent="nextPage">Next</a></li>
             </ul>
         </nav>
