@@ -4,8 +4,8 @@ import { Unit, UnitStatus } from '../types/Unit';
 
 const unitUrl = '/v1/units';
 
-export const getUnits = async (accountNo?: string, status?: UnitStatus): Promise<Unit[]> => {
-        const response = await http.get<Response<Unit[]>>(`${unitUrl}?accountNo=${accountNo ? accountNo : ''}&status=${status ? status.toString() : ''}&order=DESC`);
+export const getUnits = async (accountNo?: string, status?: UnitStatus, apartmentId?: string): Promise<Unit[]> => {
+        const response = await http.get<Response<Unit[]>>(`${unitUrl}?accountNo=${accountNo ? accountNo : ''}&status=${status ? status.toString() : ''}&apartmentId=${apartmentId ? apartmentId : ''}&order=DESC`);
         return response.data.data;
 }
 

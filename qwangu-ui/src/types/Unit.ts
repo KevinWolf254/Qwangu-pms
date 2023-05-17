@@ -5,12 +5,12 @@ export class Unit {
         public id?: string,
         public status?: UnitStatus,
         public number?: string,
-        public type?: UnitType,
-        public identifier?: UnitIdentifier,
+        public type?: UnitType | string,
+        public identifier?: UnitIdentifier | string,
         public floorNo?: number,
         public noOfBedrooms?: number,
         public noOfBathrooms?: number,
-        public currency?: Currency,
+        public currency?: Currency | string,
         public rentPerMonth?: number,
         public securityPerMonth?: number,
         public garbagePerMonth?: number,
@@ -24,7 +24,13 @@ export class Unit {
         public modifiedOn?: Date,
         public modifiedBy?: string,
         public propertyId?: string
-    ) { }
+    ) { 
+        this.status = this.status ? this.status : UnitStatus.VACANT;
+        this.type = this.type ? this.type : '';
+        this.identifier = this.identifier ? this.identifier : '';
+        this.currency = this.currency ? this.currency : '';
+        this.propertyId = this.propertyId ? this.propertyId : '';
+    }
 }
 
 export enum UnitStatus {

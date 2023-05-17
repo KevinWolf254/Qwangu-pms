@@ -14,6 +14,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -103,7 +104,7 @@ public class UnitHandler {
         Optional<String> bathroomsOptional = request.queryParam("noOfBathrooms");
         Optional<String> orderOptional = request.queryParam("order");
 
-        if (typeOPtional.isPresent() &&  !EnumUtils.isValidEnum(Unit.UnitType.class, typeOPtional.get())) {
+        if (typeOPtional.isPresent() && StringUtils.hasText(typeOPtional.get()) && !EnumUtils.isValidEnum(Unit.UnitType.class, typeOPtional.get())) {
             String[] arrayOfState = Stream.of(Unit.UnitType.values()).map(Unit.UnitType::getType).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Unit type should be " + states + "!");
@@ -112,7 +113,7 @@ public class UnitHandler {
         ValidationUtil.vaidateOrderType(orderOptional);
         log.debug(" Validation of request param Unit.Type was successful");
 
-        if (statusOptional.isPresent() &&  !EnumUtils.isValidEnum(Unit.Status.class, statusOptional.get())) {
+        if (statusOptional.isPresent() && StringUtils.hasText(statusOptional.get()) && !EnumUtils.isValidEnum(Unit.Status.class, statusOptional.get())) {
             String[] arrayOfState = Stream.of(Unit.Status.values()).map(Unit.Status::getState).toArray(String[]::new);
             String states = String.join(" or ", arrayOfState);
             throw new CustomBadRequestException("Status should be " + states + "!");
@@ -125,9 +126,13 @@ public class UnitHandler {
 
             return unitService.findAll(
                             propertyIdOptional.map(propertyId -> propertyId).orElse(null),
-                            statusOptional.map(Unit.Status::valueOf).orElse(null),
+                            statusOptional.isPresent() && StringUtils.hasText(statusOptional.get()) ? 
+                            		statusOptional.map(Unit.Status::valueOf).orElse(null) :
+                            			null,
                             accountNoOPtional.map(accountNo -> accountNo).orElse(null),
-                            typeOPtional.map(Unit.UnitType::valueOf).orElse(null),
+                            typeOPtional.isPresent() && StringUtils.hasText(typeOPtional.get()) ?
+                            		typeOPtional.map(Unit.UnitType::valueOf).orElse(null) :
+                            			null,
                             identifierOptional.map(Identifier::valueOf).orElse(null),
                             floorNoResult,
                             noOfBedrooms,

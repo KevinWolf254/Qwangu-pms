@@ -87,7 +87,7 @@ public class UnitConfigs {
                             operation = @Operation(
                                     operationId = "findAll",
                                     responses = {
-                                    		@ApiResponse(responseCode = "200", description = "Users found successfully.",
+                                    		@ApiResponse(responseCode = "200", description = "Units found successfully.",
                                             		content = @Content(array = @ArraySchema(schema = @Schema(implementation = Unit.class)))),
                                             @ApiResponse(responseCode = "404", description = "Units were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
