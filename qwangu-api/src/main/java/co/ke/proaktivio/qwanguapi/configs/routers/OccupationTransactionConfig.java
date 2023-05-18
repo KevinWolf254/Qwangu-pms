@@ -2,6 +2,8 @@ package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.OccupationTransactionHandler;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
+import co.ke.proaktivio.qwanguapi.pojos.responses.OccupationTransactionResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.OccupationTransactionsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -35,7 +37,7 @@ public class OccupationTransactionConfig {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "occupation Transaction found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+                                                    content = @Content(schema = @Schema(implementation = OccupationTransactionsResponse.class)))
                                     },
                                     parameters = {
                                             @Parameter(in = ParameterIn.QUERY, name = "occupationId"),
@@ -57,7 +59,7 @@ public class OccupationTransactionConfig {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "occupation Transaction found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = OccupationTransactionResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "occupation Transaction was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

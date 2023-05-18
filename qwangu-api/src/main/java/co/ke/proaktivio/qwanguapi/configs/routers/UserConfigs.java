@@ -2,10 +2,11 @@ package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.UserHandler;
 import co.ke.proaktivio.qwanguapi.pojos.*;
+import co.ke.proaktivio.qwanguapi.pojos.responses.UserResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.UsersResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -35,8 +36,8 @@ public class UserConfigs {
                             operation = @Operation(
                                     operationId = "findAll",
                                     responses = {
-                                            @ApiResponse(responseCode = "200", description = "Users found successfully.",
-                                            		content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserWithoutPasswordDto.class)))),
+                                    		@ApiResponse(responseCode = "200", description = "Users found successfully.",
+                                            	content = @Content(schema = @Schema(implementation = UsersResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Users were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -55,7 +56,7 @@ public class UserConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "User found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = UserWithoutPasswordDto.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "User was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -72,7 +73,7 @@ public class UserConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UserDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "201", description = "User created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = UserWithoutPasswordDto.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "User already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -88,7 +89,7 @@ public class UserConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UpdateUserDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "User updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = UserWithoutPasswordDto.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "User already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -121,7 +122,7 @@ public class UserConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PasswordDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "User updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "User does not exist!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

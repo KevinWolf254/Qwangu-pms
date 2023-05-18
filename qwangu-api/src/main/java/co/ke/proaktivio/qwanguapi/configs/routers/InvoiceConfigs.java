@@ -2,6 +2,8 @@ package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.InvoiceHandler;
 import co.ke.proaktivio.qwanguapi.pojos.*;
+import co.ke.proaktivio.qwanguapi.pojos.responses.InvoiceResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.InvoicesResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -36,7 +38,7 @@ public class InvoiceConfigs {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Invoices found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class)))
+                                                    content = @Content(schema = @Schema(implementation = InvoicesResponse.class)))
                                     },
                                     parameters = {
                                             @Parameter(in = ParameterIn.QUERY, name = "type"),
@@ -55,7 +57,7 @@ public class InvoiceConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Invoice found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                                    content = @Content(schema = @Schema(implementation = InvoiceResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Invoice was not found!",
                                             content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -72,7 +74,7 @@ public class InvoiceConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = InvoiceDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "201", description = "Invoice created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = InvoiceResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "Invoice already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

@@ -1,13 +1,13 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.UnitHandler;
-import co.ke.proaktivio.qwanguapi.models.Unit;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UnitDto;
+import co.ke.proaktivio.qwanguapi.pojos.responses.UnitResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.UnitsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -39,7 +39,7 @@ public class UnitConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UnitDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Unit created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Unit.class))),
+                                                    content = @Content(schema = @Schema(implementation = UnitResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "Unit already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -55,7 +55,7 @@ public class UnitConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UnitDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Unit updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Unit.class))),
+                                                    content = @Content(schema = @Schema(implementation = UnitResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "Unit already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Unit was not found!",
@@ -73,7 +73,7 @@ public class UnitConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Unit found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Unit.class))),
+                                                    content = @Content(schema = @Schema(implementation = UnitResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Occupation was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -87,8 +87,8 @@ public class UnitConfigs {
                             operation = @Operation(
                                     operationId = "findAll",
                                     responses = {
-                                    		@ApiResponse(responseCode = "200", description = "Units found successfully.",
-                                            		content = @Content(array = @ArraySchema(schema = @Schema(implementation = Unit.class)))),
+                                    		@ApiResponse(responseCode = "200", description = "Unit found successfully.",
+                                                    content = @Content(schema = @Schema(implementation = UnitsResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Units were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

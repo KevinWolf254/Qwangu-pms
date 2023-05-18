@@ -1,9 +1,10 @@
 package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.UserRoleHandler;
-import co.ke.proaktivio.qwanguapi.models.UserRole;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UserRoleDto;
+import co.ke.proaktivio.qwanguapi.pojos.responses.UserRoleResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.UserRolesResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -39,7 +40,7 @@ public class UserRoleConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Role found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = UserRole.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserRoleResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Role were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -55,7 +56,7 @@ public class UserRoleConfigs {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Role found successfully.",
-                                                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserRole.class)))),
+                                                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserRolesResponse.class)))),
                                             @ApiResponse(responseCode = "404", description = "Role were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -75,7 +76,7 @@ public class UserRoleConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UserRoleDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Role created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserRoleResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "Role already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Role were not found!",

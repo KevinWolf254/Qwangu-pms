@@ -8,7 +8,6 @@ import co.ke.proaktivio.qwanguapi.pojos.responses.TenantsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -87,8 +86,8 @@ public class TenantConfigs {
                             operation = @Operation(
                                     operationId = "findAll",
                                     responses = {
-                                            @ApiResponse(responseCode = "200", description = "Tenants found successfully.",
-                                                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = TenantsResponse.class))))
+                                    		@ApiResponse(responseCode = "200", description = "Tenants found successfully.",
+                                                    content = @Content(schema = @Schema(implementation = TenantsResponse.class)))
                                     },
                                     parameters = {
                                             @Parameter(in = ParameterIn.QUERY, name = "mobileNumber"),

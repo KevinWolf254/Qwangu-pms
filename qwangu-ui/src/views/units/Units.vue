@@ -196,7 +196,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-12">
                                 <div class="form-group mb-3">
                                     <label for="rentPerMonth">Rent per month</label>
                                     <input type="text" class="form-control" id="rentPerMonth" v-model="selectedUnit!.rentPerMonth"

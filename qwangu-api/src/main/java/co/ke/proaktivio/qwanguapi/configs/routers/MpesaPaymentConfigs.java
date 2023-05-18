@@ -4,6 +4,8 @@ import co.ke.proaktivio.qwanguapi.handlers.MpesaPaymentHandler;
 import co.ke.proaktivio.qwanguapi.pojos.MpesaPaymentDto;
 import co.ke.proaktivio.qwanguapi.pojos.MpesaPaymentResponse;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
+import co.ke.proaktivio.qwanguapi.pojos.responses.CustomMpesaPaymentResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.CustomMpesaPaymentsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -64,7 +66,7 @@ public class MpesaPaymentConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Payment found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                                    content = @Content(schema = @Schema(implementation = CustomMpesaPaymentResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Payment was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -80,7 +82,7 @@ public class MpesaPaymentConfigs {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Payments found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = CustomMpesaPaymentsResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Payments were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

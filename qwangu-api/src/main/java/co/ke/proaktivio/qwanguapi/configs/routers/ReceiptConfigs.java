@@ -7,6 +7,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import co.ke.proaktivio.qwanguapi.handlers.ReceiptHandler;
 import co.ke.proaktivio.qwanguapi.pojos.ReceiptDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
+import co.ke.proaktivio.qwanguapi.pojos.responses.ReceiptResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.ReceiptsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -38,7 +40,7 @@ public class ReceiptConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Receipt found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                                    content = @Content(schema = @Schema(implementation = ReceiptResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Receipt was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -54,7 +56,7 @@ public class ReceiptConfigs {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Receipts found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = ReceiptsResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Receipts were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -75,7 +77,7 @@ public class ReceiptConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ReceiptDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Receipt created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = ReceiptResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "Receipts already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

@@ -3,6 +3,8 @@ package co.ke.proaktivio.qwanguapi.configs.routers;
 import co.ke.proaktivio.qwanguapi.handlers.UserAuthorityHandler;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UserRoleDto;
+import co.ke.proaktivio.qwanguapi.pojos.responses.UserAuthoritiesResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.UserAuthorityResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -36,7 +38,7 @@ public class UserAuthorityConfigs {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "UserAuthority found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserAuthoritiesResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "UserAuthority were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -56,7 +58,7 @@ public class UserAuthorityConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Authority found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserAuthorityResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Authority was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -73,7 +75,7 @@ public class UserAuthorityConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UserRoleDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Authority updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = UserAuthorityResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Authority was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

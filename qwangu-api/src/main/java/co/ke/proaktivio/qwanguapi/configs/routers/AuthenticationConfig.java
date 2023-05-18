@@ -5,6 +5,8 @@ import co.ke.proaktivio.qwanguapi.pojos.EmailDto;
 import co.ke.proaktivio.qwanguapi.pojos.ResetPasswordDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.SignInDto;
+import co.ke.proaktivio.qwanguapi.pojos.responses.SignInResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -42,7 +44,7 @@ public class AuthenticationConfig {
                                 )),
                                 responses = {
                                         @ApiResponse(responseCode = "200", description = "Signed in successfully.",
-                                                content = @Content(schema = @Schema(implementation = Response.class))),
+                                                content = @Content(schema = @Schema(implementation = SignInResponse.class))),
                                         @ApiResponse(responseCode = "400", description = "User id not found!",
                                                 content = @Content(schema = @Schema(implementation = Response.class)))
                                 }
@@ -74,7 +76,7 @@ public class AuthenticationConfig {
                                 )),
                                 responses = {
                                         @ApiResponse(responseCode = "200", description = "User password updated successfully.",
-                                                content = @Content(schema = @Schema(implementation = Response.class))),
+                                                content = @Content(schema = @Schema(implementation = UserResponse.class))),
                                         @ApiResponse(responseCode = "400", description = "Token is required!",
                                         content = @Content(schema = @Schema(implementation = Response.class)))
                                 },
@@ -91,7 +93,7 @@ public class AuthenticationConfig {
                                 operationId = "activate",
                                 responses = {
                                         @ApiResponse(responseCode = "200", description = "User activated successfully.",
-                                                content = @Content(schema = @Schema(implementation = Response.class))),
+                                                content = @Content(schema = @Schema(implementation = UserResponse.class))),
                                         @ApiResponse(responseCode = "404", description = "User was not found!",
                                                 content = @Content(schema = @Schema(implementation = Response.class)))
                                 },

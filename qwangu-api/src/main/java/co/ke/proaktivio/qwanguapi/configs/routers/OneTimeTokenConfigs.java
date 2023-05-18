@@ -26,7 +26,7 @@ public class OneTimeTokenConfigs {
 //                                operationId = "findAll",
 //                                responses = {
 //                                        @ApiResponse(responseCode = "200", description = "Tokens found successfully.",
-//                                                content = @Content(schema = @Schema(implementation = Response.class))),
+//                                                content = @Content(schema = @Schema(implementation = OneTimeTokenResponse.class))),
 //                                        @ApiResponse(responseCode = "404", description = "Tokens were not found!",
 //                                                content = @Content(schema = @Schema(implementation = Response.class)))
 //                                },

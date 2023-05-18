@@ -4,6 +4,8 @@ import co.ke.proaktivio.qwanguapi.handlers.NoticeHandler;
 import co.ke.proaktivio.qwanguapi.pojos.CreateNoticeDto;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
 import co.ke.proaktivio.qwanguapi.pojos.UpdateNoticeDto;
+import co.ke.proaktivio.qwanguapi.pojos.responses.NoticeResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.NoticesResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -37,7 +39,7 @@ public class NoticeConfigs {
                                 operationId = "findById",
                                 responses = {
                                         @ApiResponse(responseCode = "200", description = "Notice found successfully.",
-                                                content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                                content = @Content(schema = @Schema(implementation = NoticeResponse.class))),
                                         @ApiResponse(responseCode = "404", description = "Notice was not found!",
                                         content = @Content(schema = @Schema(implementation = Response.class)))
                                 },
@@ -53,7 +55,7 @@ public class NoticeConfigs {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Notices found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = NoticesResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Notices were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -76,7 +78,7 @@ public class NoticeConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = CreateNoticeDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Notices created successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = NoticeResponse.class))),
                                             @ApiResponse(responseCode = "400", description = "Notices already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),
                                             @ApiResponse(responseCode = "404", description = "Notices were not found!",
@@ -94,7 +96,7 @@ public class NoticeConfigs {
                                     requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = UpdateNoticeDto.class))),
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Notice updated successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = NoticeResponse.class))),
                                             @ApiResponse(responseCode = "400", description =
                                                     "Notice does not exists!/Notice already exists!",
                                                     content = @Content(schema = @Schema(implementation = Response.class))),

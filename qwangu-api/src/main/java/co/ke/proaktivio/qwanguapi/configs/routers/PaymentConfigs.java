@@ -2,6 +2,8 @@ package co.ke.proaktivio.qwanguapi.configs.routers;
 
 import co.ke.proaktivio.qwanguapi.handlers.PaymentHandler;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
+import co.ke.proaktivio.qwanguapi.pojos.responses.PaymentResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.PaymentsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -35,7 +37,7 @@ public class PaymentConfigs {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Payment found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class))),
+                                                    content = @Content(schema = @Schema(implementation = PaymentResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Payment was not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -51,7 +53,7 @@ public class PaymentConfigs {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Payments found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = PaymentsResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Payments were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },

@@ -13,6 +13,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import co.ke.proaktivio.qwanguapi.handlers.AuthorityHandler;
 import co.ke.proaktivio.qwanguapi.pojos.Response;
+import co.ke.proaktivio.qwanguapi.pojos.responses.AuthoritiesResponse;
+import co.ke.proaktivio.qwanguapi.pojos.responses.AuthorityResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -34,7 +36,7 @@ public class AuthorityConfig {
                                     operationId = "findAll",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Authority found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Response.class))),
+                                                    content = @Content(schema = @Schema(implementation = AuthoritiesResponse.class))),
                                             @ApiResponse(responseCode = "404", description = "Authority were not found!",
                                                     content = @Content(schema = @Schema(implementation = Response.class)))
                                     },
@@ -52,7 +54,7 @@ public class AuthorityConfig {
                                     operationId = "findById",
                                     responses = {
                                             @ApiResponse(responseCode = "200", description = "Authority found successfully.",
-                                                    content = @Content(schema = @Schema(implementation = Boolean.class)))
+                                                    content = @Content(schema = @Schema(implementation = AuthorityResponse.class)))
                                     },
                                     parameters = {@Parameter(in = ParameterIn.PATH, name = "authorityId")}
                             )
