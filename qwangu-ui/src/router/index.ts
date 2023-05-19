@@ -7,6 +7,7 @@ import Users from "../views/users/Users.vue";
 import Properties from '../views/properties/Properties.vue'
 import Units from "../views/units/Units.vue";
 import Unit from '../views/units/Unit.vue'
+import Tenants from '../views/tenants/Tenants.vue'
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -50,6 +51,12 @@ const routes: Array<RouteRecordRaw> = [
           name: 'Unit',
           component: Unit,
           meta: { authority: 'UNIT_READ' }
+        },
+        {
+          path: '/tenants',
+          name: 'Tenants',
+          component: Tenants,
+          meta: { authority: 'TENANT_READ' }
         }  
       ]
     },
