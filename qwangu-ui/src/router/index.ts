@@ -43,11 +43,13 @@ const routes: Array<RouteRecordRaw> = [
           path: '/units',
           name: 'Units',
           component: Units,
+          meta: { authority: 'UNIT_READ' }
         },
         {
           path: '/units/:id',
           name: 'Unit',
           component: Unit,
+          meta: { authority: 'UNIT_READ' }
         }  
       ]
     },
@@ -62,6 +64,6 @@ const router = createRouter({
     history: createWebHistory(),
     routes,
     linkActiveClass: 'active'
-  });
-  
+});
+
   export default router;

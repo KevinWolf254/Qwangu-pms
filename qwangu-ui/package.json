@@ -10,14 +10,17 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.7",
+    "@vueuse/integrations": "^10.1.2",
     "axios": "^1.4.0",
     "bootstrap": "^5.2.3",
     "bootstrap-icons": "^1.10.5",
+    "jwt-decode": "^3.1.2",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6"
   },
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
+    "@types/jwt-decode": "^3.1.0",
     "@vitejs/plugin-vue": "^4.1.0",
     "typescript": "^5.0.2",
     "vite": "^4.3.0",

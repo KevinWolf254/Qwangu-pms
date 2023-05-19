@@ -24,7 +24,7 @@
                     <span class="mx-2">Properties</span>
                 </li>
             </router-link>
-            <router-link to="/units" :class="{'custom-nav-link': true}">
+            <router-link to="/units" :class="{'custom-nav-link': true}" v-has-authority="'UNIT_READ'">
                 <li class="nav-link">
                     <i class="bi bi-house-door-fill"></i>
                     <span class="mx-2">Units</span>
@@ -81,9 +81,13 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { hasAuthorityDirective } from '../directives/hasAuthorityDirective';
 
 export default defineComponent({
     name: 'Home',
+    directives: {
+        'has-authority': hasAuthorityDirective,
+    },
     setup() {
         const menuBtn = ref<HTMLButtonElement>();
         const sidebar = ref<HTMLDivElement>();
