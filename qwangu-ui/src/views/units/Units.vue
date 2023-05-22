@@ -47,7 +47,6 @@
                                         <i class="bi bi-eye-fill"></i>
                                         View
                                     </button>
-                                    <span class="badge bg-secondary me-1"></span>
                                     <button type="button" class="btn btn-outline-secondary me-1" style="font-size: .75rem;"
                                         @click="openModal('EDIT', unitModal, unit)">
                                         <i class="bi bi-pencil-square"></i>

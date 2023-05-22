@@ -114,7 +114,7 @@ export default defineComponent({
 });
 </script>
 
-<style>
+<style scoped>
 .side-navbar {
     width: 200px;
     height: 100%;

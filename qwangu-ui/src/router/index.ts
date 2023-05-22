@@ -8,6 +8,7 @@ import Properties from '../views/properties/Properties.vue'
 import Units from "../views/units/Units.vue";
 import Unit from '../views/units/Unit.vue'
 import Tenants from '../views/tenants/Tenants.vue'
+import Tenant from '../views/tenants/Tenant.vue'
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -42,22 +43,38 @@ const routes: Array<RouteRecordRaw> = [
         },
         {
           path: '/units',
-          name: 'Units',
-          component: Units,
-          meta: { authority: 'UNIT_READ' }
-        },
-        {
-          path: '/units/:id',
-          name: 'Unit',
-          component: Unit,
-          meta: { authority: 'UNIT_READ' }
+          children: [
+            {
+              path: '',
+              name: 'Units',
+              component: Units,
+              meta: { authority: 'UNIT_READ' }
+            },
+            {
+              path: ':id',
+              name: 'Unit',
+              component: Unit,
+              meta: { authority: 'UNIT_READ' }
+            },
+          ]
         },
         {
           path: '/tenants',
-          name: 'Tenants',
-          component: Tenants,
-          meta: { authority: 'TENANT_READ' }
-        }  
+          children: [
+            {
+              path: '',
+              name: 'Tenants',
+              component: Tenants,
+              meta: { authority: 'TENANT_READ' }
+            },
+            {
+              path: ':id',
+              name: 'Tenant',
+              component: Tenant,
+              meta: { authority: 'TENANT_READ' }
+            },
+          ]
+        },
       ]
     },
     // catch-all route for unknown paths
