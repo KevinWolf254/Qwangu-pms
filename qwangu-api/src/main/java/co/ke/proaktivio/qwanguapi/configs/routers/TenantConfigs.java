@@ -102,10 +102,10 @@ public class TenantConfigs {
     RouterFunction<ServerResponse> tenantRoute(TenantHandler handler) {
         return route()
                 .path("v1/tenants", builder -> builder
+                		.GET("/{tenantId}", handler::findById)
                         .GET(handler::findAll)
-                        .POST(handler::create)
                         .PUT("/{tenantId}", handler::update)
-                        .GET("/{tenantId}", handler::findById)
+                        .POST(handler::create)
                 ).build();
     }
 }
