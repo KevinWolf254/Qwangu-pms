@@ -6,6 +6,8 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.function.Supplier;
@@ -44,6 +46,7 @@ public class Occupation {
         private final String state;
     }
 
+    @JsonIgnore
     @Transient
     protected Supplier<String> generateOccupationNumber = () -> "O" + RandomStringUtils.randomAlphanumeric(5).toUpperCase();
 

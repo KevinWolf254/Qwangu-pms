@@ -98,14 +98,22 @@
                         </form>
                     </div>
                     <div class="tab-pane fade" id="occupationInfo" role="tabpanel" aria-labelledby="occupationInfo-tab">
-                        <div class="container mt-4">
-                            <div v-for="occupation in occupations" :key="occupation.id" class="card" style="width: 18rem;">
-                                <img class="card-img-top" src="../../../house.jpg" alt="Card image cap">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ occupation.number }}</h5>
-                                    <p class="card-text">Some quick example text to build on the card title and make up the
-                                        bulk of the card's content.</p>
-                                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                        <div class="container row mt-4">
+                            <div class="col-12 d-flex flex-row-reverse">
+                                <button type="button" class="btn btn-primary" @click="openModal(occupationModal)">
+                                    <i class="bi bi-house-add me-1" style="font-size: 1.1rem;"></i>
+                                    Create
+                                </button>
+                            </div>
+                            <div class="col-12">
+                                <div v-for="occupation in occupations" :key="occupation.id" class="card" style="width: 18rem;">
+                                    <img class="card-img-top" src="../../../house.jpg" alt="Card image cap">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ occupation.number }}</h5>
+                                        <p class="card-text">Some quick example text to build on the card title and make up the
+                                            bulk of the card's content.</p>
+                                        <a href="#" class="btn btn-primary">Go somewhere</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -117,6 +125,27 @@
             </div>
         </div>
     </div>
+    <!-- create occupation -->
+    <div class="modal fade" ref="occupationModal" tabindex="-1" aria-labelledby="occupationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="occupationModalLabel">Create Occupation</h5>
+                    <button type="button" class="btn-close" @click="closeModal()" aria-label="Close"></button>
+                </div>
+                <form @submit.prevent="createOccupation(tenant)" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeModal()">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
@@ -125,15 +154,21 @@ import { useRoute } from 'vue-router'
 import { Tenant } from '../../types/Tenant';
 import { Occupation } from '../../types/Occupation';
 import { getTenant, updateTenant } from '../../api/tenant-api';
+import { getOccupations, createOccupation } from '../../api/occupation-api';
 import { AxiosError } from 'axios';
 import { Response } from '../../types/Response';
+import * as bootstrap from 'bootstrap';
 
 export default defineComponent({
     setup() {
         const route = useRoute();
         const submitted: Ref<boolean> = ref(false);
         const occupations: Ref<Occupation[]> = ref([]);
+        const occupation: Ref<Occupation> = ref(new Occupation());
+        const allOccupations: Ref<Occupation[]> = ref([]);
+        const occupationModal: Ref<HTMLDivElement | null> = ref(null);
 
+        let modal: bootstrap.Modal;
         let tenantId: Ref<string> = ref("");
         let tenant: Ref<Tenant> = ref(new Tenant());
 
@@ -163,6 +198,32 @@ export default defineComponent({
                         console.error(error);
                     }
                 }
+            }
+        };
+
+        const openModal = (refModal: HTMLDivElement | null) => {
+            occupation.value = new Occupation();
+            modal = new bootstrap.Modal(refModal!);
+            modal?.show();
+        };
+
+        const closeModal = () => {
+            submitted.value = false;
+            modal?.hide();
+        };
+
+        const createOccupation = async (occupation: Occupation) => {
+            submitted.value = true;
+            try {
+                await createOccupation(occupation);
+                allOccupations.value = await getOccupations(tenant.value.id);
+                closeModal();
+            } catch (error) {
+                if (error instanceof AxiosError) {
+                    console.log((error.response?.data as Response<any>).message)
+                } else {
+                    console.error(error);
+                }                
             }
         };
 
@@ -222,7 +283,11 @@ export default defineComponent({
             isMiddleNameValid,
             isFirstNameValid,
             occupations,
-            editPersonalInfo
+            occupationModal,
+            editPersonalInfo,
+            openModal,
+            closeModal,
+            createOccupation
         }
     }
 })

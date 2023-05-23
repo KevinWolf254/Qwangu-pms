@@ -50,6 +50,9 @@ public class Unit {
     @LastModifiedBy
     private String modifiedBy;
     private String propertyId;
+    
+    // in = neighbourhood
+    // with = amenities
 
     @SuppressWarnings("unused")
     public class PaymentPerMonth {
