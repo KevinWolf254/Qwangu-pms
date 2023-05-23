@@ -16,12 +16,19 @@ public class Property {
     private PropertyType type;
     @Indexed(unique = true)
     private String name;
+    private String neighbourhood;
+    private RealtorInfo realtor;
+    
+    private Boolean hasBedsitters;
+    private Boolean hasOneBedrooms;
+    private Boolean hasTwoBedrooms;
+    private Boolean hasThreeBedrooms;
+    private Boolean hasFourBedrooms;
+    private Boolean hasFiveBedrooms;
+    
+    private Integer noOfFloors;
+    private Amenities amenities;
     private String description;
-    // TODO INCLUDE NO OF FLOORS
-    // TODO INCLUDE CONTACTS
-    // TODO INCLUDE LOCATION
-    // TODO INCLUDE AMENITIES = SWIMMING_POOL, GYM, E.T.C PS: INCLUDE PHOTOS
-    // TODO ADD OBJECT OF PARKING - INCLUDE PHOTOS
     // TODO ADD OBJECT OF NEARBY
     @CreatedDate
     private LocalDateTime createdOn;
@@ -40,7 +47,20 @@ public class Property {
 
         private final String name;
     }
+    
+    @Data
+    public class RealtorInfo {
+    	private String names;
+    	private String emailAddress;
+    	private String mobileNumber;    	
+    }
 
+    @Data
+    public class Amenities {
+    	private Boolean hasSwimmingpool;
+    	private Boolean hasGym;
+    }
+    
     public static class PropertyBuilder {
         private PropertyType type;
         private String name;

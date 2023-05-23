@@ -22,12 +22,15 @@ public class Unit {
     private UnitType type;
     private Identifier identifier;
     private Integer floorNo;
+    
+    private boolean ensuite;
+    private boolean furnished;
+    
     // PS: ALL OBJECTS TO INCLUDE PHOTOS
     // TODO OBJECT OF LIVING_ROOM
     // TODO ADD LIST<OBJECT> OF BEDROOM - IS_EN_SUITE
     // TODO ADD LIST<OBJECT> OF BATHROOMS
-    // TODO ADD OBJECT OF KITCHEN
-    // TODO ADD IS FULLY_FURNISHED
+    private boolean bedsitter;
     private Integer noOfBedrooms;
     private Integer noOfBathrooms;
     private Currency currency;

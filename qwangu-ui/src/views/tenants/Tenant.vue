@@ -7,6 +7,9 @@
             <hr class="my-4">
             <div class="col-3">
                 <img src="../../../public/tenant.jpg" class="img-thumbnail" alt="tenant profile">
+                
+                <p>Full Name</p>
+                <p>{{ tenant?.firstName }} {{ tenant?.middleName }} {{ tenant?.surname }}</p>
             </div>
             <div class="col-9">
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -106,11 +109,13 @@
                                 </button>
                             </div>
                             <div class="col-12">
-                                <div v-for="occupation in occupations" :key="occupation.id" class="card" style="width: 18rem;">
+                                <div v-for="occupation in occupations" :key="occupation.id" class="card"
+                                    style="width: 18rem;">
                                     <img class="card-img-top" src="../../../house.jpg" alt="Card image cap">
                                     <div class="card-body">
                                         <h5 class="card-title">{{ occupation.number }}</h5>
-                                        <p class="card-text">Some quick example text to build on the card title and make up the
+                                        <p class="card-text">Some quick example text to build on the card title and make up
+                                            the
                                             bulk of the card's content.</p>
                                         <a href="#" class="btn btn-primary">Go somewhere</a>
                                     </div>
@@ -223,7 +228,7 @@ export default defineComponent({
                     console.log((error.response?.data as Response<any>).message)
                 } else {
                     console.error(error);
-                }                
+                }
             }
         };
 
