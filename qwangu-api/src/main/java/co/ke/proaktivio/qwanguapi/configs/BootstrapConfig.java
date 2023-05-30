@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 @Configuration
 @Profile("dev")
 public class BootstrapConfig {
+	private static final LocalDateTime NOW = LocalDateTime.now();
 	Person person = new Person("John", "David", "Doe");
 	Person person2 = new Person("Jane", "Josephine", "Doe");
 	Mono<User> user = Mono.just(new User(null, person, "johnDoe@email.com", null, "ABc1234!", false, false, false, true,
@@ -33,29 +34,29 @@ public class BootstrapConfig {
 	Mono<UserRole> superAdminRole = Mono.just(new UserRole.UserRoleBuilder().name("SUPER_ADMIN").build());
 
 	Flux<UserAuthority> superAdminAuthorities = Flux.just(
-			new UserAuthority(null, "APARTMENT", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+			new UserAuthority(null, "APARTMENT", true, true, true, true, true, null, NOW, null, null,
 					null),
-			new UserAuthority(null, "UNIT", true, true, true, true, true, null, LocalDateTime.now(), null, null, null),
-			new UserAuthority(null, "OCCUPATION", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+			new UserAuthority(null, "UNIT", true, true, true, true, true, null, NOW, null, null, null),
+			new UserAuthority(null, "OCCUPATION", true, true, true, true, true, null, NOW, null, null,
 					null),
-			new UserAuthority(null, "TENANT", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+			new UserAuthority(null, "TENANT", true, true, true, true, true, null, NOW, null, null,
 					null),
-			new UserAuthority(null, "NOTICE", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+			new UserAuthority(null, "NOTICE", true, true, true, true, true, null, NOW, null, null,
 					null),
-			new UserAuthority(null, "PAYMENT", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+			new UserAuthority(null, "PAYMENT", true, true, true, true, true, null, NOW, null, null,
 					null),
-			new UserAuthority(null, "OCCUPATION_TRANSACTION", true, true, true, true, true, null, LocalDateTime.now(),
+			new UserAuthority(null, "OCCUPATION_TRANSACTION", true, true, true, true, true, null, NOW,
 					null, null, null),
-			new UserAuthority(null, "ADVANCE", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+			new UserAuthority(null, "ADVANCE", true, true, true, true, true, null, NOW, null, null,
 					null),
-			new UserAuthority(null, "RECEIVABLE", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+			new UserAuthority(null, "RECEIVABLE", true, true, true, true, true, null, NOW, null, null,
 					null),
-			new UserAuthority(null, "REFUND", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+			new UserAuthority(null, "REFUND", true, true, true, true, true, null, NOW, null, null,
 					null),
-			new UserAuthority(null, "USER", true, true, true, true, true, null, LocalDateTime.now(), null, null, null),
-			new UserAuthority(null, "USER_ROLE", true, true, true, true, true, null, LocalDateTime.now(), null, null,
+			new UserAuthority(null, "USER", true, true, true, true, true, null, NOW, null, null, null),
+			new UserAuthority(null, "USER_ROLE", true, true, true, true, true, null, NOW, null, null,
 					null),
-			new UserAuthority(null, "USER_AUTHORITY", true, true, true, true, true, null, LocalDateTime.now(), null,
+			new UserAuthority(null, "USER_AUTHORITY", true, true, true, true, true, null, NOW, null,
 					null, null));
 
 	private Mono<Void> deleteAll(UserRepository userRepository, UserRoleRepository roleRepository,

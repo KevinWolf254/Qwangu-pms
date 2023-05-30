@@ -7,19 +7,31 @@
             <hr class="my-4">
             <div class="col-3">
                 <img src="../../../public/tenant.jpg" class="img-thumbnail" alt="tenant profile">
-                
-                <p>Full Name</p>
-                <p>{{ tenant?.firstName }} {{ tenant?.middleName }} {{ tenant?.surname }}</p>
+                <div class="d-flex flex-row-reverse">
+                    <a href="#" rel="noopener noreferrer" @click="openEditTenantModal(editTenantModal)">Edit</a>
+                </div>
+                <p>
+                    <h6 style="font-weight: bold;">Full Name</h6>
+                    <h6>{{ tenant?.firstName }} {{ tenant?.middleName }} {{ tenant?.surname }}</h6>
+                </p>
+                <p>
+                    <h6 style="font-weight: bold;">Email Address</h6>
+                    <h6>{{ tenant?.emailAddress }}</h6>
+                </p>
+                <p>
+                    <h6 style="font-weight: bold;">Mobile No.</h6>
+                    <h6>{{ tenant?.mobileNumber }}</h6>
+                </p>
             </div>
             <div class="col-9">
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
-                    <li class="nav-item" role="presentation">
+                    <!-- <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="personalInfo-tab" data-bs-toggle="tab"
                             data-bs-target="#personalInfo" type="button" role="tab" aria-controls="personalInfo"
                             aria-selected="true">Personal Info.</button>
-                    </li>
+                    </li> -->
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="occupationInfo-tab" data-bs-toggle="tab"
+                        <button class="nav-link active" id="occupationInfo-tab" data-bs-toggle="tab"
                             data-bs-target="#occupationInfo" type="button" role="tab" aria-controls="occupationInfo"
                             aria-selected="false">Occupation Info.</button>
                     </li>
@@ -30,12 +42,11 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications"
-                            type="button" role="tab" aria-controls="notifications" aria-selected="false">Vacate
-                            Notiifications</button>
+                            type="button" role="tab" aria-controls="notifications" aria-selected="false">Notices</button>
                     </li>
                 </ul>
                 <div class="tab-content" id="myTabContent">
-                    <div class="tab-pane fade show active" id="personalInfo" role="tabpanel"
+                    <!-- <div class="tab-pane fade show active" id="personalInfo" role="tabpanel"
                         aria-labelledby="personalInfo-tab">
                         <form @submit.prevent="editPersonalInfo(tenant)" class="needs-validation" novalidate>
                             <div class="container row g-3 mt-3">
@@ -99,15 +110,15 @@
                                 <button type="submit" class="btn btn-primary">Save changes</button>
                             </div>
                         </form>
-                    </div>
-                    <div class="tab-pane fade" id="occupationInfo" role="tabpanel" aria-labelledby="occupationInfo-tab">
+                    </div> -->
+                    <div class="tab-pane fade show active" id="occupationInfo" role="tabpanel" aria-labelledby="occupationInfo-tab">
                         <div class="container row mt-4">
-                            <div class="col-12 d-flex flex-row-reverse">
+                            <!-- <div class="col-12 d-flex flex-row-reverse">
                                 <button type="button" class="btn btn-primary" @click="openModal(occupationModal)">
                                     <i class="bi bi-house-add me-1" style="font-size: 1.1rem;"></i>
                                     Create
                                 </button>
-                            </div>
+                            </div> -->
                             <div class="col-12">
                                 <div v-for="occupation in occupations" :key="occupation.id" class="card"
                                     style="width: 18rem;">
@@ -118,6 +129,18 @@
                                             the
                                             bulk of the card's content.</p>
                                         <a href="#" class="btn btn-primary">Go somewhere</a>
+                                    </div>
+                                </div>
+                                <div class="card"
+                                    style="width: 18rem;">
+                                    <!-- <img class="card-img-top" src="../../../house.jpg" alt="Card image cap"> -->
+                                    <!-- <i class="bi bi-person-fill-add"></i> -->
+                                    <div class="card-body">
+                                        <h5 class="card-title">Create Occupation</h5>
+                                        <p class="card-text">No occupations.</p>
+                                        <div class="d-grid gap-2">
+                                            <a href="#" class="btn btn-outline-danger" @click="openModal(occupationModal)">Create</a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -141,6 +164,83 @@
                 <form @submit.prevent="createOccupation(tenant)" class="needs-validation" novalidate>
                     <div class="modal-body">
                         <div class="row g-3">
+                            <!-- bedrooms, location,  -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeModal()">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- edit tenant modal -->
+    <div class="modal fade" ref="editTenantModal" tabindex="-1" aria-labelledby="editTenantModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTenantModalLabel">Edit Tenant</h5>
+                    <button type="button" class="btn-close" @click="closeModal()" aria-label="Close"></button>
+                </div>
+                <form @submit.prevent="editPersonalInfo(tenant)" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <label for="surname">Surname</label>
+                                    <input type="text" class="form-control" id="surname" v-model="tenant!.surname"
+                                        placeholder="Enter middle name"
+                                        :class="{ 'is-invalid': !isSurnameValid && submitted }" required />
+                                    <div class="invalid-feedback">
+                                        Please enter surname with a minimum of 2 characters.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group mb-3">
+                                    <label for="firstName">First Name</label>
+                                    <input type="text" class="form-control" id="firstName" v-model="tenant!.firstName"
+                                        placeholder="Enter first name"
+                                        :class="{ 'is-invalid': !isFirstNameValid && submitted }" required />
+                                    <div class="invalid-feedback">
+                                        Please enter first name with a minimum of 2 characters.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group mb-3">
+                                    <label for="middleName">Middle Name</label>
+                                    <input type="text" class="form-control" id="middleName" v-model="tenant!.middleName"
+                                        placeholder="Enter middle name"
+                                        :class="{ 'is-invalid': !isMiddleNameValid && submitted }" required />
+                                    <div class="invalid-feedback">
+                                        Please enter middle name with a minimum of 2 characters.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <label for="emailAddress">Email Address</label>
+                                    <input type="text" class="form-control" id="emailAddress" v-model="tenant!.emailAddress"
+                                        placeholder="Enter email address" :class="{'is-invalid': !isEmailAddressValid && submitted}" required/>
+                                    <div class="invalid-feedback">
+                                        Please enter a email address.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <label for="mobileNumber">Mobile No.</label>
+                                    <input type="text" class="form-control" id="mobileNumber" v-model="tenant!.mobileNumber"
+                                        placeholder="Enter mobile no."
+                                        :class="{ 'is-invalid': !isMobileNumberValid && submitted }" required />
+                                    <div class="invalid-feedback">
+                                        Please enter mobile number.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -172,6 +272,7 @@ export default defineComponent({
         const occupation: Ref<Occupation> = ref(new Occupation());
         const allOccupations: Ref<Occupation[]> = ref([]);
         const occupationModal: Ref<HTMLDivElement | null> = ref(null);
+        const editTenantModal: Ref<HTMLDivElement | null> = ref(null);
 
         let modal: bootstrap.Modal;
         let tenantId: Ref<string> = ref("");
@@ -204,6 +305,11 @@ export default defineComponent({
                     }
                 }
             }
+        };
+
+        const openEditTenantModal = (refModal: HTMLDivElement | null) => {
+            modal = new bootstrap.Modal(refModal!);
+            modal?.show();
         };
 
         const openModal = (refModal: HTMLDivElement | null) => {
@@ -289,7 +395,9 @@ export default defineComponent({
             isFirstNameValid,
             occupations,
             occupationModal,
+            editTenantModal,
             editPersonalInfo,
+            openEditTenantModal,
             openModal,
             closeModal,
             createOccupation
